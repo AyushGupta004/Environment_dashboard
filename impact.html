@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Environmental Impact — EARTH FORWARD</title>
+  <meta name="description" content="Measurable Remediation Outcomes, Verification Velocity, and Verified Environmental Impact in NCR">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/reports.css">
+  <link rel="stylesheet" href="css/impact.css">
+  
+  <!-- CDNs: Lucide Icons & Chart.js -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div id="app-shell" class="app-shell">
+    <main class="main-content">
+      <div class="page-container">
+        
+        <!-- Ethical AI Protocol Notice Banner -->
+        <div class="ai-notice-banner">
+          <span class="ai-notice-tag">Ethical AI Protocol</span>
+          <span>Impact metrics track verified outcomes of closed cases initially flagged as <strong>AI-detected suspected issues</strong>, auditing real-world remediation success across NCR communities.</span>
+        </div>
+
+        <!-- Page Header -->
+        <div class="impact-header-group">
+          <div>
+            <div style="display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap;">
+              <h1 class="page-title">Environmental Impact</h1>
+              <span class="demo-data-pill" style="margin-bottom: 0;">
+                <span class="dot"></span>
+                <span>● DEMO DATA</span>
+              </span>
+            </div>
+            <p class="page-subtitle">Measuring verified remediation velocity, community protection, and multi-agency ecological restoration across Delhi NCR.</p>
+          </div>
+          <div style="display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap;">
+            <a href="analytics.html" class="btn btn-outline btn-sm">
+              <i data-lucide="bar-chart-2"></i>
+              <span>Analytics Dashboard</span>
+            </a>
+            <a href="reports.html" class="btn btn-primary btn-sm">
+              <i data-lucide="table"></i>
+              <span>Reports Triage &rarr;</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- 1. SIX KPI STAT CARDS (ANIMATED COUNT-UP) -->
+        <div class="impact-kpi-grid">
+          
+          <!-- KPI 1: Environmental Reports -->
+          <div class="impact-kpi-card">
+            <div class="impact-kpi-top">
+              <span class="impact-kpi-label">Environmental Reports</span>
+              <div class="impact-kpi-icon">
+                <i data-lucide="file-text"></i>
+              </div>
+            </div>
+            <div class="impact-kpi-val" id="kpiTotalReports">0</div>
+            <div class="impact-kpi-sub">
+              <span>Ingested citizen telemetry</span>
+            </div>
+          </div>
+
+          <!-- KPI 2: Verified Issues -->
+          <div class="impact-kpi-card">
+            <div class="impact-kpi-top">
+              <span class="impact-kpi-label">Verified Issues</span>
+              <div class="impact-kpi-icon">
+                <i data-lucide="shield-check"></i>
+              </div>
+            </div>
+            <div class="impact-kpi-val" id="kpiVerifiedIssues" style="color: var(--c-primary);">0</div>
+            <div class="impact-kpi-sub">
+              <span>Physically ground-truthed</span>
+            </div>
+          </div>
+
+          <!-- KPI 3: Issues Resolved -->
+          <div class="impact-kpi-card">
+            <div class="impact-kpi-top">
+              <span class="impact-kpi-label">Issues Resolved</span>
+              <div class="impact-kpi-icon">
+                <i data-lucide="check-circle-2"></i>
+              </div>
+            </div>
+            <div class="impact-kpi-val" id="kpiIssuesResolved">0</div>
+            <div class="impact-kpi-sub">
+              <span>Full remediation confirmed</span>
+            </div>
+          </div>
+
+          <!-- KPI 4: Issues Under Investigation -->
+          <div class="impact-kpi-card">
+            <div class="impact-kpi-top">
+              <span class="impact-kpi-label">Under Investigation</span>
+              <div class="impact-kpi-icon">
+                <i data-lucide="search"></i>
+              </div>
+            </div>
+            <div class="impact-kpi-val" id="kpiUnderInvestigation">0</div>
+            <div class="impact-kpi-sub">
+              <span>Active triage &amp; inspection</span>
+            </div>
+          </div>
+
+          <!-- KPI 5: Communities Engaged -->
+          <div class="impact-kpi-card">
+            <div class="impact-kpi-top">
+              <span class="impact-kpi-label">Communities Engaged</span>
+              <div class="impact-kpi-icon">
+                <i data-lucide="users"></i>
+              </div>
+            </div>
+            <div class="impact-kpi-val" id="kpiCommunitiesEngaged">0</div>
+            <div class="impact-kpi-sub">
+              <span>Unique municipal sectors</span>
+            </div>
+          </div>
+
+          <!-- KPI 6: NGO Partners -->
+          <div class="impact-kpi-card">
+            <div class="impact-kpi-top">
+              <span class="impact-kpi-label">NGO Partners</span>
+              <div class="impact-kpi-icon">
+                <i data-lucide="building-2"></i>
+              </div>
+            </div>
+            <div class="impact-kpi-val" id="kpiNgoPartners" style="color: var(--c-primary);">0</div>
+            <div class="impact-kpi-sub">
+              <span>NCR coalition members</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- 2. COMPUTED METRICS: THREE LARGE STATS + MONOCHROME GREEN TREND CHARTS -->
+        <div class="computed-metrics-grid">
+          
+          <!-- Metric 1: Resolution Rate -->
+          <div class="metric-trend-card">
+            <div class="metric-trend-header">
+              <span class="metric-trend-title">
+                <i data-lucide="sparkles" style="width: 15px; height: 15px; color: var(--c-primary);"></i>
+                <span>Resolution Rate</span>
+              </span>
+              <span class="metric-trend-pill" id="pillResolutionRate">+5.4% this QTR</span>
+            </div>
+            <div class="metric-stat-hero">
+              <span class="metric-large-number" id="statResolutionRate">0%</span>
+              <span style="font-size: 11px; color: var(--c-text-secondary); text-align: right;">
+                Closed / Total Reports
+              </span>
+            </div>
+            <p class="metric-trend-desc">
+              Ratio of closed and remediated environmental infractions relative to total citizen intakes.
+            </p>
+            <div class="trend-canvas-container">
+              <canvas id="chartResolutionTrend"></canvas>
+            </div>
+          </div>
+
+          <!-- Metric 2: Verification Rate -->
+          <div class="metric-trend-card">
+            <div class="metric-trend-header">
+              <span class="metric-trend-title">
+                <i data-lucide="shield" style="width: 15px; height: 15px; color: var(--c-primary);"></i>
+                <span>Verification Rate</span>
+              </span>
+              <span class="metric-trend-pill" id="pillVerificationRate">Rigorous Audit</span>
+            </div>
+            <div class="metric-stat-hero">
+              <span class="metric-large-number" id="statVerificationRate">0%</span>
+              <span style="font-size: 11px; color: var(--c-text-secondary); text-align: right;">
+                Ground-Truthed Ratio
+              </span>
+            </div>
+            <p class="metric-trend-desc">
+              Percentage of suspected spectral anomalies subjected to on-site physical verification by field specialists.
+            </p>
+            <div class="trend-canvas-container">
+              <canvas id="chartVerificationTrend"></canvas>
+            </div>
+          </div>
+
+          <!-- Metric 3: Average Resolution Time -->
+          <div class="metric-trend-card">
+            <div class="metric-trend-header">
+              <span class="metric-trend-title">
+                <i data-lucide="clock" style="width: 15px; height: 15px; color: var(--c-primary);"></i>
+                <span>Avg. Resolution Time</span>
+              </span>
+              <span class="metric-trend-pill" id="pillTurnaroundRate">18% Faster</span>
+            </div>
+            <div class="metric-stat-hero">
+              <span class="metric-large-number" id="statAvgResolutionTime">0.0 Days</span>
+              <span style="font-size: 11px; color: var(--c-text-secondary); text-align: right;">
+                Intake to Closure
+              </span>
+            </div>
+            <p class="metric-trend-desc">
+              Derived live from statusHistory timestamps from initial citizen ingestion to final resolution milestone.
+            </p>
+            <div class="trend-canvas-container">
+              <canvas id="chartTurnaroundTrend"></canvas>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- 3. RECENT RESOLVED INCIDENTS AUDIT TABLE -->
+        <section class="impact-table-card" aria-label="Resolved Incidents Showcase">
+          <div class="impact-table-header">
+            <div>
+              <h3 style="font-size: var(--text-sm); font-weight: 700; color: var(--c-text-primary); margin: 0; display: flex; align-items: center; gap: 6px;">
+                <i data-lucide="check-circle" style="width: 16px; height: 16px; color: var(--c-primary);"></i>
+                <span>Recent Verified Remediations &amp; Closures</span>
+              </h3>
+              <span style="font-size: 11px; color: var(--c-text-secondary);">
+                Authoritative ground-truthed closures with verified post-mitigation inspection audits.
+              </span>
+            </div>
+            <a href="reports.html?status=Resolved" class="btn btn-outline btn-sm">
+              <span>View All Resolved &rarr;</span>
+            </a>
+          </div>
+
+          <div class="table-responsive">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Report ID</th>
+                  <th>Category</th>
+                  <th>Corridor / Location</th>
+                  <th>Assigned Field Lead</th>
+                  <th>Resolution Date</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="resolvedReportsTbody">
+                <tr class="skeleton-row">
+                  <td colspan="7" style="text-align: center; padding: var(--space-6);">
+                    <div class="skeleton-loading-banner">
+                      <span class="skeleton-loading-dot"></span>
+                      <span>Loading environmental intelligence...</span>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- 4. NGO COALITION IMPACT CONTRIBUTIONS -->
+        <section aria-label="NGO Coalition Impact Contributions">
+          <div style="margin-bottom: var(--space-4);">
+            <h3 style="font-size: var(--text-sm); font-weight: 700; color: var(--c-text-primary); margin: 0 0 2px 0;">
+              Inter-Agency NGO Coalition Network
+            </h3>
+            <span style="font-size: 11px; color: var(--c-text-secondary);">
+              Four accredited regional organizations executing rapid field truthing and statutory advocacy.
+            </span>
+          </div>
+
+          <div class="coalition-cards-grid" id="coalitionCardsGrid">
+            <!-- Dynamically populated from organizations.js / data.js -->
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- Core Scripts -->
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/impact.js"></script>
+</body>
+</html>

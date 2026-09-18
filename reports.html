@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Environmental Reports — EARTH FORWARD</title>
+  <meta name="description" content="NGO Environmental Intelligence & Action Platform — Verification Triage Matrix">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/reports.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <div id="app-shell" class="app-shell">
+    <main class="main-content">
+      <div class="page-container">
+        <!-- Ethical AI Protocol Notice -->
+        <div class="ai-notice-banner">
+          <span class="ai-notice-tag">Ethical AI Protocol</span>
+          <span>Every item is an <strong>AI-detected suspected issue</strong>. NGO field officers conduct ground checks before advancing status to 'Verified'.</span>
+        </div>
+
+        <!-- Page Header -->
+        <div class="reports-header-group">
+          <div>
+            <div style="display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap;">
+              <h1 class="page-title">Environmental Reports</h1>
+              <span class="demo-data-pill" style="margin-bottom: 0;">
+                <span class="dot"></span>
+                <span>● DEMO DATA</span>
+              </span>
+            </div>
+            <p class="page-subtitle">Full triage matrix of citizen-submitted observations, remote sensing confidence scores, and multi-agency field dispatch.</p>
+          </div>
+          <div>
+            <a href="dashboard.html" class="btn btn-outline btn-sm">
+              <i data-lucide="layout-dashboard"></i>
+              <span>Back to Dashboard</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Bulk Selection Action Bar (appears when 1+ rows are checked) -->
+        <div id="bulkActionBar" class="bulk-action-bar">
+          <div class="bulk-meta">
+            <i data-lucide="check-square" style="width:16px; height:16px;"></i>
+            <span id="bulkSelectedCount">0 reports selected</span>
+          </div>
+          <div class="bulk-buttons">
+            <button class="btn btn-primary btn-sm" onclick="createProposalFromSelected()">
+              <i data-lucide="file-plus" style="width:14px; height:14px;"></i>
+              <span>Create Proposal from Selection &rarr;</span>
+            </button>
+            <button class="btn btn-ghost btn-sm" onclick="clearReportsSelection()">
+              <span>Clear</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Filters & Search Toolbar -->
+        <div class="reports-filter-panel">
+          <!-- Search Box -->
+          <div class="reports-search-row">
+            <div class="search-input-wrapper">
+              <i data-lucide="search" class="search-input-icon"></i>
+              <input 
+                type="text" 
+                id="reportsSearchInput" 
+                class="reports-search-input" 
+                placeholder="Search by report ID (REP-2026-...), category, area, or landmark..."
+                autocomplete="off"
+              />
+            </div>
+            <button class="btn btn-secondary btn-sm" onclick="resetAllReportsFilters()">
+              <i data-lucide="rotate-ccw" style="width:14px; height:14px;"></i>
+              <span>Reset Filters</span>
+            </button>
+          </div>
+
+          <!-- Dropdowns -->
+          <div class="reports-dropdowns-row">
+            <!-- Category -->
+            <select id="filterCategorySelect" class="filter-select">
+              <option value="all">All Categories</option>
+              <option value="Garbage Dumping">Garbage Dumping</option>
+              <option value="Waste Burning">Waste Burning</option>
+              <option value="Crop Burning">Crop Burning</option>
+              <option value="Air Pollution">Air Pollution</option>
+              <option value="Water Pollution">Water Pollution</option>
+              <option value="Sewage/Drainage">Sewage/Drainage</option>
+              <option value="Industrial Emission">Industrial Emission</option>
+              <option value="Vehicle Pollution">Vehicle Pollution</option>
+              <option value="Deforestation">Deforestation</option>
+              <option value="Plastic Waste">Plastic Waste</option>
+            </select>
+
+            <!-- Severity -->
+            <select id="filterSeveritySelect" class="filter-select">
+              <option value="all">All Severities</option>
+              <option value="High">High Severity</option>
+              <option value="Medium">Medium Severity</option>
+              <option value="Low">Low Severity</option>
+            </select>
+
+            <!-- Status -->
+            <select id="filterStatusSelect" class="filter-select">
+              <option value="all">All Statuses</option>
+              <option value="Reported">Reported</option>
+              <option value="AI Analyzed">AI Analyzed</option>
+              <option value="Under Review">Under Review</option>
+              <option value="Verified">Verified</option>
+              <option value="Action Initiated">Action Initiated</option>
+              <option value="Resolved">Resolved</option>
+            </select>
+
+            <!-- Date Range (Month) -->
+            <select id="filterDateSelect" class="filter-select">
+              <option value="all">All Dates (Jun–Sep 2026)</option>
+              <option value="2026-06">June 2026</option>
+              <option value="2026-07">July 2026</option>
+              <option value="2026-08">August 2026</option>
+              <option value="2026-09">September 2026</option>
+            </select>
+
+            <!-- Location / City -->
+            <select id="filterLocationSelect" class="filter-select">
+              <option value="all">All Locations</option>
+              <option value="Delhi">Delhi</option>
+              <option value="Noida">Noida</option>
+              <option value="Greater Noida">Greater Noida</option>
+              <option value="Ghaziabad">Ghaziabad</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Empty State (when 0 records match) -->
+        <div id="reportsEmptyState" class="empty-state" style="display:none;">
+          <div class="empty-icon">
+            <i data-lucide="filter-x"></i>
+          </div>
+          <h2 class="empty-title">No Environmental Reports Match Filter Criteria</h2>
+          <p class="empty-text">Try loosening your search query or setting the category, severity, and jurisdiction filters back to 'All'.</p>
+          <button class="btn btn-secondary btn-sm" onclick="resetAllReportsFilters()">
+            <i data-lucide="rotate-ccw"></i>
+            <span>Reset All Filters</span>
+          </button>
+        </div>
+
+        <!-- Full Reports Table -->
+        <div id="reportsTableWrap" class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th style="width: 38px; text-align: center;">
+                  <input type="checkbox" id="selectAllCheckbox" class="report-checkbox" aria-label="Select all visible reports">
+                </th>
+                <th class="sortable" data-sort="id">
+                  <span class="th-content">ID <span class="sort-indicator">⇅</span></span>
+                </th>
+                <th>Image</th>
+                <th class="sortable" data-sort="category">
+                  <span class="th-content">Category <span class="sort-indicator">⇅</span></span>
+                </th>
+                <th class="sortable" data-sort="location">
+                  <span class="th-content">Location <span class="sort-indicator">⇅</span></span>
+                </th>
+                <th class="sortable" data-sort="severity">
+                  <span class="th-content">Severity <span class="sort-indicator">⇅</span></span>
+                </th>
+                <th class="sortable" data-sort="confidence">
+                  <span class="th-content">Confidence <span class="sort-indicator">⇅</span></span>
+                </th>
+                <th class="sortable" data-sort="status">
+                  <span class="th-content">Status <span class="sort-indicator">⇅</span></span>
+                </th>
+                <th class="sortable" data-sort="date">
+                  <span class="th-content">Date <span class="sort-indicator">▼</span></span>
+                </th>
+                <th style="text-align: right;">Action</th>
+              </tr>
+            </thead>
+            <tbody id="reportsTableBody">
+              <tr class="skeleton-row">
+                <td colspan="10" style="text-align: center; padding: var(--space-8);">
+                  <div class="skeleton-loading-banner">
+                    <span class="skeleton-loading-dot"></span>
+                    <span>Loading environmental intelligence...</span>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination Controls -->
+        <div id="reportsPaginationBar" class="reports-pagination-bar">
+          <div id="paginationInfo">Showing 1–10 of 50 reports</div>
+
+          <div class="pagination-controls">
+            <div class="page-size-selector">
+              <span>Per page:</span>
+              <select id="pageSizeSelect" class="filter-select" style="padding:0.25rem 0.5rem;">
+                <option value="10">10</option>
+                <option value="20">20</option>
+                <option value="50">50</option>
+              </select>
+            </div>
+
+            <button id="btnPrevPage" class="btn btn-outline btn-sm">
+              <i data-lucide="chevron-left" style="width:14px; height:14px;"></i>
+              <span>Previous</span>
+            </button>
+
+            <span id="paginationCurrentPage" class="cell-compact" style="font-weight:600; padding:0 var(--space-2);">Page 1 of 5</span>
+
+            <button id="btnNextPage" class="btn btn-outline btn-sm">
+              <span>Next</span>
+              <i data-lucide="chevron-right" style="width:14px; height:14px;"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Quick Assign Officer Modal -->
+  <div id="assignModalBackdrop" class="modal-backdrop">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title" id="assignModalReportTitle">Assign Field Officer</div>
+        <button id="closeAssignModalBtn" class="btn btn-ghost btn-sm" aria-label="Close modal">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="assignReportId" value="">
+
+        <div class="form-group">
+          <label class="form-label" for="assignWorkerSelect">Assigned Field Verification Specialist</label>
+          <select id="assignWorkerSelect" class="form-select"></select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="assignPrioritySelect">Action Priority Level</label>
+          <select id="assignPrioritySelect" class="form-select">
+            <option value="High">High Priority (Within 48h)</option>
+            <option value="Medium" selected>Medium Priority (Within 5 days)</option>
+            <option value="Low">Low Priority (Scheduled Patrol)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="assignDueDate">Target Inspection Due Date</label>
+          <input type="date" id="assignDueDate" class="form-control" value="2026-09-30">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="cancelAssignModalBtn" class="btn btn-outline btn-sm">Cancel</button>
+        <button id="submitAssignModalBtn" class="btn btn-primary btn-sm">Dispatch Assignment</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/reports.js"></script>
+</body>
+</html>

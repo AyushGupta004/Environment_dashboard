@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Environmental Map — EARTH FORWARD</title>
+  <meta name="description" content="Spatial Environmental Intelligence, Hotspot Clustering, and Geospatial Verification in NCR">
+  
+  <!-- Leaflet & MarkerCluster Stylesheets -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+  
+  <!-- Design System & Application Styles -->
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/reports.css">
+  <link rel="stylesheet" href="css/map.css">
+  
+  <!-- CDNs -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+</head>
+<body>
+  <div id="app-shell" class="app-shell">
+    <main class="main-content">
+      <div class="page-container">
+        
+        <!-- Ethical AI Protocol Notice Banner -->
+        <div class="ai-notice-banner">
+          <span class="ai-notice-tag">Ethical AI Protocol</span>
+          <span>Geospatial markers represent <strong>AI-detected suspected issues</strong>. Sensor model classifications require physical verification by authorized field personnel prior to enforcement action.</span>
+        </div>
+
+        <!-- Page Header -->
+        <div class="map-header-group">
+          <div>
+            <div style="display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap;">
+              <h1 class="page-title">Environmental Map</h1>
+              <span class="demo-data-pill" style="margin-bottom: 0;">
+                <span class="dot"></span>
+                <span>● DEMO DATA</span>
+              </span>
+            </div>
+            <p class="page-subtitle">Spatial distribution of AI-detected suspected environmental anomalies, regional concentration buffers, and multi-agency field dispatches.</p>
+          </div>
+          <div style="display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap;">
+            <a href="reports.html" class="btn btn-outline btn-sm">
+              <i data-lucide="table"></i>
+              <span>Reports Triage Matrix</span>
+            </a>
+            <a href="hotspots.html" class="btn btn-primary btn-sm">
+              <i data-lucide="target"></i>
+              <span>Hotspots Intelligence &rarr;</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Quick Stats KPI Strip -->
+        <div class="map-stats-strip">
+          <div class="map-stat-card">
+            <div class="map-stat-icon">
+              <i data-lucide="map-pin"></i>
+            </div>
+            <div class="map-stat-content">
+              <span class="map-stat-label">Plotted Incidents</span>
+              <span class="map-stat-value" id="statTotalPlotted">50</span>
+            </div>
+          </div>
+
+          <div class="map-stat-card">
+            <div class="map-stat-icon">
+              <i data-lucide="alert-triangle"></i>
+            </div>
+            <div class="map-stat-content">
+              <span class="map-stat-label">High Severity</span>
+              <span class="map-stat-value" id="statHighSeverity">0</span>
+            </div>
+          </div>
+
+          <div class="map-stat-card">
+            <div class="map-stat-icon">
+              <i data-lucide="layers"></i>
+            </div>
+            <div class="map-stat-content">
+              <span class="map-stat-label">Active Hotspot Zones</span>
+              <span class="map-stat-value" id="statActiveHotspots">8</span>
+            </div>
+          </div>
+
+          <div class="map-stat-card">
+            <div class="map-stat-icon">
+              <i data-lucide="check-circle-2"></i>
+            </div>
+            <div class="map-stat-content">
+              <span class="map-stat-label">Ground Verified</span>
+              <span class="map-stat-value" id="statVerifiedIncidents">0</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Interactive Map Filter Bar -->
+        <div class="map-filter-card">
+          <!-- Category Chips Horizontal Scroll -->
+          <div class="category-chips-scroll" id="categoryChipsContainer">
+            <button type="button" class="chip-btn active" data-category="All">
+              <span>All Categories</span>
+              <span class="chip-badge" id="chipCountAll">50</span>
+            </button>
+            <button type="button" class="chip-btn" data-category="Waste">
+              <span>Waste &amp; Dumping</span>
+              <span class="chip-badge" id="chipCountWaste">0</span>
+            </button>
+            <button type="button" class="chip-btn" data-category="Burning">
+              <span>Open Burning</span>
+              <span class="chip-badge" id="chipCountBurning">0</span>
+            </button>
+            <button type="button" class="chip-btn" data-category="Air">
+              <span>Air &amp; Particulates</span>
+              <span class="chip-badge" id="chipCountAir">0</span>
+            </button>
+            <button type="button" class="chip-btn" data-category="Water">
+              <span>Water &amp; Effluents</span>
+              <span class="chip-badge" id="chipCountWater">0</span>
+            </button>
+            <button type="button" class="chip-btn" data-category="Industrial">
+              <span>Industrial Emissions</span>
+              <span class="chip-badge" id="chipCountIndustrial">0</span>
+            </button>
+            <button type="button" class="chip-btn" data-category="Deforestation">
+              <span>Deforestation</span>
+              <span class="chip-badge" id="chipCountDeforestation">0</span>
+            </button>
+            <button type="button" class="chip-btn" data-category="Plastic">
+              <span>Plastic Waste</span>
+              <span class="chip-badge" id="chipCountPlastic">0</span>
+            </button>
+          </div>
+
+          <!-- Secondary Filters Row (Severity, Status, Location, Date) -->
+          <div class="map-dropdowns-row">
+            <div class="map-dropdowns-group">
+              <select id="mapFilterSeverity" class="map-select" aria-label="Filter by Severity">
+                <option value="All">All Severities</option>
+                <option value="High">High Severity</option>
+                <option value="Medium">Medium Severity</option>
+                <option value="Low">Low Severity</option>
+              </select>
+
+              <select id="mapFilterStatus" class="map-select" aria-label="Filter by Status">
+                <option value="All">All Statuses</option>
+                <option value="Reported">Reported</option>
+                <option value="AI Analyzed">AI Analyzed</option>
+                <option value="Under Review">Under Review</option>
+                <option value="Verified">Verified</option>
+                <option value="Action Initiated">Action Initiated</option>
+                <option value="Resolved">Resolved</option>
+              </select>
+
+              <select id="mapFilterCity" class="map-select" aria-label="Filter by City">
+                <option value="All">All NCR Locations</option>
+                <option value="Noida">Noida</option>
+                <option value="Greater Noida">Greater Noida</option>
+                <option value="Ghaziabad">Ghaziabad</option>
+                <option value="Delhi">Delhi</option>
+              </select>
+
+              <select id="mapFilterDate" class="map-select" aria-label="Filter by Time Range">
+                <option value="All">All Ingestion Time</option>
+                <option value="30">Last 30 Days</option>
+                <option value="60">Last 60 Days</option>
+                <option value="90">Last 90 Days</option>
+              </select>
+
+              <button type="button" id="btnResetMapFilters" class="btn btn-outline btn-sm" style="padding: 0.4rem 0.65rem;">
+                <i data-lucide="rotate-ccw" style="width: 13px; height: 13px;"></i>
+                <span>Reset</span>
+              </button>
+            </div>
+
+            <div style="font-size: var(--text-xs); color: var(--c-text-secondary); font-weight: 600;">
+              <span id="filteredReportsCount">Showing 50 of 50 reports</span>
+            </div>
+          </div>
+
+          <!-- Quick Jump Regional Hotspot Locations -->
+          <div class="map-quick-jump-bar">
+            <span class="quick-jump-label">
+              <i data-lucide="crosshair" style="width: 12px; height: 12px; color: var(--c-primary);"></i>
+              Quick Focus:
+            </span>
+            <button type="button" class="quick-jump-btn" data-center="28.6265,77.3710" data-zoom="14">Noida Sec 62-63</button>
+            <button type="button" class="quick-jump-btn" data-center="28.5280,77.4945" data-zoom="14">Surajpur Wetland</button>
+            <button type="button" class="quick-jump-btn" data-center="28.6360,77.3220" data-zoom="14">Ghazipur Border</button>
+            <button type="button" class="quick-jump-btn" data-center="28.6758,77.3828" data-zoom="14">Sahibabad Ind.</button>
+            <button type="button" class="quick-jump-btn" data-center="28.5300,77.3100" data-zoom="13">Yamuna Khadar</button>
+            <button type="button" class="quick-jump-btn" data-center="28.58,77.38" data-zoom="11" style="font-weight: 700; color: var(--c-primary);">Reset NCR View</button>
+          </div>
+        </div>
+
+        <!-- Map Canvas Wrapper -->
+        <div class="map-canvas-wrapper">
+          <!-- Leaflet Map Container -->
+          <div id="leafletMap" aria-label="Interactive Environmental Intelligence Map"></div>
+
+          <!-- Floating Layer Toggles -->
+          <div class="map-floating-toggles">
+            <button type="button" id="toggleMarkersLayer" class="layer-toggle-btn active" title="Toggle Individual Incident Circle Markers">
+              <i data-lucide="circle-dot" style="width: 12px; height: 12px;"></i>
+              <span>Incidents</span>
+            </button>
+            <button type="button" id="toggleHotspotsLayer" class="layer-toggle-btn active" title="Toggle Regional Hotspot Density Buffers">
+              <i data-lucide="disc" style="width: 12px; height: 12px;"></i>
+              <span>Hotspot Buffers</span>
+            </button>
+          </div>
+
+          <!-- Floating Map Legend -->
+          <div class="map-floating-legend">
+            <div class="legend-title">
+              <span>Severity Intensity</span>
+              <i data-lucide="info" style="width: 12px; height: 12px;"></i>
+            </div>
+            <div class="legend-scale-row">
+              <div class="legend-item">
+                <span class="legend-circle circle-high"></span>
+                <span><strong>High</strong> — Dense / Toxic Plume</span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-circle circle-medium"></span>
+                <span><strong>Medium</strong> — Moderate Cluster</span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-circle circle-low"></span>
+                <span><strong>Low</strong> — Isolated Observation</span>
+              </div>
+              <div class="legend-item" style="margin-top: 2px;">
+                <span class="legend-circle circle-hotspot"></span>
+                <span><strong>Hotspot</strong> — Multi-Report Zone</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Regional Hotspots Context Overview -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: var(--space-4); margin-bottom: var(--space-6);">
+          
+          <div class="detail-card" style="margin-bottom: 0;">
+            <div class="detail-card-header">
+              <h3 class="detail-card-title">
+                <i data-lucide="flame" style="width: 16px; height: 16px; color: var(--c-primary);"></i>
+                <span>Top Regional Hotspot Clusters</span>
+              </h3>
+              <a href="hotspots.html" class="cell-compact" style="color: var(--c-primary); font-weight: 700;">View All 8 &rarr;</a>
+            </div>
+            <div id="topHotspotsList" style="display: flex; flex-direction: column; gap: var(--space-3); margin-top: var(--space-3);">
+              <!-- Rendered dynamically by map.js -->
+            </div>
+          </div>
+
+          <div class="detail-card" style="margin-bottom: 0;">
+            <div class="detail-card-header">
+              <h3 class="detail-card-title">
+                <i data-lucide="shield-check" style="width: 16px; height: 16px; color: var(--c-primary);"></i>
+                <span>Spatial Verification &amp; Satellite Telemetry Protocol</span>
+              </h3>
+            </div>
+            <div style="font-size: var(--text-xs); color: var(--c-text-primary); line-height: 1.6; display: flex; flex-direction: column; gap: var(--space-2); margin-top: var(--space-2);">
+              <p>
+                <strong>AI Sensor Resolution:</strong> Optical and thermal anomaly detections are calibrated using Sentinel-2 (10m) and PlanetScope (3m) passes, ingested twice daily at 10:30 and 14:15 IST.
+              </p>
+              <p>
+                <strong>Responsible AI Verification Policy:</strong> Automated clusters represent <em>AI-detected suspected issues</em>. Markers colored in deep forest green signify areas where multi-citizen reports overlap with sensor heat anomalies.
+              </p>
+              <div style="display: flex; gap: var(--space-3); margin-top: var(--space-2);">
+                <a href="proposal.html" class="btn btn-outline btn-sm" style="flex: 1; justify-content: center;">
+                  <i data-lucide="file-plus"></i>
+                  <span>Create Proposal</span>
+                </a>
+                <a href="analytics.html" class="btn btn-outline btn-sm" style="flex: 1; justify-content: center;">
+                  <i data-lucide="bar-chart-2"></i>
+                  <span>Spatial Analytics</span>
+                </a>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+
+  <!-- Core Scripts -->
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+  <script src="config.js"></script>
+  <script src="js/map.js"></script>
+</body>
+</html>

@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Environmental Analytics — EARTH FORWARD</title>
+  <meta name="description" content="Monochrome Environmental Analytics, Incident Velocity, and Verification Velocity in NCR">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/analytics.css">
+  
+  <!-- CDNs: Lucide Icons & Chart.js -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div id="app-shell" class="app-shell">
+    <main class="main-content">
+      <div class="page-container">
+        
+        <!-- Ethical AI Protocol Notice Banner -->
+        <div class="ai-notice-banner">
+          <span class="ai-notice-tag">Ethical AI Protocol</span>
+          <span>Analytical aggregates reflect <strong>AI-detected suspected issues</strong> across citizen sentinel telemetry. Trends inform proactive NGO dispatch and regulatory compliance audits.</span>
+        </div>
+
+        <!-- Page Header -->
+        <div class="analytics-header-group">
+          <div>
+            <div style="display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap;">
+              <h1 class="page-title">Environmental Analytics</h1>
+              <span class="demo-data-pill" style="margin-bottom: 0;">
+                <span class="dot"></span>
+                <span>● DEMO DATA</span>
+              </span>
+            </div>
+            <p class="page-subtitle">Temporal incident velocity, regional geospatial density, and ground verification analytics across Delhi NCR.</p>
+          </div>
+          <div style="display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap;">
+            <a href="map.html" class="btn btn-outline btn-sm">
+              <i data-lucide="map"></i>
+              <span>Spatial Map</span>
+            </a>
+            <a href="reports.html" class="btn btn-primary btn-sm">
+              <i data-lucide="table"></i>
+              <span>Reports Triage &rarr;</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Global Filter Toolbar -->
+        <div class="analytics-filter-card">
+          <div class="filter-inputs-group">
+            <div class="filter-field">
+              <label for="analyticsDateFilter" class="filter-label">Time Horizon</label>
+              <select id="analyticsDateFilter" class="analytics-select" aria-label="Filter by Date Range">
+                <option value="All">All Time (Jun–Sep 2026)</option>
+                <option value="30">Past 30 Days</option>
+                <option value="60">Past 60 Days</option>
+                <option value="90">Past 90 Days</option>
+                <option value="Jun">June 2026</option>
+                <option value="Jul">July 2026</option>
+                <option value="Aug">August 2026</option>
+                <option value="Sep">September 2026</option>
+              </select>
+            </div>
+
+            <div class="filter-field">
+              <label for="analyticsCategoryFilter" class="filter-label">Category</label>
+              <select id="analyticsCategoryFilter" class="analytics-select" aria-label="Filter by Category">
+                <option value="All">All Categories</option>
+                <option value="Garbage Dumping">Garbage Dumping</option>
+                <option value="Waste Burning">Waste Burning</option>
+                <option value="Crop Burning">Crop Burning</option>
+                <option value="Air Pollution">Air Pollution</option>
+                <option value="Water Pollution">Water Pollution</option>
+                <option value="Sewage/Drainage">Sewage/Drainage</option>
+                <option value="Industrial Emission">Industrial Emission</option>
+                <option value="Vehicle Pollution">Vehicle Pollution</option>
+                <option value="Deforestation">Deforestation</option>
+                <option value="Plastic Waste">Plastic Waste</option>
+              </select>
+            </div>
+
+            <div class="filter-field">
+              <label for="analyticsCityFilter" class="filter-label">Location</label>
+              <select id="analyticsCityFilter" class="analytics-select" aria-label="Filter by Municipal Region">
+                <option value="All">All NCR Locations</option>
+                <option value="Noida">Noida</option>
+                <option value="Greater Noida">Greater Noida</option>
+                <option value="Ghaziabad">Ghaziabad</option>
+                <option value="Delhi">Delhi</option>
+              </select>
+            </div>
+
+            <button type="button" id="btnResetAnalyticsFilters" class="btn btn-outline btn-sm" style="padding: 0.45rem 0.65rem;">
+              <i data-lucide="rotate-ccw" style="width: 13px; height: 13px;"></i>
+              <span>Reset</span>
+            </button>
+          </div>
+
+          <div class="filter-status-indicator">
+            <span class="intensity-dot dot-high"></span>
+            <span id="analyticsFilterCount">Analyzing 50 of 50 reports</span>
+          </div>
+        </div>
+
+        <!-- KPI Metrics Grid (All Computed Live) -->
+        <div class="analytics-kpi-grid">
+          <!-- 1. Resolution Rate -->
+          <div class="analytics-kpi-card">
+            <div class="kpi-card-top">
+              <span class="kpi-card-label">Resolution Rate</span>
+              <div class="kpi-card-icon">
+                <i data-lucide="check-check"></i>
+              </div>
+            </div>
+            <div class="kpi-card-value" id="kpiResolutionRate">0%</div>
+            <div class="kpi-card-subtext">
+              <span class="kpi-trend-positive">&uarr; 5.2%</span>
+              <span>quarterly remediation velocity</span>
+            </div>
+          </div>
+
+          <!-- 2. Average Resolution Time (Computed from statusHistory) -->
+          <div class="analytics-kpi-card">
+            <div class="kpi-card-top">
+              <span class="kpi-card-label">Avg. Resolution Time</span>
+              <div class="kpi-card-icon">
+                <i data-lucide="clock"></i>
+              </div>
+            </div>
+            <div class="kpi-card-value" id="kpiAvgResolutionTime">0.0 Days</div>
+            <div class="kpi-card-subtext">
+              <span>Computed from statusHistory timestamps</span>
+            </div>
+          </div>
+
+          <!-- 3. Total Ingested Reports -->
+          <div class="analytics-kpi-card">
+            <div class="kpi-card-top">
+              <span class="kpi-card-label">Total Ingested Reports</span>
+              <div class="kpi-card-icon">
+                <i data-lucide="file-text"></i>
+              </div>
+            </div>
+            <div class="kpi-card-value" id="kpiTotalReports">0</div>
+            <div class="kpi-card-subtext">
+              <span>Citizen sentinels &amp; sensor feeds</span>
+            </div>
+          </div>
+
+          <!-- 4. Ground Verification Velocity -->
+          <div class="analytics-kpi-card">
+            <div class="kpi-card-top">
+              <span class="kpi-card-label">Ground Verification Rate</span>
+              <div class="kpi-card-icon">
+                <i data-lucide="shield-check"></i>
+              </div>
+            </div>
+            <div class="kpi-card-value" id="kpiVerificationRate">0%</div>
+            <div class="kpi-card-subtext">
+              <span>Physically ground-truthed by NGOs</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Main Charts Grid (Chart.js, Monochrome Green Only) -->
+        <div class="charts-main-grid">
+          
+          <!-- Chart 1: Issues Over Time (Selectable Weekly/Monthly Granularity) -->
+          <div class="chart-card full-width">
+            <div class="chart-card-header">
+              <div class="chart-title-group">
+                <h3 class="chart-title">
+                  <i data-lucide="trending-up" style="width: 16px; height: 16px; color: var(--c-primary);"></i>
+                  <span>Incident Velocity Over Time</span>
+                </h3>
+                <span class="chart-subtitle">Temporal cadence of AI-detected suspected infractions across NCR</span>
+              </div>
+              <div class="granularity-segmented-control" role="group" aria-label="Select Granularity">
+                <button type="button" id="btnGranularityMonthly" class="granularity-btn active">Monthly</button>
+                <button type="button" id="btnGranularityWeekly" class="granularity-btn">Weekly</button>
+              </div>
+            </div>
+            <div class="chart-canvas-box">
+              <canvas id="chartTimeline"></canvas>
+            </div>
+          </div>
+
+          <!-- Chart 2: Issues by Category (Vertical Bar Chart) -->
+          <div class="chart-card">
+            <div class="chart-card-header">
+              <div class="chart-title-group">
+                <h3 class="chart-title">
+                  <i data-lucide="bar-chart-2" style="width: 16px; height: 16px; color: var(--c-primary);"></i>
+                  <span>Issues by Category</span>
+                </h3>
+                <span class="chart-subtitle">Distribution of suspected environmental classifications</span>
+              </div>
+            </div>
+            <div class="chart-canvas-box compact">
+              <canvas id="chartCategory"></canvas>
+            </div>
+          </div>
+
+          <!-- Chart 3: Issues by Location (Horizontal Bar Chart) -->
+          <div class="chart-card">
+            <div class="chart-card-header">
+              <div class="chart-title-group">
+                <h3 class="chart-title">
+                  <i data-lucide="map-pin" style="width: 16px; height: 16px; color: var(--c-primary);"></i>
+                  <span>Top Incident Locations</span>
+                </h3>
+                <span class="chart-subtitle">Municipal corridors with highest report concentrations</span>
+              </div>
+            </div>
+            <div class="chart-canvas-box compact">
+              <canvas id="chartLocation"></canvas>
+            </div>
+          </div>
+
+          <!-- Chart 4: Severity Distribution (Doughnut Chart) -->
+          <div class="chart-card">
+            <div class="chart-card-header">
+              <div class="chart-title-group">
+                <h3 class="chart-title">
+                  <i data-lucide="pie-chart" style="width: 16px; height: 16px; color: var(--c-primary);"></i>
+                  <span>Severity Distribution</span>
+                </h3>
+                <span class="chart-subtitle">Classification by ecological &amp; human health impact</span>
+              </div>
+            </div>
+            <div class="chart-canvas-box compact">
+              <canvas id="chartSeverity"></canvas>
+            </div>
+          </div>
+
+          <!-- Chart 5: Status Distribution (Lifecycle Stages Doughnut/Bar) -->
+          <div class="chart-card">
+            <div class="chart-card-header">
+              <div class="chart-title-group">
+                <h3 class="chart-title">
+                  <i data-lucide="git-commit" style="width: 16px; height: 16px; color: var(--c-primary);"></i>
+                  <span>Status Distribution</span>
+                </h3>
+                <span class="chart-subtitle">Breakdown across the six ethical verification gates</span>
+              </div>
+            </div>
+            <div class="chart-canvas-box compact">
+              <canvas id="chartStatus"></canvas>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Analytical Insights & Interpretations Footer -->
+        <div class="insights-footer-grid">
+          <div class="insight-item-box">
+            <div class="insight-icon">
+              <i data-lucide="zap"></i>
+            </div>
+            <div class="insight-content">
+              <h4>Temporal Spike Analysis</h4>
+              <p>Industrial emissions and open biomass burning peak nocturnal hours (22:00–04:00 IST), driving elevated PM2.5 readings in Sector 63 and Sahibabad.</p>
+            </div>
+          </div>
+
+          <div class="insight-item-box">
+            <div class="insight-icon">
+              <i data-lucide="shield"></i>
+            </div>
+            <div class="insight-content">
+              <h4>Ground-Truthing Integrity</h4>
+              <p>Zero reports are marked verified without GPS-logged field officer inspection and sensor recalibration, adhering to Responsible-AI standards.</p>
+            </div>
+          </div>
+
+          <div class="insight-item-box">
+            <div class="insight-icon">
+              <i data-lucide="arrow-up-right"></i>
+            </div>
+            <div class="insight-content">
+              <h4>Inter-Agency Resolution Velocity</h4>
+              <p>Average resolution cycle has compressed by 18% following multi-NGO cluster routing between YERC, NCACA, GNEAT, and DGHWW.</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- Core Scripts -->
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/analytics.js"></script>
+</body>
+</html>

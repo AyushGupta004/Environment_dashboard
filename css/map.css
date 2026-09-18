@@ -1,0 +1,555 @@
+/**
+ * EARTH FORWARD — NGO Environmental Intelligence & Action Platform
+ * css/map.css — Spatial Intelligence & Environmental Map Styles
+ * 
+ * Strict Design System:
+ * Colors ONLY: #FFFFFF, #F8FBF8, #F0F7F1, #DDEFE0, #C5E3CA, #8FBC8F, #315C3A,
+ * text #17231A / #657267.
+ * No blue, red, yellow, orange, or other non-green hues.
+ */
+
+/* ==========================================================================
+   1. MAP PAGE LAYOUT & HEADER
+   ========================================================================== */
+.map-header-group {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-4);
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.map-stats-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.map-stat-card {
+  background-color: var(--c-white);
+  border: 1px solid var(--c-border-light);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  transition: transform var(--duration-fast) var(--ease-kinetic), border-color var(--duration-fast) var(--ease-kinetic);
+}
+
+.map-stat-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--c-border-medium);
+}
+
+.map-stat-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  background-color: var(--c-surface-subtle);
+  border: 1px solid var(--c-border-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--c-primary);
+  flex-shrink: 0;
+}
+
+.map-stat-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.map-stat-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--c-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.map-stat-value {
+  font-size: var(--text-lg);
+  font-weight: 800;
+  color: var(--c-text-primary);
+  line-height: 1.2;
+}
+
+/* ==========================================================================
+   2. MAP FILTER BAR (CATEGORY CHIPS & DROPDOWNS)
+   ========================================================================== */
+.map-filter-card {
+  background-color: var(--c-white);
+  border: 1px solid var(--c-border-light);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  margin-bottom: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.category-chips-scroll {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  overflow-x: auto;
+  padding-bottom: 2px;
+  scrollbar-width: thin;
+}
+
+.category-chips-scroll::-webkit-scrollbar {
+  height: 4px;
+}
+
+.category-chips-scroll::-webkit-scrollbar-thumb {
+  background: var(--c-border-medium);
+  border-radius: 4px;
+}
+
+.chip-btn {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  padding: 0.4rem 0.85rem;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--c-border-medium);
+  background-color: var(--c-white);
+  color: var(--c-text-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all var(--duration-fast) var(--ease-kinetic);
+  user-select: none;
+}
+
+.chip-btn:hover {
+  background-color: var(--c-surface-subtle);
+  border-color: var(--c-primary);
+  color: var(--c-text-primary);
+  transform: translateY(-1px);
+}
+
+.chip-btn.active {
+  background-color: var(--c-primary);
+  border-color: var(--c-primary);
+  color: var(--c-white);
+  box-shadow: 0 2px 6px rgba(49, 92, 58, 0.2);
+}
+
+.chip-badge {
+  background-color: rgba(255, 255, 255, 0.25);
+  color: inherit;
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-mono);
+}
+
+.chip-btn:not(.active) .chip-badge {
+  background-color: var(--c-surface-subtle);
+  color: var(--c-text-secondary);
+  border: 1px solid var(--c-border-light);
+}
+
+.map-dropdowns-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--c-border-light);
+}
+
+.map-dropdowns-group {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.map-select {
+  padding: 0.4rem 0.65rem;
+  font-size: var(--text-xs);
+  border: 1px solid var(--c-border-medium);
+  border-radius: var(--radius-md);
+  background-color: var(--c-white);
+  color: var(--c-text-primary);
+  outline: none;
+  cursor: pointer;
+  transition: border-color var(--duration-fast) var(--ease-kinetic);
+}
+
+.map-select:focus {
+  border-color: var(--c-primary);
+}
+
+/* Quick Jump Hotspot Zone Links */
+.map-quick-jump-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  font-size: 11px;
+}
+
+.quick-jump-label {
+  font-weight: 700;
+  color: var(--c-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.quick-jump-btn {
+  padding: 0.25rem 0.55rem;
+  font-size: 11px;
+  font-weight: 500;
+  background-color: var(--c-surface-subtle);
+  border: 1px solid var(--c-border-light);
+  border-radius: var(--radius-sm);
+  color: var(--c-text-primary);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-kinetic);
+}
+
+.quick-jump-btn:hover {
+  background-color: var(--c-surface-mint);
+  border-color: var(--c-primary);
+  color: var(--c-primary);
+}
+
+/* ==========================================================================
+   3. MAP CANVAS & LEAFLET WRAPPER
+   ========================================================================== */
+.map-canvas-wrapper {
+  position: relative;
+  width: 100%;
+  height: 660px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--c-border-medium);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  background-color: var(--c-surface-subtle);
+  margin-bottom: var(--space-6);
+}
+
+@media (max-width: 768px) {
+  .map-canvas-wrapper {
+    height: 480px;
+  }
+}
+
+#leafletMap {
+  width: 100%;
+  height: 100%;
+  background: #F8FBF8;
+}
+
+/* Leaflet Tile Filter - CartoDB Positron Subtle Adjustment */
+.leaflet-tile-pane {
+  filter: contrast(98%) brightness(99%);
+}
+
+/* Custom Zoom Control Styling */
+.leaflet-bar {
+  border-radius: var(--radius-md) !important;
+  border: 1px solid var(--c-border-medium) !important;
+  box-shadow: var(--shadow-md) !important;
+  overflow: hidden;
+}
+
+.leaflet-bar a {
+  background-color: var(--c-white) !important;
+  color: var(--c-text-primary) !important;
+  border-bottom: 1px solid var(--c-border-light) !important;
+  transition: background-color var(--duration-fast) var(--ease-kinetic);
+}
+
+.leaflet-bar a:hover {
+  background-color: var(--c-surface-subtle) !important;
+  color: var(--c-primary) !important;
+}
+
+/* ==========================================================================
+   4. FLOATING MAP LEGEND & CONTROLS OVERLAY
+   ========================================================================== */
+.map-floating-legend {
+  position: absolute;
+  bottom: 24px;
+  right: 24px;
+  z-index: 1000;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(6px);
+  border: 1px solid var(--c-border-medium);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  box-shadow: var(--shadow-lg);
+  font-size: 11px;
+  color: var(--c-text-primary);
+  max-width: 250px;
+}
+
+.legend-title {
+  font-weight: 700;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--c-text-secondary);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.legend-scale-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.legend-circle {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.legend-circle.circle-high {
+  background-color: var(--c-primary);
+  box-shadow: 0 0 0 2px rgba(49, 92, 58, 0.2);
+}
+
+.legend-circle.circle-medium {
+  background-color: var(--c-accent-sage);
+}
+
+.legend-circle.circle-low {
+  background-color: var(--c-border-medium);
+}
+
+.legend-circle.circle-hotspot {
+  background-color: transparent;
+  border: 1.5px dashed var(--c-primary);
+}
+
+/* Map Mode / Layer Toggles */
+.map-floating-toggles {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 1000;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(6px);
+  border: 1px solid var(--c-border-medium);
+  border-radius: var(--radius-md);
+  padding: 6px 10px;
+  box-shadow: var(--shadow-md);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.layer-toggle-btn {
+  font-size: 11px;
+  font-weight: 600;
+  background: none;
+  border: 1px solid transparent;
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  color: var(--c-text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: all var(--duration-fast) var(--ease-kinetic);
+}
+
+.layer-toggle-btn.active {
+  background-color: var(--c-surface-subtle);
+  border-color: var(--c-border-medium);
+  color: var(--c-primary);
+}
+
+/* ==========================================================================
+   5. CUSTOM LEAFLET POPUP STYLING
+   ========================================================================== */
+.leaflet-popup-content-wrapper {
+  background: var(--c-white) !important;
+  color: var(--c-text-primary) !important;
+  border-radius: var(--radius-lg) !important;
+  border: 1px solid var(--c-border-medium) !important;
+  box-shadow: var(--shadow-lg) !important;
+  padding: 0 !important;
+  overflow: hidden;
+}
+
+.leaflet-popup-content {
+  margin: 0 !important;
+  width: 290px !important;
+}
+
+.leaflet-popup-tip {
+  background: var(--c-white) !important;
+  border: 1px solid var(--c-border-medium) !important;
+  box-shadow: var(--shadow-md) !important;
+}
+
+.popup-inner-card {
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.popup-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-2);
+  border-bottom: 1px solid var(--c-border-light);
+  padding-bottom: var(--space-2);
+}
+
+.popup-id-badge {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--c-primary);
+  background-color: var(--c-surface-mint);
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--c-border-light);
+}
+
+.popup-title {
+  font-size: var(--text-xs);
+  font-weight: 700;
+  color: var(--c-text-primary);
+  line-height: 1.4;
+  margin: 0;
+}
+
+.popup-location-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--c-text-secondary);
+}
+
+.popup-meta-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2);
+  background-color: var(--c-surface-subtle);
+  border: 1px solid var(--c-border-light);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
+  font-size: 11px;
+  margin-top: 2px;
+}
+
+.popup-meta-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.popup-meta-label {
+  font-size: 10px;
+  color: var(--c-text-secondary);
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.popup-meta-value {
+  font-weight: 700;
+  color: var(--c-text-primary);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.popup-footer-action {
+  margin-top: var(--space-2);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.popup-ai-label {
+  font-size: 10px;
+  color: var(--c-text-secondary);
+  font-style: italic;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.btn-popup-view {
+  padding: 0.35rem 0.65rem;
+  font-size: 11px;
+  font-weight: 600;
+  background-color: var(--c-primary);
+  color: var(--c-white);
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all var(--duration-fast) var(--ease-kinetic);
+}
+
+.btn-popup-view:hover {
+  background-color: #264a2f;
+  color: var(--c-white);
+  text-decoration: none;
+  transform: translateY(-1px);
+}
+
+/* ==========================================================================
+   6. MARKERCLUSTER CUSTOM MONOCHROME GREEN OVERRIDES
+   ========================================================================== */
+.marker-cluster-small,
+.marker-cluster-medium,
+.marker-cluster-large {
+  background-color: rgba(143, 188, 143, 0.45) !important;
+  border-radius: 50% !important;
+}
+
+.marker-cluster-small div,
+.marker-cluster-medium div,
+.marker-cluster-large div {
+  background-color: var(--c-primary) !important;
+  color: var(--c-white) !important;
+  font-family: var(--font-mono) !important;
+  font-weight: 700 !important;
+  font-size: 12px !important;
+  border-radius: 50% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* Pulse animation on high concentration cluster centers */
+@keyframes clusterPulse {
+  0% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.15); opacity: 0.4; }
+  100% { transform: scale(1); opacity: 0.8; }
+}
+
+.hotspot-pulse-ring {
+  animation: clusterPulse 2.5s infinite ease-in-out;
+}

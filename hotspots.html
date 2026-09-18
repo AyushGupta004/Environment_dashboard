@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hotspots &amp; Geospatial Clusters — EARTH FORWARD</title>
+  <meta name="description" content="Density-Ranked Environmental Hotspot Clusters, Multi-Agency Interventions, and Spatial Triage">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/reports.css">
+  <link rel="stylesheet" href="css/hotspots.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <div id="app-shell" class="app-shell">
+    <main class="main-content">
+      <div class="page-container">
+        
+        <!-- Ethical AI Protocol Notice Banner -->
+        <div class="ai-notice-banner">
+          <span class="ai-notice-tag">Ethical AI Protocol</span>
+          <span>Hotspot clusters represent <strong>AI-detected suspected recurring issues</strong> calculated via geospatial report convergence and spectral anomaly overlays. Ground-truthing is required prior to formal statutory notices.</span>
+        </div>
+
+        <!-- Page Header -->
+        <div class="hotspots-header-group">
+          <div>
+            <div style="display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap;">
+              <h1 class="page-title">Environmental Hotspot Clusters</h1>
+              <span class="demo-data-pill" style="margin-bottom: 0;">
+                <span class="dot"></span>
+                <span>● DEMO DATA</span>
+              </span>
+            </div>
+            <p class="page-subtitle">Density-ranked geographic corridors where recurring citizen observations and remote sensing telemetry converge across the NCR.</p>
+          </div>
+          <div style="display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap;">
+            <a href="map.html" class="btn btn-outline btn-sm">
+              <i data-lucide="map"></i>
+              <span>Spatial Map View</span>
+            </a>
+            <a href="proposal.html" class="btn btn-primary btn-sm">
+              <i data-lucide="file-plus"></i>
+              <span>Draft Action Proposal &rarr;</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- KPI Stats Overview Strip -->
+        <div class="hotspots-stats-grid">
+          <div class="hotspots-stat-card">
+            <div class="hotspots-stat-icon">
+              <i data-lucide="flame"></i>
+            </div>
+            <div class="hotspots-stat-info">
+              <span class="hotspots-stat-label">Active Hotspots</span>
+              <span class="hotspots-stat-value" id="statHotspotCount">8</span>
+            </div>
+          </div>
+
+          <div class="hotspots-stat-card">
+            <div class="hotspots-stat-icon">
+              <i data-lucide="layers"></i>
+            </div>
+            <div class="hotspots-stat-info">
+              <span class="hotspots-stat-label">Clustered Incidents</span>
+              <span class="hotspots-stat-value" id="statClusteredReports">0</span>
+            </div>
+          </div>
+
+          <div class="hotspots-stat-card">
+            <div class="hotspots-stat-icon">
+              <i data-lucide="alert-triangle"></i>
+            </div>
+            <div class="hotspots-stat-info">
+              <span class="hotspots-stat-label">High-Priority Hotspots</span>
+              <span class="hotspots-stat-value" id="statHighPriorityHotspots">0</span>
+            </div>
+          </div>
+
+          <div class="hotspots-stat-card">
+            <div class="hotspots-stat-icon">
+              <i data-lucide="shield-check"></i>
+            </div>
+            <div class="hotspots-stat-info">
+              <span class="hotspots-stat-label">Interventions Active</span>
+              <span class="hotspots-stat-value" id="statActiveInterventions">0</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Filter & Sort Toolbar -->
+        <div class="hotspots-filter-bar">
+          <div class="hotspots-search-box">
+            <i data-lucide="search"></i>
+            <input type="text" id="hotspotsSearchInput" placeholder="Search hotspot, corridor, or category..." aria-label="Search hotspots" />
+          </div>
+
+          <div class="hotspots-controls-group">
+            <select id="hotspotsCityFilter" class="hotspots-select" aria-label="Filter by Location">
+              <option value="All">All Locations</option>
+              <option value="Noida">Noida</option>
+              <option value="Greater Noida">Greater Noida</option>
+              <option value="Ghaziabad">Ghaziabad</option>
+              <option value="Delhi">Delhi</option>
+            </select>
+
+            <select id="hotspotsRiskFilter" class="hotspots-select" aria-label="Filter by Risk Level">
+              <option value="All">All Risk Levels</option>
+              <option value="High">High Risk</option>
+              <option value="Medium">Medium Risk</option>
+            </select>
+
+            <select id="hotspotsSortSelect" class="hotspots-select" aria-label="Sort Hotspots">
+              <option value="density_desc">Sort: Highest Density</option>
+              <option value="priority_desc">Sort: Most High-Priority</option>
+              <option value="radius_desc">Sort: Largest Radius</option>
+              <option value="name_asc">Sort: Name (A-Z)</option>
+            </select>
+
+            <button type="button" id="btnResetHotspotsFilters" class="btn btn-outline btn-sm" style="padding: 0.45rem 0.65rem;">
+              <i data-lucide="rotate-ccw" style="width: 13px; height: 13px;"></i>
+              <span>Reset</span>
+            </button>
+          </div>
+
+          <div style="font-size: var(--text-xs); color: var(--c-text-secondary); font-weight: 600;">
+            <span id="hotspotsCountBadge">Showing 8 of 8 hotspots</span>
+          </div>
+        </div>
+
+        <!-- Hotspots Cards Grid (Ranked List View) -->
+        <div class="hotspots-grid" id="hotspotsGrid">
+          <div style="grid-column: 1 / -1; text-align: center; padding: var(--space-8);">
+            <div class="skeleton-loading-banner">
+              <span class="skeleton-loading-dot"></span>
+              <span>Loading environmental intelligence...</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Empty State -->
+        <div id="hotspotsEmptyState" class="empty-state" style="display: none;">
+          <div class="empty-state-icon">
+            <i data-lucide="map-pin-off"></i>
+          </div>
+          <h2 class="empty-state-title">No Hotspots Detected</h2>
+          <p class="empty-state-desc">No cluster corridors match your filter criteria. Try broadening your search term or resetting filters.</p>
+          <button type="button" id="btnEmptyReset" class="btn btn-primary btn-sm">
+            <i data-lucide="rotate-ccw"></i>
+            <span>Reset All Filters</span>
+          </button>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- Detail View: Slide-In Drawer Backdrop & Panel -->
+  <div class="hotspot-drawer-backdrop" id="hotspotDrawerBackdrop" aria-hidden="true"></div>
+  
+  <aside class="hotspot-drawer" id="hotspotDrawer" aria-label="Hotspot Detail Dossier" aria-hidden="true">
+    <div class="drawer-header">
+      <div>
+        <div style="display: flex; align-items: center; gap: var(--space-2); margin-bottom: 4px;">
+          <span class="hotspot-rank-pill" id="drawerRankPill">#1 Rank</span>
+          <span class="badge badge-status-verified" id="drawerRiskBadge">High Risk</span>
+        </div>
+        <h2 id="drawerHotspotTitle" style="font-size: var(--text-base); font-weight: 700; color: var(--c-text-primary); margin: 0; line-height: 1.35;">
+          Hotspot Corridor Name
+        </h2>
+        <div id="drawerHotspotLocation" style="font-size: 11px; color: var(--c-text-secondary); margin-top: 2px;">
+          Ghaziabad &bull; 2,800m Buffer Radius
+        </div>
+      </div>
+      <button type="button" class="drawer-close-btn" id="btnDrawerClose" aria-label="Close Dossier">
+        <i data-lucide="x"></i>
+      </button>
+    </div>
+
+    <div class="drawer-content" id="drawerContent">
+      
+      <!-- 1. AI Risk Assessment Callout -->
+      <div style="background-color: var(--c-surface-subtle); border-left: 3px solid var(--c-primary); border-radius: var(--radius-md); padding: var(--space-3) var(--space-4);">
+        <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--c-text-secondary); margin-bottom: 4px; display: flex; align-items: center; gap: 4px;">
+          <i data-lucide="shield-alert" style="width: 12px; height: 12px; color: var(--c-primary);"></i>
+          AI Anomaly Assessment (Suspected Issue)
+        </div>
+        <p id="drawerAiAssessment" style="font-size: var(--text-xs); color: var(--c-text-primary); line-height: 1.5; margin: 0;">
+          Loading risk assessment...
+        </p>
+      </div>
+
+      <!-- 2. Density & Priority Summary Metrics -->
+      <div>
+        <div class="drawer-section-title">
+          <i data-lucide="activity" style="width: 13px; height: 13px;"></i>
+          <span>Cluster Metrics &amp; Incident Cadence</span>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2); background: var(--c-surface-subtle); border: 1px solid var(--c-border-light); border-radius: var(--radius-md); padding: var(--space-3);">
+          <div>
+            <div style="font-size: 10px; color: var(--c-text-secondary); text-transform: uppercase;">Total Clustered</div>
+            <div id="drawerReportCount" style="font-size: var(--text-base); font-weight: 800; color: var(--c-text-primary); font-family: var(--font-mono);">0</div>
+          </div>
+          <div>
+            <div style="font-size: 10px; color: var(--c-text-secondary); text-transform: uppercase;">High Priority</div>
+            <div id="drawerHighPriorityCount" style="font-size: var(--text-base); font-weight: 800; color: var(--c-primary); font-family: var(--font-mono);">0</div>
+          </div>
+          <div style="grid-column: 1 / -1; border-top: 1px solid var(--c-border-light); padding-top: 6px; margin-top: 2px;">
+            <div style="font-size: 10px; color: var(--c-text-secondary); text-transform: uppercase;">Observation Period</div>
+            <div id="drawerDateRange" style="font-size: 11px; font-weight: 600; color: var(--c-text-primary);">Jun 12, 2026 &ndash; Sep 14, 2026</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Category Breakdown with Visual Meters -->
+      <div>
+        <div class="drawer-section-title">
+          <i data-lucide="pie-chart" style="width: 13px; height: 13px;"></i>
+          <span>Category Breakdown</span>
+        </div>
+        <div class="category-bars-list" id="drawerCategoryBars">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+
+      <!-- 4. Member Reports List in this Cluster -->
+      <div>
+        <div class="drawer-section-title">
+          <i data-lucide="file-text" style="width: 13px; height: 13px;"></i>
+          <span>Clustered Member Reports</span>
+        </div>
+        <div class="member-reports-list" id="drawerMemberReports">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Drawer Footer Actions -->
+    <div class="drawer-footer-actions">
+      <button type="button" id="btnDrawerViewReports" class="btn btn-outline btn-sm">
+        <i data-lucide="table"></i>
+        <span>View in Triage Table</span>
+      </button>
+      <button type="button" id="btnDrawerGenerateProposal" class="btn btn-primary btn-sm">
+        <i data-lucide="file-plus"></i>
+        <span>Generate Action Proposal &rarr;</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+
+  <!-- Core Scripts -->
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/hotspots.js"></script>
+</body>
+</html>

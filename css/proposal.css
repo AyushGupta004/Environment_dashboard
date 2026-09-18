@@ -1,0 +1,450 @@
+/**
+ * EARTH FORWARD — NGO Environmental Intelligence & Action Platform
+ * css/proposal.css — Remediation Action Proposal Builder & PDF Export Styles
+ * 
+ * Strict Design System:
+ * Colors ONLY: #FFFFFF, #F8FBF8, #F0F7F1, #DDEFE0, #C5E3CA, #8FBC8F, #315C3A,
+ * text #17231A / #657267.
+ * Document Preview styled like an authoritative NGO intelligence brief.
+ */
+
+/* ==========================================================================
+   1. BUILDER WORKFLOW SECTIONS
+   ========================================================================== */
+.proposal-header-group {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-4);
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.step-card {
+  background-color: var(--c-white);
+  border: 1px solid var(--c-border-light);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  margin-bottom: var(--space-6);
+  box-shadow: var(--shadow-sm);
+}
+
+.step-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-4);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--c-border-light);
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.step-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.step-number-badge {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: var(--c-primary);
+  color: var(--c-white);
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.step-title {
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--c-text-primary);
+}
+
+.step-subtitle {
+  font-size: var(--text-xs);
+  color: var(--c-text-secondary);
+}
+
+/* ==========================================================================
+   2. STEP 1: FILTERS & LIVE SELECTION SUMMARY
+   ========================================================================== */
+.selection-filters-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.filter-input-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.filter-input-wrap label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--c-text-secondary);
+}
+
+.proposal-select {
+  padding: 0.45rem 0.65rem;
+  font-size: var(--text-xs);
+  border: 1px solid var(--c-border-medium);
+  border-radius: var(--radius-md);
+  background-color: var(--c-white);
+  color: var(--c-text-primary);
+  outline: none;
+  cursor: pointer;
+  transition: border-color var(--duration-fast) var(--ease-kinetic);
+}
+
+.proposal-select:focus {
+  border-color: var(--c-primary);
+}
+
+/* Live Selection Summary Metrics Strip */
+.selection-summary-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--space-3);
+  background-color: var(--c-surface-subtle);
+  border: 1px solid var(--c-border-light);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.summary-stat-box {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.summary-stat-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--c-text-secondary);
+}
+
+.summary-stat-value {
+  font-size: var(--text-xl);
+  font-weight: 800;
+  color: var(--c-text-primary);
+  font-family: var(--font-mono);
+}
+
+.summary-stat-value.highlight-green {
+  color: var(--c-primary);
+}
+
+/* Candidate Reports Table */
+.candidate-table-container {
+  max-height: 240px;
+  overflow-y: auto;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid var(--c-border-medium);
+  border-radius: var(--radius-md);
+  background-color: var(--c-white);
+  margin-bottom: var(--space-4);
+}
+
+.candidate-table {
+  width: 100%;
+  min-width: 580px;
+  border-collapse: collapse;
+  font-size: var(--text-xs);
+}
+
+.candidate-table th {
+  position: sticky;
+  top: 0;
+  background-color: var(--c-surface-subtle);
+  border-bottom: 1px solid var(--c-border-medium);
+  padding: 8px 12px;
+  text-align: left;
+  font-weight: 700;
+  color: var(--c-text-secondary);
+  font-size: 11px;
+  z-index: 1;
+}
+
+.candidate-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--c-border-light);
+}
+
+.candidate-table tr:hover {
+  background-color: var(--c-surface-subtle);
+}
+
+.candidate-table tr.selected {
+  background-color: var(--c-surface-mint);
+}
+
+.candidate-checkbox {
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border: 1.5px solid var(--c-border-medium);
+  border-radius: var(--radius-sm);
+  background-color: var(--c-white);
+  cursor: pointer;
+  display: inline-grid;
+  place-content: center;
+  transition: all var(--duration-fast) var(--ease-kinetic);
+  vertical-align: middle;
+}
+
+.candidate-checkbox:checked {
+  background-color: var(--c-primary);
+  border-color: var(--c-primary);
+}
+
+.candidate-checkbox:checked::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+  background-color: var(--c-white);
+}
+
+/* ==========================================================================
+   3. STEP 2: GENERATED PROPOSAL DOCUMENT PREVIEW
+   ========================================================================== */
+.proposal-preview-card {
+  display: none;
+  background-color: var(--c-surface-subtle);
+  border: 1px solid var(--c-border-medium);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  margin-bottom: var(--space-8);
+}
+
+.proposal-preview-card.visible {
+  display: block;
+}
+
+.preview-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-5);
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+/* Formal Document Paper Styling */
+.document-paper {
+  max-width: 860px;
+  margin: 0 auto;
+  background-color: var(--c-white);
+  border: 1px solid var(--c-border-medium);
+  border-radius: var(--radius-md);
+  padding: 48px 56px;
+  box-shadow: 0 4px 20px rgba(23, 35, 26, 0.08);
+  color: var(--c-text-primary);
+  font-family: var(--font-body);
+}
+
+@media (max-width: 768px) {
+  .document-paper {
+    padding: 24px 20px;
+  }
+}
+
+.doc-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  border-bottom: 2px solid var(--c-primary);
+  padding-bottom: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+.doc-brand-title {
+  font-size: var(--text-lg);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--c-primary);
+}
+
+.doc-brand-subtitle {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--c-text-secondary);
+}
+
+.doc-meta-right {
+  text-align: right;
+  font-size: 11px;
+  color: var(--c-text-secondary);
+  font-family: var(--font-mono);
+}
+
+.doc-memo-grid {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 8px 16px;
+  background-color: var(--c-surface-subtle);
+  border: 1px solid var(--c-border-light);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  font-size: var(--text-xs);
+  margin-bottom: var(--space-6);
+}
+
+.doc-memo-label {
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--c-text-secondary);
+  font-size: 11px;
+}
+
+.doc-memo-val {
+  font-weight: 600;
+  color: var(--c-text-primary);
+}
+
+.doc-section-title {
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--c-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--c-border-light);
+  padding-bottom: 4px;
+  margin-top: var(--space-6);
+  margin-bottom: var(--space-3);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.doc-paragraph {
+  font-size: var(--text-xs);
+  line-height: 1.65;
+  color: var(--c-text-primary);
+  margin-bottom: var(--space-4);
+}
+
+/* Suggested Actions List */
+.doc-actions-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-bottom: var(--space-6);
+}
+
+.doc-action-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  background-color: var(--c-surface-subtle);
+  border: 1px solid var(--c-border-light);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+}
+
+.doc-action-num {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background-color: var(--c-primary);
+  color: var(--c-white);
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.doc-action-content h5 {
+  font-size: var(--text-xs);
+  font-weight: 700;
+  color: var(--c-text-primary);
+  margin: 0 0 2px 0;
+}
+
+.doc-action-content p {
+  font-size: 11px;
+  color: var(--c-text-secondary);
+  line-height: 1.4;
+  margin: 0;
+}
+
+/* Evidence Appendix Table */
+.doc-appendix-table-container {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-top: var(--space-3);
+  margin-bottom: var(--space-6);
+}
+
+.doc-appendix-table {
+  width: 100%;
+  min-width: 580px;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+
+.doc-appendix-table th {
+  background-color: var(--c-surface-subtle);
+  border: 1px solid var(--c-border-medium);
+  padding: 6px 10px;
+  text-align: left;
+  font-weight: 700;
+  color: var(--c-text-secondary);
+}
+
+.doc-appendix-table td {
+  border: 1px solid var(--c-border-light);
+  padding: 6px 10px;
+  color: var(--c-text-primary);
+}
+
+.doc-appendix-table tr:nth-child(even) {
+  background-color: var(--c-surface-mint);
+}
+
+/* Mandatory AI Verification Disclaimer */
+.doc-disclaimer-box {
+  background-color: var(--c-surface-subtle);
+  border: 1px dashed var(--c-border-medium);
+  border-left: 3px solid var(--c-primary);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  margin-top: var(--space-6);
+  font-size: 11px;
+  color: var(--c-text-secondary);
+  line-height: 1.5;
+}
+
+.doc-disclaimer-box strong {
+  color: var(--c-text-primary);
+}
+
+@media (max-width: 640px) {
+  .selection-summary-strip {
+    grid-template-columns: 1fr !important;
+  }
+  .proposal-filter-grid {
+    grid-template-columns: 1fr !important;
+  }
+}

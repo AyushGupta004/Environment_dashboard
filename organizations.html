@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Partner Organizations — EARTH FORWARD</title>
+  <meta name="description" content="Accredited Regional Environmental Coalitions & Field Officer Dispatch">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/reports.css">
+  <link rel="stylesheet" href="css/organizations.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <div id="app-shell" class="app-shell">
+    <main class="main-content">
+      <div class="page-container">
+        
+        <!-- Ethical AI Protocol Notice Banner -->
+        <div class="ai-notice-banner">
+          <span class="ai-notice-tag">Ethical AI Protocol</span>
+          <span>Partner coalitions receive prioritized feeds of <strong>AI-detected suspected issues</strong> mapped to their designated regional focus areas. Ground investigations precede all formal statutory escalations.</span>
+        </div>
+
+        <!-- Page Header -->
+        <div class="orgs-header-group">
+          <div>
+            <div style="display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap;">
+              <h1 class="page-title">Partner Organizations</h1>
+              <span class="demo-data-pill" style="margin-bottom: 0;">
+                <span class="dot"></span>
+                <span>● DEMO DATA</span>
+              </span>
+            </div>
+            <p class="page-subtitle">Accredited environmental coalitions executing rapid field verification, statutory enforcement advocacy, and community defense across Delhi NCR.</p>
+          </div>
+          <div style="display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap;">
+            <a href="impact.html" class="btn btn-outline btn-sm">
+              <i data-lucide="shield-check"></i>
+              <span>Impact Outcomes</span>
+            </a>
+            <a href="reports.html" class="btn btn-primary btn-sm">
+              <i data-lucide="table"></i>
+              <span>Reports Triage &rarr;</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Network Overview Stats Strip -->
+        <div class="orgs-stats-overview">
+          <div class="org-stat-card">
+            <span class="org-stat-label">Active Coalitions</span>
+            <span class="org-stat-value" id="netOrgCount">4</span>
+            <span class="org-stat-subtext">Accredited NGO network</span>
+          </div>
+
+          <div class="org-stat-card">
+            <span class="org-stat-label">Cumulative Reviewed</span>
+            <span class="org-stat-value" id="netTotalReviewed">0</span>
+            <span class="org-stat-subtext">Audited citizen reports</span>
+          </div>
+
+          <div class="org-stat-card">
+            <span class="org-stat-label">Cumulative Resolved</span>
+            <span class="org-stat-value" id="netTotalResolved">0</span>
+            <span class="org-stat-subtext">Verified remediations</span>
+          </div>
+
+          <div class="org-stat-card">
+            <span class="org-stat-label">Field Specialists</span>
+            <span class="org-stat-value" id="netTotalAgents">0</span>
+            <span class="org-stat-subtext">Rapid-response specialists</span>
+          </div>
+        </div>
+
+        <!-- Whitespace-First Organizations Cards List -->
+        <div class="orgs-list-container" id="organizationsContainer">
+          <div style="text-align: center; padding: var(--space-8);">
+            <div class="skeleton-loading-banner">
+              <span class="skeleton-loading-dot"></span>
+              <span>Loading environmental intelligence...</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+
+  <!-- Core Scripts -->
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/organizations.js"></script>
+</body>
+</html>

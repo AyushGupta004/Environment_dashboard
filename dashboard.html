@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Environmental Intelligence Dashboard — EARTH FORWARD</title>
+  <meta name="description" content="NGO Environmental Intelligence & Action Platform — Executive Command Center">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/dashboard.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div id="app-shell" class="app-shell">
+    <main class="main-content">
+      <div class="page-container">
+        <!-- Ethical AI Protocol Notice -->
+        <div class="ai-notice-banner">
+          <span class="ai-notice-tag">Ethical AI Protocol</span>
+          <span>Platform metrics aggregate <strong>AI-detected suspected issues</strong>. NGO ground verification is mandatory before municipal escalation.</span>
+        </div>
+
+        <!-- Dashboard Header -->
+        <div class="dashboard-header-wrapper">
+          <div class="dashboard-title-group">
+            <div class="dashboard-title-row">
+              <h1 class="page-title">Environmental Intelligence Dashboard</h1>
+              <div class="demo-data-badge">
+                <span class="dot"></span>
+                <span>● DEMO DATA</span>
+              </div>
+            </div>
+            <p class="page-subtitle">Consolidated telemetry, verification velocity, and regional incident intelligence across Delhi, Noida, Greater Noida, and Ghaziabad.</p>
+          </div>
+          <div>
+            <a href="reports.html" class="btn btn-primary btn-sm">
+              <i data-lucide="filter"></i>
+              <span>Verification Triage Queue</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- 6 KPI Metric Cards (Animate counting up from 0 on load) -->
+        <div class="kpi-row">
+          <!-- Total Reports -->
+          <div class="kpi-metric-card">
+            <div class="kpi-metric-label">Total Reports</div>
+            <div class="kpi-metric-value skeleton-shimmer" id="kpiValTotal">--</div>
+            <div class="kpi-trend">
+              <i data-lucide="trending-up" style="width:12px; height:12px;"></i>
+              <span>↑ 14% this month</span>
+            </div>
+          </div>
+
+          <!-- High Priority -->
+          <div class="kpi-metric-card">
+            <div class="kpi-metric-label">High Priority</div>
+            <div class="kpi-metric-value skeleton-shimmer" id="kpiValHigh">--</div>
+            <div class="kpi-trend">
+              <i data-lucide="alert-circle" style="width:12px; height:12px;"></i>
+              <span>Requires Audit</span>
+            </div>
+          </div>
+
+          <!-- Under Investigation -->
+          <div class="kpi-metric-card">
+            <div class="kpi-metric-label">Under Investigation</div>
+            <div class="kpi-metric-value skeleton-shimmer" id="kpiValReview">--</div>
+            <div class="kpi-trend">
+              <i data-lucide="clock" style="width:12px; height:12px;"></i>
+              <span>In Triage</span>
+            </div>
+          </div>
+
+          <!-- Verified Issues -->
+          <div class="kpi-metric-card">
+            <div class="kpi-metric-label">Verified Issues</div>
+            <div class="kpi-metric-value skeleton-shimmer" id="kpiValVerified">--</div>
+            <div class="kpi-trend">
+              <i data-lucide="check-circle" style="width:12px; height:12px;"></i>
+              <span>Ground Truthed</span>
+            </div>
+          </div>
+
+          <!-- Resolved -->
+          <div class="kpi-metric-card">
+            <div class="kpi-metric-label">Resolved</div>
+            <div class="kpi-metric-value skeleton-shimmer" id="kpiValResolved">--</div>
+            <div class="kpi-trend">
+              <i data-lucide="shield-check" style="width:12px; height:12px;"></i>
+              <span>Remediated</span>
+            </div>
+          </div>
+
+          <!-- Resolution Rate % -->
+          <div class="kpi-metric-card">
+            <div class="kpi-metric-label">Resolution Rate</div>
+            <div class="kpi-metric-value skeleton-shimmer" id="kpiValRate">--%</div>
+            <div class="kpi-trend">
+              <i data-lucide="arrow-up-right" style="width:12px; height:12px;"></i>
+              <span>↑ 6% vs baseline</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Shared Chart & Table Filter Bar -->
+        <div class="dashboard-filter-bar">
+          <div class="dashboard-filter-left">
+            <span class="dashboard-filter-label">
+              <i data-lucide="sliders-horizontal" style="width:14px; height:14px;"></i>
+              <span>Filter Intelligence:</span>
+            </span>
+
+            <!-- Category Filter -->
+            <select id="dashFilterCategory" class="dashboard-filter-select">
+              <option value="all">All Categories</option>
+              <option value="Garbage Dumping">Garbage Dumping</option>
+              <option value="Waste Burning">Waste Burning</option>
+              <option value="Crop Burning">Crop Burning</option>
+              <option value="Air Pollution">Air Pollution</option>
+              <option value="Water Pollution">Water Pollution</option>
+              <option value="Sewage/Drainage">Sewage/Drainage</option>
+              <option value="Industrial Emission">Industrial Emission</option>
+              <option value="Vehicle Pollution">Vehicle Pollution</option>
+              <option value="Deforestation">Deforestation</option>
+              <option value="Plastic Waste">Plastic Waste</option>
+            </select>
+
+            <!-- Date Range / Month Filter -->
+            <select id="dashFilterDate" class="dashboard-filter-select">
+              <option value="all">All Months (Jun–Sep 2026)</option>
+              <option value="2026-06">June 2026</option>
+              <option value="2026-07">July 2026</option>
+              <option value="2026-08">August 2026</option>
+              <option value="2026-09">September 2026</option>
+            </select>
+
+            <!-- City Filter -->
+            <select id="dashFilterCity" class="dashboard-filter-select">
+              <option value="all">All Jurisdictions</option>
+              <option value="Delhi">Delhi</option>
+              <option value="Noida">Noida</option>
+              <option value="Greater Noida">Greater Noida</option>
+              <option value="Ghaziabad">Ghaziabad</option>
+            </select>
+
+            <button id="dashResetFiltersBtn" class="btn btn-ghost btn-sm">
+              <i data-lucide="rotate-ccw" style="width:12px; height:12px;"></i>
+              <span>Reset</span>
+            </button>
+          </div>
+
+          <div>
+            <span id="dashFilteredCountBadge" class="badge badge-severity-medium" style="font-size:11px;">Loading telemetry...</span>
+          </div>
+        </div>
+
+        <!-- 4 Monochrome Green Charts Grid -->
+        <div class="charts-grid">
+          <!-- Chart 1: Issues by Category -->
+          <div class="chart-card">
+            <div class="chart-card-header">
+              <div>
+                <div class="chart-title">Issues by Category</div>
+                <div class="chart-subtitle">Distribution of citizen reports across environmental domains</div>
+              </div>
+              <span class="badge badge-severity-medium">Bar Chart</span>
+            </div>
+            <div class="chart-container">
+              <canvas id="chartCategory"></canvas>
+            </div>
+          </div>
+
+          <!-- Chart 2: Issues Over Time -->
+          <div class="chart-card">
+            <div class="chart-card-header">
+              <div>
+                <div class="chart-title">Issues Over Time</div>
+                <div class="chart-subtitle">Monthly submission timeline (June – September 2026)</div>
+              </div>
+              <span class="badge badge-status-verified">Trend Line</span>
+            </div>
+            <div class="chart-container">
+              <canvas id="chartTimeline"></canvas>
+            </div>
+          </div>
+
+          <!-- Chart 3: Severity Distribution -->
+          <div class="chart-card">
+            <div class="chart-card-header">
+              <div>
+                <div class="chart-title">Severity Distribution</div>
+                <div class="chart-subtitle">Proportion of High, Medium, and Low severity alerts</div>
+              </div>
+              <span class="badge badge-severity-high">Doughnut</span>
+            </div>
+            <div class="chart-container">
+              <canvas id="chartSeverity"></canvas>
+            </div>
+          </div>
+
+          <!-- Chart 4: Status Distribution -->
+          <div class="chart-card">
+            <div class="chart-card-header">
+              <div>
+                <div class="chart-title">Verification Status Breakdown</div>
+                <div class="chart-subtitle">Current progression along the verification lifecycle</div>
+              </div>
+              <span class="badge badge-status-action">Lifecycle</span>
+            </div>
+            <div class="chart-container">
+              <canvas id="chartStatus"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Reports Table Card -->
+        <div class="recent-reports-card">
+          <div class="recent-header">
+            <div class="recent-title-group">
+              <h2 class="card-title">Recent Environmental Reports</h2>
+              <div class="chart-subtitle">Latest citizen submissions queued for NGO field inspection</div>
+            </div>
+            <a href="reports.html" class="btn btn-outline btn-sm">
+              <span>View all reports</span>
+              <i data-lucide="arrow-right" style="width:14px; height:14px;"></i>
+            </a>
+          </div>
+
+          <!-- Empty State Container (shown when filters yield 0 results) -->
+          <div id="dashboardEmptyState" class="empty-state" style="display:none; margin: var(--space-4) 0;">
+            <div class="empty-icon">
+              <i data-lucide="search-x"></i>
+            </div>
+            <div class="empty-title">No Incident Reports Match Filters</div>
+            <div class="empty-text">There are no environmental reports matching your active category, date, or jurisdiction filters.</div>
+            <button class="btn btn-secondary btn-sm" onclick="resetDashboardFilters()">
+              <i data-lucide="rotate-ccw"></i>
+              <span>Reset Filters</span>
+            </button>
+          </div>
+
+          <!-- Table Container with skeleton initial rows -->
+          <div id="recentTableWrapper" class="table-responsive">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Report ID</th>
+                  <th>Issue & Category</th>
+                  <th>Location & City</th>
+                  <th>Severity</th>
+                  <th>Confidence</th>
+                  <th>Status</th>
+                  <th>Date</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="recentReportsBody">
+                <!-- Skeleton loader while data.js resolves -->
+                <tr class="skeleton-row">
+                  <td colspan="8" style="text-align: center; padding: var(--space-8);">
+                    <div class="skeleton-loading-banner">
+                      <span class="skeleton-loading-dot"></span>
+                      <span>Loading environmental intelligence...</span>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/dashboard.js"></script>
+</body>
+</html>

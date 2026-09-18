@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Remediation Action Proposal Builder — EARTH FORWARD</title>
+  <meta name="description" content="Municipal Remediation Proposal Builder & jsPDF Export Engine">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/reports.css">
+  <link rel="stylesheet" href="css/proposal.css">
+  
+  <!-- CDNs: Lucide Icons & jsPDF -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+  <div id="app-shell" class="app-shell">
+    <main class="main-content">
+      <div class="page-container">
+        
+        <!-- Ethical AI Protocol Notice Banner -->
+        <div class="ai-notice-banner">
+          <span class="ai-notice-tag">Ethical AI Protocol</span>
+          <span>Intervention proposals cite <strong>AI-detected suspected issues</strong> confirmed via field verification audits to support formal municipal intervention and statutory remediation.</span>
+        </div>
+
+        <!-- Page Header -->
+        <div class="proposal-header-group">
+          <div>
+            <div style="display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap;">
+              <h1 class="page-title">Remediation Action Proposal Builder</h1>
+              <span class="demo-data-pill" style="margin-bottom: 0;">
+                <span class="dot"></span>
+                <span>● DEMO DATA</span>
+              </span>
+            </div>
+            <p class="page-subtitle">Formulate structured remediation proposals for municipal commissioners, pollution control boards, and environmental funding bodies.</p>
+          </div>
+          <div style="display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap;">
+            <a href="reports.html" class="btn btn-outline btn-sm">
+              <i data-lucide="table"></i>
+              <span>Reports Matrix</span>
+            </a>
+            <a href="hotspots.html" class="btn btn-outline btn-sm">
+              <i data-lucide="flame"></i>
+              <span>Hotspot Clusters</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- STEP 1: INCIDENT SELECTION & FILTERING -->
+        <section class="step-card" id="stepSelectionCard" aria-label="Step 1 Selection">
+          <div class="step-header">
+            <div class="step-title-wrap">
+              <span class="step-number-badge">1</span>
+              <div>
+                <h2 class="step-title">Select Incident Reports for Intervention</h2>
+                <span class="step-subtitle">Filter by jurisdiction, category, or severity to aggregate clustered evidence.</span>
+              </div>
+            </div>
+            <div style="display: flex; gap: var(--space-2);">
+              <button type="button" id="btnSelectAll" class="btn btn-outline btn-sm" style="font-size: 11px;">
+                Select All Matching
+              </button>
+              <button type="button" id="btnDeselectAll" class="btn btn-outline btn-sm" style="font-size: 11px;">
+                Clear Selection
+              </button>
+            </div>
+          </div>
+
+          <!-- Filter Controls Row -->
+          <div class="selection-filters-grid">
+            <div class="filter-input-wrap">
+              <label for="filterLocation">Target Location</label>
+              <select id="filterLocation" class="proposal-select">
+                <option value="All">All Locations</option>
+                <option value="Noida">Noida</option>
+                <option value="Greater Noida">Greater Noida</option>
+                <option value="Ghaziabad">Ghaziabad</option>
+                <option value="Delhi">Delhi</option>
+              </select>
+            </div>
+
+            <div class="filter-input-wrap">
+              <label for="filterCategory">Primary Category</label>
+              <select id="filterCategory" class="proposal-select">
+                <option value="All">All Categories</option>
+                <option value="Industrial Emission">Industrial Emission</option>
+                <option value="Waste Burning">Waste Burning</option>
+                <option value="Crop Burning">Crop Burning</option>
+                <option value="Water Pollution">Water Pollution</option>
+                <option value="Sewage/Drainage">Sewage/Drainage</option>
+                <option value="Garbage Dumping">Garbage Dumping</option>
+                <option value="Air Pollution">Air Pollution</option>
+                <option value="Vehicle Pollution">Vehicle Pollution</option>
+                <option value="Deforestation">Deforestation</option>
+                <option value="Plastic Waste">Plastic Waste</option>
+              </select>
+            </div>
+
+            <div class="filter-input-wrap">
+              <label for="filterSeverity">Severity Level</label>
+              <select id="filterSeverity" class="proposal-select">
+                <option value="All">All Severities</option>
+                <option value="High">High Severity Only</option>
+                <option value="Medium">Medium Severity</option>
+                <option value="Low">Low Severity</option>
+              </select>
+            </div>
+
+            <div class="filter-input-wrap">
+              <label for="filterDateRange">Observation Horizon</label>
+              <select id="filterDateRange" class="proposal-select">
+                <option value="All">All Time (Jun–Sep 2026)</option>
+                <option value="30">Past 30 Days</option>
+                <option value="60">Past 60 Days</option>
+                <option value="90">Past 90 Days</option>
+              </select>
+            </div>
+
+            <div class="filter-input-wrap">
+              <label for="filterStatus">Audit Status</label>
+              <select id="filterStatus" class="proposal-select">
+                <option value="All">All Statuses</option>
+                <option value="Verified">Verified Only</option>
+                <option value="Under Review">Under Review</option>
+                <option value="Action Initiated">Action Initiated</option>
+                <option value="Reported">Reported</option>
+                <option value="Resolved">Resolved</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Live Summary Strip as Filters / Selections Change -->
+          <div class="selection-summary-strip">
+            <div class="summary-stat-box">
+              <span class="summary-stat-label">Selected Reports</span>
+              <span class="summary-stat-value highlight-green" id="summarySelectedCount">0</span>
+            </div>
+            <div class="summary-stat-box">
+              <span class="summary-stat-label">Unique Locations</span>
+              <span class="summary-stat-value" id="summaryLocationsCount">0</span>
+            </div>
+            <div class="summary-stat-box">
+              <span class="summary-stat-label">High Priority Reports</span>
+              <span class="summary-stat-value" id="summaryHighPriorityCount" style="color: var(--c-primary);">0</span>
+            </div>
+            <div class="summary-stat-box">
+              <span class="summary-stat-label">Est. Population Impacted</span>
+              <span class="summary-stat-value" id="summaryAffectedPop">0</span>
+            </div>
+          </div>
+
+          <!-- Candidate Reports Scrollable Table -->
+          <div class="candidate-table-container">
+            <table class="candidate-table" aria-label="Selectable candidate reports">
+              <thead>
+                <tr>
+                  <th style="width: 38px; text-align: center;">
+                    <input type="checkbox" id="headerCheckbox" class="candidate-checkbox" aria-label="Select all" />
+                  </th>
+                  <th>ID</th>
+                  <th>Category</th>
+                  <th>Location</th>
+                  <th>Severity</th>
+                  <th>Status</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody id="candidateReportsTbody">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Generate Action Button -->
+          <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--space-3);">
+            <span style="font-size: var(--text-xs); color: var(--c-text-secondary);" id="selectionHintText">
+              Select at least 1 incident to generate a remediation proposal.
+            </span>
+            <button type="button" class="btn btn-primary" id="btnGenerateProposal" style="padding: 0.65rem 1.4rem;">
+              <i data-lucide="file-check"></i>
+              <span>Generate Intervention Proposal</span>
+            </button>
+          </div>
+        </section>
+
+        <!-- STEP 2: PROPOSAL DOCUMENT PREVIEW -->
+        <section class="proposal-preview-card" id="proposalPreviewCard" aria-label="Step 2 Proposal Preview">
+          
+          <div class="preview-toolbar">
+            <div style="display: flex; align-items: center; gap: var(--space-2);">
+              <span class="step-number-badge">2</span>
+              <div>
+                <h3 style="font-size: var(--text-sm); font-weight: 700; color: var(--c-text-primary); margin: 0;">
+                  Intervention Proposal Document Preview
+                </h3>
+                <span style="font-size: 11px; color: var(--c-text-secondary);">
+                  Executive memorandum synthesized from selected telemetry data points.
+                </span>
+              </div>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: var(--space-2);">
+              <button type="button" class="btn btn-outline btn-sm" onclick="window.print()" title="Print via browser">
+                <i data-lucide="printer"></i>
+                <span>Print</span>
+              </button>
+              <button type="button" class="btn btn-primary btn-sm" id="btnExportPdf">
+                <i data-lucide="download"></i>
+                <span>Export PDF</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Empty State when no proposal is generated yet -->
+          <div id="proposalEmptyState" class="empty-state" style="display: none; margin: var(--space-6) 0;">
+            <div class="empty-state-icon">
+              <i data-lucide="file-plus"></i>
+            </div>
+            <div class="empty-state-title">No proposals generated</div>
+            <div class="empty-state-desc">Select one or more candidate incident reports above and click "Generate Intervention Proposal" to synthesize an official remediation memo.</div>
+          </div>
+
+          <!-- Document Paper Container (Official Memo Format) -->
+          <div class="document-paper" id="documentPaper">
+            
+            <!-- Document Header -->
+            <div class="doc-header">
+              <div>
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 2px;">
+                  <div class="brand-badge" style="width: 28px; height: 28px; font-size: 12px;">EF</div>
+                  <span class="doc-brand-title">EARTH FORWARD</span>
+                </div>
+                <div class="doc-brand-subtitle">
+                  NGO Environmental Intelligence &amp; Action Platform
+                </div>
+              </div>
+
+              <div class="doc-meta-right">
+                <div style="font-weight: 700; color: var(--c-primary); font-size: 13px;" id="docRefId">
+                  PROP-2026-0814
+                </div>
+                <div id="docDate">September 18, 2026</div>
+                <div style="font-size: 10px; color: var(--c-text-secondary);">FORMAL MEMORANDUM</div>
+              </div>
+            </div>
+
+            <!-- Memorandum Routing Grid -->
+            <div class="doc-memo-grid">
+              <div class="doc-memo-label">TO:</div>
+              <div class="doc-memo-val">Municipal Environmental Commission &amp; District Task Force</div>
+
+              <div class="doc-memo-label">FROM:</div>
+              <div class="doc-memo-val">Earth Forward Environmental Intelligence Taskforce</div>
+
+              <div class="doc-memo-label">SUBJECT:</div>
+              <div class="doc-memo-val" id="docSubject" style="color: var(--c-primary); font-weight: 700;">
+                Intervention Proposal: Comprehensive Remediation of Environmental Anomalies
+              </div>
+
+              <div class="doc-memo-label">TARGET AREA:</div>
+              <div class="doc-memo-val" id="docTargetArea">Sector 63, Noida (NCR Zone)</div>
+
+              <div class="doc-memo-label">OBSERVATION PERIOD:</div>
+              <div class="doc-memo-val" id="docPeriod">June 12, 2026 &ndash; September 14, 2026</div>
+
+              <div class="doc-memo-label">EVIDENCE DOSSIER:</div>
+              <div class="doc-memo-val">
+                <span id="docTotalReports">0</span> Clustered Reports &bull;
+                <span id="docUniqueLocations">0</span> Unique Coordinate Zones &bull;
+                <span id="docHighPriority" style="color: var(--c-primary); font-weight: 700;">0</span> High-Priority Violations
+              </div>
+            </div>
+
+            <!-- 1. Executive Summary & Observed Pattern -->
+            <h4 class="doc-section-title">
+              <i data-lucide="eye" style="width: 15px; height: 15px;"></i>
+              <span>1. Observed Incident Pattern &amp; Spatial Convergence</span>
+            </h4>
+            <p class="doc-paragraph" id="docObservedPattern">
+              Loading pattern analysis...
+            </p>
+
+            <!-- 2. Structured Suggested Actions -->
+            <h4 class="doc-section-title">
+              <i data-lucide="check-square" style="width: 15px; height: 15px;"></i>
+              <span>2. Proposed Immediate Intervention Actions</span>
+            </h4>
+            
+            <div class="doc-actions-list">
+              <div class="doc-action-item">
+                <div class="doc-action-num">1</div>
+                <div class="doc-action-content">
+                  <h5>Field Inspection &amp; Ground-Truthing</h5>
+                  <p>Deploy joint task force with accredited NGO specialists to physically inspect suspected outfalls/stacks, take water/particulate samples, and document optical plume opacity.</p>
+                </div>
+              </div>
+
+              <div class="doc-action-item">
+                <div class="doc-action-num">2</div>
+                <div class="doc-action-content">
+                  <h5>Targeted Municipal Intervention</h5>
+                  <p>Coordinate emergency drain dredging, floating trash barrier placement, and municipal waste containment in affected sectors to halt trans-boundary pollution spread.</p>
+                </div>
+              </div>
+
+              <div class="doc-action-item">
+                <div class="doc-action-num">3</div>
+                <div class="doc-action-content">
+                  <h5>Source Identification &amp; Permit Audit</h5>
+                  <p>Cross-reference high-opacity coordinates with State Pollution Control Board licensing data to identify non-compliant industrial scrubbers and illicit incinerator operations.</p>
+                </div>
+              </div>
+
+              <div class="doc-action-item">
+                <div class="doc-action-num">4</div>
+                <div class="doc-action-content">
+                  <h5>Continued Remote Sensing Monitoring</h5>
+                  <p>Maintain automated bi-weekly PlanetScope and Sentinel-2 multispectral pass overlays over the corridor to verify compliance and alert on recurrence.</p>
+                </div>
+              </div>
+
+              <div class="doc-action-item">
+                <div class="doc-action-num">5</div>
+                <div class="doc-action-content">
+                  <h5>Community Awareness &amp; Sentinel Alerts</h5>
+                  <p>Organize RWA stakeholder briefings and distribute localized air quality advisory warnings to protect surrounding residents during peak inversion periods.</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- 3. Appendix: Clustered Reports -->
+            <h4 class="doc-section-title">
+              <i data-lucide="table" style="width: 15px; height: 15px;"></i>
+              <span>3. Appendix: Clustered Evidence &amp; Report Dossier</span>
+            </h4>
+            <div class="doc-appendix-table-container">
+              <table class="doc-appendix-table">
+                <thead>
+                  <tr>
+                    <th>Report ID</th>
+                    <th>Category</th>
+                    <th>Location</th>
+                    <th>Severity</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                  </tr>
+                </thead>
+                <tbody id="docAppendixTbody">
+                  <!-- Dynamically populated -->
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Mandatory Responsible-AI Disclaimer -->
+            <div class="doc-disclaimer-box">
+              <strong>Mandatory Verification Disclaimer:</strong> AI classifications are indicative and require appropriate human/organizational verification. Ground evidence must be physically audited before formal statutory enforcement or punitive measures are enacted.
+            </div>
+
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+
+  <!-- Core Scripts -->
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/pdf.js"></script>
+  <script src="js/proposal.js"></script>
+</body>
+</html>

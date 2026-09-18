@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign In — EARTH FORWARD NGO Intelligence</title>
+  <meta name="description" content="NGO Environmental Intelligence & Action Platform — Sign In">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="login-page">
+  <div class="login-screen">
+    <!-- Demo Data Indicator -->
+    <div class="demo-data-pill">
+      <span>● DEMO DATA</span>
+    </div>
+
+    <div class="login-card">
+      <div style="display:flex; align-items:center; gap:var(--space-3); margin-bottom:var(--space-6);">
+        <div class="brand-badge">EF</div>
+        <div>
+          <div class="brand-title">EARTH FORWARD</div>
+          <div class="brand-sub">NGO Environmental Intelligence</div>
+        </div>
+      </div>
+
+      <div style="margin-bottom:var(--space-6);">
+        <h1 style="font-size:var(--text-xl); font-weight:800; margin-bottom:var(--space-1);">NGO Officer Authentication</h1>
+        <p style="font-size:var(--text-xs); color:var(--c-text-secondary);">Access verification triage, spatial cluster mapping, and municipal remediation dispatch.</p>
+      </div>
+
+      <form id="loginForm" onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label class="form-label" for="loginEmail">Officer Email / Organization ID</label>
+          <input 
+            type="email" 
+            id="loginEmail" 
+            class="form-control" 
+            placeholder="officer@ncrcleanair.org" 
+            value="coordinator@yamuna-eco.org" 
+            required
+          />
+        </div>
+
+        <div class="form-group" style="margin-bottom:var(--space-5);">
+          <label class="form-label" for="loginPassword">Access Token / Password</label>
+          <input 
+            type="password" 
+            id="loginPassword" 
+            class="form-control" 
+            value="••••••••••••" 
+            placeholder="Enter secure credentials" 
+            required
+          />
+          <span class="form-helper">Mock Auth Mode: Any credentials will log in directly.</span>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width:100%; padding:0.7rem;">
+          <span>Sign In to Intelligence Suite</span>
+          <i data-lucide="arrow-right" style="width:16px; height:16px;"></i>
+        </button>
+      </form>
+
+      <div style="margin-top:var(--space-6); padding-top:var(--space-4); border-top:1px solid var(--c-border-light); font-size:11px; color:var(--c-text-secondary); line-height:1.5;">
+        <strong>Responsible AI Disclosure:</strong> This platform processes citizen submissions classified as <em>AI-detected suspected issues</em>. NGO ground verification is required before initiating regulatory citations.
+      </div>
+    </div>
+  </div>
+
+  <script src="js/data.js"></script>
+  <script>
+    if (window.lucide) lucide.createIcons();
+
+    function handleLogin(e) {
+      e.preventDefault();
+      // Mock auth — any input immediately directs to dashboard.html
+      window.location.href = 'dashboard.html';
+    }
+  </script>
+</body>
+</html>

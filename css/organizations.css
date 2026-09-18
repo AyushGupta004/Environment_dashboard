@@ -1,0 +1,240 @@
+/**
+ * EARTH FORWARD — NGO Environmental Intelligence & Action Platform
+ * css/organizations.css — Minimal, Whitespace-First Partner Organizations Styling
+ * 
+ * Strict Design System:
+ * Colors ONLY: #FFFFFF, #F8FBF8, #F0F7F1, #DDEFE0, #C5E3CA, #8FBC8F, #315C3A,
+ * text #17231A / #657267.
+ * Whitespace-first UI principle — spacious, minimal cards, no dense admin-table feel.
+ */
+
+/* ==========================================================================
+   1. PAGE HEADER & NETWORK STATS
+   ========================================================================== */
+.orgs-header-group {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-6);
+  flex-wrap: wrap;
+  gap: var(--space-4);
+}
+
+.orgs-stats-overview {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--space-4);
+  margin-bottom: var(--space-8);
+}
+
+.org-stat-card {
+  background-color: var(--c-white);
+  border: 1px solid var(--c-border-light);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4) var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--duration-fast) var(--ease-kinetic), border-color var(--duration-fast) var(--ease-kinetic);
+}
+
+.org-stat-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--c-border-medium);
+}
+
+.org-stat-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--c-text-secondary);
+}
+
+.org-stat-value {
+  font-size: var(--text-2xl);
+  font-weight: 800;
+  color: var(--c-primary);
+  font-family: var(--font-mono);
+  line-height: 1.2;
+}
+
+.org-stat-subtext {
+  font-size: 11px;
+  color: var(--c-text-secondary);
+}
+
+/* ==========================================================================
+   2. WHITESPACE-FIRST ORGANIZATIONS CARDS GRID
+   ========================================================================== */
+.orgs-list-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  margin-bottom: var(--space-8);
+}
+
+.org-card {
+  background-color: var(--c-white);
+  border: 1px solid var(--c-border-light);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6) var(--space-8);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  transition: all var(--duration-fast) var(--ease-kinetic);
+  position: relative;
+}
+
+.org-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--c-border-medium);
+  box-shadow: var(--shadow-md);
+}
+
+.org-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.org-title-group {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.org-acronym-badge {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  background-color: var(--c-surface-mint);
+  border: 1.5px solid var(--c-border-medium);
+  color: var(--c-primary);
+  font-family: var(--font-mono);
+  font-weight: 800;
+  font-size: var(--text-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.org-name {
+  font-size: var(--text-base);
+  font-weight: 800;
+  color: var(--c-text-primary);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.org-subtitle {
+  font-size: 11px;
+  color: var(--c-text-secondary);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: 2px;
+}
+
+.org-description {
+  font-size: var(--text-xs);
+  color: var(--c-text-primary);
+  line-height: 1.6;
+  margin: 0;
+  max-width: 900px;
+}
+
+/* Three Computed Metrics Row (Spacious & Clean) */
+.org-metrics-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--space-4);
+  background-color: var(--c-surface-subtle);
+  border: 1px solid var(--c-border-light);
+  border-radius: var(--radius-md);
+  padding: var(--space-4) var(--space-5);
+}
+
+.org-metric-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.org-metric-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--c-text-secondary);
+}
+
+.org-metric-number {
+  font-size: var(--text-xl);
+  font-weight: 800;
+  font-family: var(--font-mono);
+  color: var(--c-text-primary);
+}
+
+.org-metric-number.highlight {
+  color: var(--c-primary);
+}
+
+.org-metric-meta {
+  font-size: 10px;
+  color: var(--c-text-secondary);
+}
+
+/* Metadata Tags: Focus Areas & Jurisdictions */
+.org-tags-section {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  padding-top: var(--space-2);
+}
+
+.org-focus-pills {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.org-pill {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  background-color: var(--c-white);
+  border: 1px solid var(--c-border-medium);
+  color: var(--c-text-primary);
+}
+
+.org-actions-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+  .org-card {
+    padding: var(--space-5) var(--space-4);
+  }
+}
+
+@media (max-width: 640px) {
+  .org-metrics-row {
+    grid-template-columns: 1fr !important;
+  }
+  .org-header-stats-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
