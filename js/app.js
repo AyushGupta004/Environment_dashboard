@@ -66,7 +66,7 @@
     return `
       <div class="sidebar-header">
         <a href="dashboard.html" class="brand-wrapper">
-          <div class="brand-badge">EF</div>
+          <div class="brand-badge">PR</div>
           <div class="brand-meta">
             <span class="brand-title">PRAKARTI REPORT</span>
             <span class="brand-sub">Platform Intelligence</span>
