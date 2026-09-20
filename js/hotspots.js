@@ -1,29 +1,12 @@
-/**
- * Prakarti Report — NGO Environmental Intelligence & Action Platform
- * js/hotspots.js — Environmental Hotspot Clusters & Density Analysis Controller
- * 
- * Strict Architecture Rule:
- * All data access goes through EarthData (js/data.js):
- * - EarthData.getHotspots()
- * - EarthData.getReports()
- * 
- * Strict Design System:
- * - Green density indicator strictly uses green scale (light → medium → dark green, NEVER red).
- * - Adheres to Responsible-AI terminology ("AI-detected suspected recurring issue").
- */
-
 (function () {
   'use strict';
 
-  // Storage key for proposal generation handoff
   const STORAGE_BULK_KEY = 'earthforward_selected_reports';
 
-  // State
   let allHotspots = [];
   let filteredHotspots = [];
   let selectedHotspot = null;
 
-  // Filter state
   let searchQuery = '';
   let selectedCity = 'All';
   let selectedRisk = 'All';
@@ -39,9 +22,6 @@
       .replace(/'/g, '&#039;');
   }
 
-  /**
-   * Helper: Format Date nicely
-   */
   function formatDate(dateStr) {
     if (!dateStr) return '—';
     try {
@@ -57,15 +37,12 @@
     }
   }
 
-  /**
-   * Compute Density Level (1 to 5) strictly on Green Scale
-   */
   function getDensityLevel(reportCount) {
-    if (reportCount >= 9) return 5; // Darkest Forest Green
-    if (reportCount >= 7) return 4; // Primary Forest Green
-    if (reportCount >= 5) return 3; // Medium Forest Green
-    if (reportCount >= 4) return 2; // Accent Sage
-    return 1; // Light Mint/Sage
+    if (reportCount >= 9) return 5;
+    if (reportCount >= 7) return 4;
+    if (reportCount >= 5) return 3;
+    if (reportCount >= 4) return 2;
+    return 1;
   }
 
   function getDensityDescription(level) {
@@ -76,9 +53,6 @@
     return 'Localized Cluster (Level 1)';
   }
 
-  /**
-   * Toast notification feedback
-   */
   function showToast(message, type = 'success') {
     const container = document.getElementById('toastContainer');
     if (!container) return;
@@ -101,9 +75,6 @@
     }, 3200);
   }
 
-  /**
-   * Populate City/Location filter options dynamically from loaded hotspots
-   */
   function populateFilterDropdowns() {
     const cityFilter = document.getElementById('hotspotsCityFilter');
     if (!cityFilter) return;
@@ -115,9 +86,6 @@
     }
   }
 
-  /**
-   * Initialize Hotspots Dashboard
-   */
   async function initHotspots() {
     try {
       allHotspots = await window.EarthData.getHotspots();
@@ -128,7 +96,6 @@
       applyFiltersAndSort();
       setupEventListeners();
 
-      // Deep-link handler: ?report=<reportId>
       const urlParams = new URLSearchParams(window.location.search);
       const reportIdParam = urlParams.get('report');
       if (reportIdParam) {
@@ -151,9 +118,6 @@
     }
   }
 
-  /**
-   * Update Top KPI Summary Strip
-   */
   function updateTopKPIs() {
     const statHotspotCount = document.getElementById('statHotspotCount');
     const statClusteredReports = document.getElementById('statClusteredReports');
@@ -165,7 +129,7 @@
     const totalClusters = allHotspots.length;
     const totalClustered = allHotspots.reduce((acc, h) => acc + (h.reportCount || 0), 0);
     const highPriorityClusters = allHotspots.filter(h => h.riskLevel === 'High' || (h.highPriorityCount && h.highPriorityCount >= 4)).length;
-    const activeInterventions = allHotspots.filter(h => 
+    const activeInterventions = allHotspots.filter(h =>
       (h.activeInterventionCount && h.activeInterventionCount > 0) ||
       (h.interventionStatus && h.interventionStatus.toLowerCase().includes('active'))
     ).length;
@@ -176,12 +140,9 @@
     if (statActiveInterventions) statActiveInterventions.textContent = activeInterventions;
   }
 
-  /**
-   * Filter and Sort Hotspots
-   */
   function applyFiltersAndSort() {
     filteredHotspots = allHotspots.filter(h => {
-      // 1. Search Query
+
       if (searchQuery) {
         const q = searchQuery.toLowerCase();
         const matchName = (h.name || '').toLowerCase().includes(q);
@@ -193,12 +154,10 @@
         }
       }
 
-      // 2. City Filter
       if (selectedCity !== 'All' && h.city !== selectedCity) {
         return false;
       }
 
-      // 3. Risk Level Filter
       if (selectedRisk !== 'All' && h.riskLevel !== selectedRisk) {
         return false;
       }
@@ -206,7 +165,6 @@
       return true;
     });
 
-    // Sort Hotspots
     filteredHotspots.sort((a, b) => {
       if (sortCriterion === 'density_desc') {
         return (b.reportCount || 0) - (a.reportCount || 0);
@@ -223,19 +181,14 @@
       return 0;
     });
 
-    // Render Grid
     renderHotspotsGrid();
 
-    // Update count badge
     const badge = document.getElementById('hotspotsCountBadge');
     if (badge) {
       badge.textContent = `Showing ${filteredHotspots.length} of ${allHotspots.length} hotspots`;
     }
   }
 
-  /**
-   * Render Hotspots Cards List View
-   */
   function renderHotspotsGrid() {
     const grid = document.getElementById('hotspotsGrid');
     const emptyState = document.getElementById('hotspotsEmptyState');
@@ -255,7 +208,6 @@
       const densityLevel = getDensityLevel(h.reportCount);
       const densityDesc = getDensityDescription(densityLevel);
 
-      // Top 2-3 Categories with counts
       const catEntries = Object.entries(h.categoryBreakdown || {}).sort((a, b) => b[1] - a[1]);
       const topCategoriesHtml = catEntries.slice(0, 3).map(([cat, count]) => `
         <span class="hotspot-cat-tag">
@@ -266,7 +218,7 @@
 
       return `
         <article class="hotspot-card" data-hotspot-id="${h.id}" tabindex="0" role="button" aria-label="Inspect ${h.name}">
-          
+
           <div class="hotspot-card-top">
             <div style="display:flex; align-items:center; gap:var(--space-2);">
               <span class="hotspot-rank-pill">#${rankNum} Density</span>
@@ -287,7 +239,6 @@
             </div>
           </div>
 
-          <!-- Small Green Density Indicator (1-5 Green scale, strictly NOT red) -->
           <div class="density-scale-container">
             <div class="density-scale-header">
               <span class="density-label">
@@ -305,7 +256,6 @@
             </div>
           </div>
 
-          <!-- Metrics Row -->
           <div class="hotspot-metrics-row">
             <div class="metric-column">
               <span class="metric-label">High Priority</span>
@@ -326,7 +276,6 @@
             </div>
           </div>
 
-          <!-- Top Categories Breakdown Tags -->
           <div>
             <div style="font-size:10px; font-weight:700; text-transform:uppercase; color:var(--c-text-secondary); margin-bottom:4px;">
               Primary Converging Categories:
@@ -356,9 +305,6 @@
     }
   }
 
-  /**
-   * Open Hotspot Detail View (Slide-In Drawer)
-   */
   function openHotspotDetail(hotspot) {
     selectedHotspot = hotspot;
 
@@ -368,7 +314,6 @@
 
     const densityLevel = getDensityLevel(hotspot.reportCount);
 
-    // Populate Drawer Header
     const rankPill = document.getElementById('drawerRankPill');
     const riskBadge = document.getElementById('drawerRiskBadge');
     const title = document.getElementById('drawerHotspotTitle');
@@ -385,13 +330,11 @@
       location.textContent = `${hotspot.city} • Coords: [${hotspot.coordinates[0].toFixed(4)}, ${hotspot.coordinates[1].toFixed(4)}] • ${hotspot.radiusMeters.toLocaleString()}m Radius`;
     }
 
-    // AI Risk Assessment
     const aiAssessment = document.getElementById('drawerAiAssessment');
     if (aiAssessment) {
       aiAssessment.textContent = hotspot.aiRiskAssessment;
     }
 
-    // Metric Values
     const reportCount = document.getElementById('drawerReportCount');
     const highPriorityCount = document.getElementById('drawerHighPriorityCount');
     const dateRange = document.getElementById('drawerDateRange');
@@ -402,7 +345,6 @@
       dateRange.textContent = `${formatDate(hotspot.firstReportDate)} to ${formatDate(hotspot.latestReportDate)}`;
     }
 
-    // Category Breakdown with visual progress bars
     const catBarsContainer = document.getElementById('drawerCategoryBars');
     if (catBarsContainer) {
       const entries = Object.entries(hotspot.categoryBreakdown || {}).sort((a, b) => b[1] - a[1]);
@@ -424,7 +366,6 @@
       }).join('');
     }
 
-    // Member Reports List
     const reportsListContainer = document.getElementById('drawerMemberReports');
     if (reportsListContainer) {
       const reports = hotspot.reportsList || [];
@@ -460,7 +401,6 @@
       }).join('');
     }
 
-    // Open Drawer
     drawer.classList.add('active');
     backdrop.classList.add('active');
     drawer.setAttribute('aria-hidden', 'false');
@@ -471,9 +411,6 @@
     }
   }
 
-  /**
-   * Close Hotspot Detail Drawer
-   */
   function closeHotspotDetail() {
     const drawer = document.getElementById('hotspotDrawer');
     const backdrop = document.getElementById('hotspotDrawerBackdrop');
@@ -488,11 +425,8 @@
     selectedHotspot = null;
   }
 
-  /**
-   * Setup Event Listeners
-   */
   function setupEventListeners() {
-    // 1. Search Input
+
     const searchInput = document.getElementById('hotspotsSearchInput');
     if (searchInput) {
       searchInput.addEventListener('input', (e) => {
@@ -501,7 +435,6 @@
       });
     }
 
-    // 2. City Filter
     const cityFilter = document.getElementById('hotspotsCityFilter');
     if (cityFilter) {
       cityFilter.addEventListener('change', (e) => {
@@ -510,7 +443,6 @@
       });
     }
 
-    // 3. Risk Level Filter
     const riskFilter = document.getElementById('hotspotsRiskFilter');
     if (riskFilter) {
       riskFilter.addEventListener('change', (e) => {
@@ -519,7 +451,6 @@
       });
     }
 
-    // 4. Sort Dropdown
     const sortSelect = document.getElementById('hotspotsSortSelect');
     if (sortSelect) {
       sortSelect.addEventListener('change', (e) => {
@@ -528,7 +459,6 @@
       });
     }
 
-    // 5. Reset Filters Button
     const resetBtn = document.getElementById('btnResetHotspotsFilters');
     const emptyResetBtn = document.getElementById('btnEmptyReset');
 
@@ -549,7 +479,6 @@
     if (resetBtn) resetBtn.addEventListener('click', resetAction);
     if (emptyResetBtn) emptyResetBtn.addEventListener('click', resetAction);
 
-    // 6. Hotspot Card Click to Open Drawer
     const grid = document.getElementById('hotspotsGrid');
     if (grid) {
       grid.addEventListener('click', (e) => {
@@ -562,7 +491,6 @@
         }
       });
 
-      // Keyboard navigation (Enter / Space)
       grid.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           const card = e.target.closest('.hotspot-card');
@@ -576,7 +504,6 @@
       });
     }
 
-    // 7. Drawer Close Events
     const closeBtn = document.getElementById('btnDrawerClose');
     const backdrop = document.getElementById('hotspotDrawerBackdrop');
 
@@ -587,24 +514,22 @@
       if (e.key === 'Escape') closeHotspotDetail();
     });
 
-    // 8. Drawer Action 1: "View Reports" Button
     const viewReportsBtn = document.getElementById('btnDrawerViewReports');
     if (viewReportsBtn) {
       viewReportsBtn.addEventListener('click', () => {
         if (!selectedHotspot) return;
-        // Search by corridor or city in triage matrix
+
         const locationQuery = selectedHotspot.city || selectedHotspot.name.split(' ')[0];
         window.location.href = `reports.html?search=${encodeURIComponent(locationQuery)}`;
       });
     }
 
-    // 9. Drawer Action 2: "Generate Proposal" Button
     const generateProposalBtn = document.getElementById('btnDrawerGenerateProposal');
     if (generateProposalBtn) {
       generateProposalBtn.addEventListener('click', () => {
         if (!selectedHotspot) return;
         try {
-          // Pre-populate sessionStorage with all member reports in this hotspot
+
           const memberIds = (selectedHotspot.reportsList || []).map(r => r.id);
           sessionStorage.setItem(STORAGE_BULK_KEY, JSON.stringify(memberIds));
 
@@ -619,7 +544,6 @@
     }
   }
 
-  // Self-execute initialization on DOM Ready
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initHotspots);
   } else {
@@ -627,3 +551,4 @@
   }
 
 })();
+

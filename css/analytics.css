@@ -1,16 +1,3 @@
-/**
- * Prakarti Report — NGO Environmental Intelligence & Action Platform
- * css/analytics.css — Environmental Analytics & Trend Visualization Styles
- * 
- * Strict Design System:
- * Colors ONLY: #FFFFFF, #F8FBF8, #F0F7F1, #DDEFE0, #C5E3CA, #8FBC8F, #315C3A,
- * text #17231A / #657267.
- * Charts: monochrome green shade variations only, never mixed colors.
- */
-
-/* ==========================================================================
-   1. PAGE HEADER & FILTER TOOLBAR
-   ========================================================================== */
 .analytics-header-group {
   display: flex;
   align-items: center;
@@ -80,9 +67,6 @@
   font-weight: 600;
 }
 
-/* ==========================================================================
-   2. KPI CARDS (ANALYTICS METRICS)
-   ========================================================================== */
 .analytics-kpi-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -155,9 +139,6 @@
   font-weight: 700;
 }
 
-/* ==========================================================================
-   3. CHARTS GRID & CARDS
-   ========================================================================== */
 .charts-main-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -220,7 +201,6 @@
   color: var(--c-text-secondary);
 }
 
-/* Weekly / Monthly Granularity Segmented Switch */
 .granularity-segmented-control {
   display: inline-flex;
   background-color: var(--c-surface-subtle);
@@ -258,7 +238,6 @@
   height: 260px;
 }
 
-/* Bottom Insights Grid */
 .insights-footer-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -310,3 +289,4 @@
     grid-template-columns: 1fr !important;
   }
 }
+

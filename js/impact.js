@@ -1,28 +1,10 @@
-/**
- * Prakarti Report — NGO Environmental Intelligence & Action Platform
- * js/impact.js — Environmental Impact, Verification Velocity & Outcomes Controller
- * 
- * Strict Architecture Rule:
- * All figures computed live from EarthData (js/data.js):
- * - EarthData.getReports()
- * - EarthData.getOrganizations()
- * - EarthData.getAnalytics()
- * 
- * Strict Design System:
- * - Monochrome green charts only (#315C3A, #8FBC8F, #C5E3CA, #DDEFE0, #F0F7F1)
- * - Animated count-up like the dashboard (~800ms)
- * - Derived live from dataset with zero hardcoded numbers
- */
-
 (function () {
   'use strict';
 
-  // Chart instances
   let resolutionTrendChart = null;
   let verificationTrendChart = null;
   let turnaroundTrendChart = null;
 
-  // Shared Monochrome Green Palette Tokens
   const GREEN_PALETTE = {
     primary: '#315C3A',
     primaryHover: '#264a2e',
@@ -34,9 +16,6 @@
     textSecondary: '#657267'
   };
 
-  /**
-   * Minimal Sparkline Chart Options
-   */
   const sparklineOptions = {
     responsive: true,
     maintainAspectRatio: false,
@@ -85,9 +64,6 @@
     return name.slice(0, 2).toUpperCase();
   }
 
-  /**
-   * Number count-up animation helper (animates from current value)
-   */
   function animateCountUp(element, target, duration = 600, isPercentage = false, suffix = '') {
     if (!element) return;
     const currentText = element.textContent.replace(/[^0-9.]/g, '');
@@ -100,7 +76,7 @@
     function update(now) {
       const elapsed = now - startTime;
       const progress = Math.min(elapsed / duration, 1);
-      // Ease out quartic
+
       const ease = 1 - Math.pow(1 - progress, 4);
       const current = start + (target - start) * ease;
 
@@ -120,9 +96,6 @@
     requestAnimationFrame(update);
   }
 
-  /**
-   * Helper: Format Date nicely
-   */
   function formatDate(dateInput) {
     if (!dateInput) return '—';
     try {
@@ -138,10 +111,6 @@
     }
   }
 
-  /**
-   * Compute Average Resolution Time from statusHistory
-   * Measures elapsed duration between Reported and Resolved milestones
-   */
   function computeAverageResolutionTime(reports) {
     const resolvedReports = reports.filter(r => r.status === 'Resolved');
     if (resolvedReports.length === 0) {
@@ -173,9 +142,6 @@
     };
   }
 
-  /**
-   * Compute Monthly Breakdown Trends for Sparklines
-   */
   function computeMonthlyTrends(reports) {
     const months = ['Jun 2026', 'Jul 2026', 'Aug 2026', 'Sep 2026'];
     const data = {
@@ -200,7 +166,6 @@
       if (r.status === 'Resolved') {
         data[key].resolved++;
 
-        // Calculate resolution time
         const history = r.statusHistory || [];
         const resolvedEntry = history.find(h => h.status === 'Resolved');
         const reportedEntry = history.find(h => h.status === 'Reported') || history[0];
@@ -237,24 +202,17 @@
     };
   }
 
-  /**
-   * Initialize Impact Page
-   */
   async function initImpact() {
     try {
       const reports = await window.EarthData.getReports();
       const organizations = await window.EarthData.getOrganizations();
 
-      // 1. Populate 6 KPI Stat Cards
       renderKpiCards(reports, organizations);
 
-      // 2. Compute 3 Large Metrics & Trend Charts
       renderComputedMetrics(reports);
 
-      // 3. Render Recent Resolved Incidents Table
       renderResolvedIncidents(reports);
 
-      // 4. Render Teams & Specialists Cards
       renderCoalitionCards(organizations, reports);
 
       if (window.lucide) {
@@ -265,14 +223,11 @@
     }
   }
 
-  /**
-   * 1. Populate and Animate the 6 KPI Stat Cards
-   */
   function renderKpiCards(reports, organizations) {
     const totalReports = reports.length;
     const verifiedCount = reports.filter(r => r.verified === true || r.status === 'Verified' || r.status === 'Resolved').length;
     const resolvedCount = reports.filter(r => r.status === 'Resolved').length;
-    const underInvestigation = reports.filter(r => 
+    const underInvestigation = reports.filter(r =>
       r.status === 'Under Review' || r.status === 'Action Initiated' || r.status === 'AI Analyzed'
     ).length;
 
@@ -282,9 +237,6 @@
     animateCountUp(document.getElementById('kpiUnderInvestigation'), underInvestigation, 800);
   }
 
-  /**
-   * 2. Compute Large Metrics and Render 3 Monochrome Green Trend Charts
-   */
   function renderComputedMetrics(reports) {
     const total = reports.length;
     const resolvedCount = reports.filter(r => r.status === 'Resolved').length;
@@ -294,7 +246,6 @@
     const verificationRate = total > 0 ? Math.round((verifiedCount / total) * 100) : 0;
     const resTime = computeAverageResolutionTime(reports);
 
-    // Large Stat Display with animation
     animateCountUp(document.getElementById('statResolutionRate'), resolutionRate, 800, true);
     animateCountUp(document.getElementById('statVerificationRate'), verificationRate, 800, true);
     const statAvgEl = document.getElementById('statAvgResolutionTime');
@@ -306,10 +257,8 @@
       }
     }
 
-    // Monthly Trend Sparklines
     const trends = computeMonthlyTrends(reports);
 
-    // Trend Chart 1: Resolution Rate (%)
     const ctxRes = document.getElementById('chartResolutionTrend').getContext('2d');
     if (resolutionTrendChart) {
       resolutionTrendChart.data.datasets[0].data = trends.resolutionRates;
@@ -349,7 +298,6 @@
       });
     }
 
-    // Trend Chart 2: Verification Rate (%)
     const ctxVer = document.getElementById('chartVerificationTrend').getContext('2d');
     if (verificationTrendChart) {
       verificationTrendChart.data.datasets[0].data = trends.verificationRates;
@@ -384,7 +332,6 @@
       });
     }
 
-    // Trend Chart 3: Average Turnaround Time (Days)
     const ctxTime = document.getElementById('chartTurnaroundTrend').getContext('2d');
     if (turnaroundTrendChart) {
       turnaroundTrendChart.data.datasets[0].data = trends.avgTurnaroundDays;
@@ -425,14 +372,10 @@
     }
   }
 
-  /**
-   * 3. Render Resolved Incidents Showcase Table
-   */
   function renderResolvedIncidents(reports) {
     const tbody = document.getElementById('resolvedReportsTbody');
     if (!tbody) return;
 
-    // Filter resolved reports, sorted by date descending
     const resolved = reports
       .filter(r => r.status === 'Resolved')
       .sort((a, b) => new Date(b.reportDate) - new Date(a.reportDate))
@@ -490,9 +433,6 @@
     `).join('');
   }
 
-  /**
-   * 4. Render Teams & Specialists Network Contribution Cards
-   */
   function renderCoalitionCards(organizations, allReports = []) {
     const container = document.getElementById('coalitionCardsGrid');
     if (!container) return;
@@ -554,7 +494,6 @@
     }).join('');
   }
 
-  // Realtime Live Subscription
   function setupRealtimeSubscription() {
     if (window.EarthData && typeof window.EarthData.subscribeToChanges === 'function') {
       window.EarthData.subscribeToChanges({
@@ -587,7 +526,6 @@
     }
   }
 
-  // Self-execute on DOM Ready
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
       initImpact();
@@ -599,3 +537,4 @@
   }
 
 })();
+

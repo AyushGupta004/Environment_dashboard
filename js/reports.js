@@ -1,22 +1,8 @@
-/**
- * Prakarti Report — NGO Environmental Intelligence & Action Platform
- * js/reports.js — Comprehensive Reports Triage Controller
- * 
- * Strict Architecture Rule:
- * All data access goes through EarthData (js/data.js):
- * - EarthData.getReports(filters)
- * - EarthData.updateReportStatus(id, status)
- * - EarthData.assignReport(id, worker, priority, dueDate)
- * - EarthData.getFieldWorkers()
- */
-
 (function () {
   'use strict';
 
-  // Storage key for shared proposal generation selection
   const STORAGE_BULK_KEY = 'earthforward_selected_reports';
 
-  // State
   let allReports = [];
   let filteredReports = [];
   let currentPage = 1;
@@ -24,18 +10,14 @@
   let sortField = 'date';
   let sortAscending = false;
 
-  // Selected Report IDs set (persisted in sessionStorage)
   let selectedReportIds = new Set();
 
-  /**
-   * Category Micro-Thumbnail SVGs (Monochrome Green Scale Only)
-   */
   function getCategoryThumbnail(category) {
     const cat = category.toLowerCase();
 
     let iconSvg = '';
     if (cat.includes('industrial') || cat.includes('emission')) {
-      // Factory / chimney stack
+
       iconSvg = `
         <svg viewBox="0 0 24 24" fill="none" stroke="#315C3A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M2 20h20"/>
@@ -44,14 +26,14 @@
         </svg>
       `;
     } else if (cat.includes('waste') && cat.includes('burning')) {
-      // Fire flame & leaf
+
       iconSvg = `
         <svg viewBox="0 0 24 24" fill="none" stroke="#315C3A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 3z"/>
         </svg>
       `;
     } else if (cat.includes('crop') || cat.includes('stubble')) {
-      // Agriculture field / crop
+
       iconSvg = `
         <svg viewBox="0 0 24 24" fill="none" stroke="#315C3A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M6 2v20"/>
@@ -61,7 +43,7 @@
         </svg>
       `;
     } else if (cat.includes('water')) {
-      // Water wave / droplet
+
       iconSvg = `
         <svg viewBox="0 0 24 24" fill="none" stroke="#315C3A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
@@ -69,7 +51,7 @@
         </svg>
       `;
     } else if (cat.includes('dumping') || cat.includes('garbage')) {
-      // Trash bin / waste accumulation
+
       iconSvg = `
         <svg viewBox="0 0 24 24" fill="none" stroke="#315C3A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M3 6h18"/>
@@ -80,21 +62,21 @@
         </svg>
       `;
     } else if (cat.includes('air')) {
-      // Wind / air particulate cloud
+
       iconSvg = `
         <svg viewBox="0 0 24 24" fill="none" stroke="#315C3A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M17.7 7.7A7.1 7.1 0 0 0 5 10.8A4 4 0 0 0 6 18h12a5 5 0 0 0 3-9.5"/>
         </svg>
       `;
     } else if (cat.includes('sewage') || cat.includes('drainage')) {
-      // Pipes / drain grid
+
       iconSvg = `
         <svg viewBox="0 0 24 24" fill="none" stroke="#315C3A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
         </svg>
       `;
     } else if (cat.includes('vehicle')) {
-      // Truck / transport exhaust
+
       iconSvg = `
         <svg viewBox="0 0 24 24" fill="none" stroke="#315C3A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <rect width="16" height="11" x="1" y="5" rx="2"/>
@@ -104,7 +86,7 @@
         </svg>
       `;
     } else if (cat.includes('deforestation')) {
-      // Tree felling
+
       iconSvg = `
         <svg viewBox="0 0 24 24" fill="none" stroke="#315C3A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M12 10v12"/>
@@ -113,7 +95,7 @@
         </svg>
       `;
     } else {
-      // Plastic scrap / packaging
+
       iconSvg = `
         <svg viewBox="0 0 24 24" fill="none" stroke="#315C3A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M14 2v4a2 2 0 0 0 2 2h4"/>
@@ -140,10 +122,6 @@
       .replace(/'/g, '&#039;');
   }
 
-  /**
-
-   * Toast Notification Generator (Calm Green Shades)
-   */
   function showToast(message) {
     let container = document.getElementById('toastContainer');
     if (!container) {
@@ -169,9 +147,6 @@
     }, 3200);
   }
 
-  /**
-   * Hydrate bulk selection from sessionStorage
-   */
   function loadStoredSelection() {
     try {
       const stored = sessionStorage.getItem(STORAGE_BULK_KEY);
@@ -208,7 +183,6 @@
       bar.classList.remove('active');
     }
 
-    // Sync master select-all checkbox
     const selectAllCheckbox = document.getElementById('selectAllCheckbox');
     if (selectAllCheckbox) {
       const pageReports = getPaginatedReports();
@@ -217,9 +191,6 @@
     }
   }
 
-  /**
-   * Filter, Sort, and Paginate Data
-   */
   function applyFiltersAndSort() {
     const searchVal = document.getElementById('reportsSearchInput').value.toLowerCase().trim();
     const catVal = document.getElementById('filterCategorySelect').value;
@@ -229,7 +200,7 @@
     const locVal = document.getElementById('filterLocationSelect').value;
 
     filteredReports = allReports.filter(r => {
-      // Search
+
       if (searchVal) {
         const matches = (r.id || '').toLowerCase().includes(searchVal) ||
           (r.title || '').toLowerCase().includes(searchVal) ||
@@ -241,28 +212,22 @@
         if (!matches) return false;
       }
 
-      // Category
       if (catVal !== 'all' && (r.category || '').toLowerCase() !== catVal.toLowerCase()) return false;
 
-      // Severity
       if (sevVal !== 'all') {
         const rSev = (r.severity || 'Unassessed').toLowerCase();
         if (rSev !== sevVal.toLowerCase()) return false;
       }
 
-      // Status
       if (statVal !== 'all' && (r.status || '').toLowerCase() !== statVal.toLowerCase()) return false;
 
-      // Date Range (starts with '2026-06', etc.)
       if (dateVal !== 'all' && !(r.reportDate || '').startsWith(dateVal)) return false;
 
-      // Location / City
       if (locVal !== 'all' && (r.city || '').toLowerCase() !== locVal.toLowerCase()) return false;
 
       return true;
     });
 
-    // Sort
     filteredReports.sort((a, b) => {
       let comparison = 0;
       if (sortField === 'id') {
@@ -284,7 +249,6 @@
       return sortAscending ? comparison : -comparison;
     });
 
-    // Reset to page 1 if current page is out of bounds
     const totalPages = Math.ceil(filteredReports.length / pageSize) || 1;
     if (currentPage > totalPages) {
       currentPage = 1;
@@ -296,9 +260,6 @@
     return filteredReports.slice(startIndex, startIndex + pageSize);
   }
 
-  /**
-   * Render Table Rows & Pagination
-   */
   function renderTable() {
     const tbody = document.getElementById('reportsTableBody');
     const emptyState = document.getElementById('reportsEmptyState');
@@ -340,11 +301,11 @@
       return `
         <tr data-report-id="${r.id}" style="${isSelected ? 'background-color:var(--c-surface-subtle);' : ''}">
           <td style="width: 38px; text-align: center;">
-            <input 
-              type="checkbox" 
-              class="report-checkbox row-select-checkbox" 
-              data-id="${r.id}" 
-              ${isSelected ? 'checked' : ''} 
+            <input
+              type="checkbox"
+              class="report-checkbox row-select-checkbox"
+              data-id="${r.id}"
+              ${isSelected ? 'checked' : ''}
               aria-label="Select report ${r.id}"
             />
           </td>
@@ -411,21 +372,19 @@
       `;
     }).join('');
 
-    // Update Pagination UI
     const totalRecords = filteredReports.length;
     const startIndex = (currentPage - 1) * pageSize + 1;
     const endIndex = Math.min(startIndex + pageSize - 1, totalRecords);
     const totalPages = Math.ceil(totalRecords / pageSize);
 
-    document.getElementById('paginationInfo').textContent = 
+    document.getElementById('paginationInfo').textContent =
       `Showing ${startIndex}–${endIndex} of ${totalRecords} reports`;
-    document.getElementById('paginationCurrentPage').textContent = 
+    document.getElementById('paginationCurrentPage').textContent =
       `Page ${currentPage} of ${totalPages}`;
 
     document.getElementById('btnPrevPage').disabled = currentPage === 1;
     document.getElementById('btnNextPage').disabled = currentPage === totalPages;
 
-    // Attach Row Checkbox Events
     document.querySelectorAll('.row-select-checkbox').forEach(cb => {
       cb.addEventListener('change', (e) => {
         const id = e.target.getAttribute('data-id');
@@ -439,13 +398,12 @@
       });
     });
 
-    // Attach Quick Menu Popovers
     document.querySelectorAll('.btn-quick-menu').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
         const id = btn.getAttribute('data-id');
         const menu = document.getElementById(`dropdown-${id}`);
-        // Close other open menus
+
         document.querySelectorAll('.action-menu-dropdown.active').forEach(m => {
           if (m !== menu) m.classList.remove('active');
         });
@@ -460,9 +418,6 @@
     }
   }
 
-  /**
-   * Row Action: Quick Assign Modal
-   */
   window.quickAssignReport = async function (id) {
     const modalBackdrop = document.getElementById('assignModalBackdrop');
     const modalTitle = document.getElementById('assignModalReportTitle');
@@ -488,7 +443,6 @@
       submitBtn.textContent = isAlreadyAssigned ? 'Reassign Team' : 'Dispatch Assignment';
     }
 
-    // Default due date: today + 5 days
     const today = new Date();
     const minDateStr = today.toISOString().split('T')[0];
     const defaultDue = new Date(today.getTime() + 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
@@ -502,7 +456,6 @@
       prioritySelect.value = (report && (report.assignedPriority || report.priority)) || 'Medium';
     }
 
-    // Populate teams
     let teams = [];
     try {
       teams = await window.EarthData.getOrganizations();
@@ -534,9 +487,6 @@
     if (window.lucide) lucide.createIcons();
   };
 
-  /**
-   * Submit Assign Modal
-   */
   async function submitAssignModal() {
     const id = document.getElementById('assignReportId').value;
     const teamSelect = document.getElementById('assignWorkerSelect');
@@ -551,12 +501,12 @@
 
     try {
       await window.EarthData.assignReportToTeam(id, teamId, priority, dueDate);
-      
+
       let teams = [];
       try {
         teams = await window.EarthData.getOrganizations();
       } catch (e) {
-        // ignore
+
       }
       const assignedTeam = teams.find(t => String(t.id) === String(teamId));
 
@@ -580,9 +530,6 @@
     }
   }
 
-  /**
-   * Sort Handler
-   */
   function handleSortClick(field) {
     if (sortField === field) {
       sortAscending = !sortAscending;
@@ -591,7 +538,6 @@
       sortAscending = true;
     }
 
-    // Update table header UI
     document.querySelectorAll('.table th.sortable').forEach(th => {
       th.classList.remove('sorted-asc', 'sorted-desc');
       const indicator = th.querySelector('.sort-indicator');
@@ -609,9 +555,6 @@
     renderTable();
   }
 
-  /**
-   * Reset All Filters
-   */
   window.resetAllReportsFilters = function () {
     document.getElementById('reportsSearchInput').value = '';
     document.getElementById('filterCategorySelect').value = 'all';
@@ -624,18 +567,12 @@
     renderTable();
   };
 
-  /**
-   * Create Proposal from Selection
-   */
   window.createProposalFromSelected = function () {
     if (selectedReportIds.size === 0) return;
     const idList = Array.from(selectedReportIds).join(',');
     window.location.href = `proposal.html?reportIds=${encodeURIComponent(idList)}`;
   };
 
-  /**
-   * Clear Selection
-   */
   window.clearReportsSelection = function () {
     selectedReportIds.clear();
     saveStoredSelection();
@@ -661,13 +598,9 @@
     initReports();
   };
 
-  /**
-   * Initialize Reports Controller
-   */
   async function initReports() {
     loadStoredSelection();
 
-    // Fetch reports
     try {
       allReports = await window.EarthData.getReports();
     } catch (err) {
@@ -695,7 +628,6 @@
       return;
     }
 
-    // Bind Filter Controls
     const searchInput = document.getElementById('reportsSearchInput');
     const catSelect = document.getElementById('filterCategorySelect');
     const sevSelect = document.getElementById('filterSeveritySelect');
@@ -704,7 +636,6 @@
     const locSelect = document.getElementById('filterLocationSelect');
     const pageSizeSelect = document.getElementById('pageSizeSelect');
 
-    // Prefill filter inputs from URL search parameters if provided
     const urlParams = new URLSearchParams(window.location.search);
     const searchParam = urlParams.get('search');
     const statusParam = urlParams.get('status');
@@ -748,7 +679,6 @@
         });
       }
 
-      // Bind Pagination Buttons
       document.getElementById('btnPrevPage').addEventListener('click', () => {
         if (currentPage > 1) {
           currentPage--;
@@ -764,7 +694,6 @@
         }
       });
 
-      // Bind Master Select-All Checkbox
       const selectAllCheckbox = document.getElementById('selectAllCheckbox');
       if (selectAllCheckbox) {
         selectAllCheckbox.addEventListener('change', (e) => {
@@ -779,7 +708,6 @@
         });
       }
 
-      // Bind Sortable Headers
       document.querySelectorAll('.table th.sortable').forEach(th => {
         th.addEventListener('click', () => {
           const field = th.getAttribute('data-sort');
@@ -787,7 +715,6 @@
         });
       });
 
-      // Close action dropdowns on outside click
       document.addEventListener('click', (e) => {
         if (!e.target.closest('.action-menu-container')) {
           document.querySelectorAll('.action-menu-dropdown.active').forEach(m => {
@@ -796,7 +723,6 @@
         }
       });
 
-      // Assign Modal Close buttons
       const closeAssignBtn = document.getElementById('closeAssignModalBtn');
       const cancelAssignBtn = document.getElementById('cancelAssignModalBtn');
       const submitAssignBtn = document.getElementById('submitAssignModalBtn');
@@ -816,15 +742,14 @@
       }
     }
 
-    // Initial Filter & Render
     applyFiltersAndSort();
     renderTable();
   }
 
-  // Run on DOM ready
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initReports);
   } else {
     initReports();
   }
 })();
+

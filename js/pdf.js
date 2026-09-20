@@ -1,23 +1,6 @@
-/**
- * Prakarti Report — NGO Environmental Intelligence & Action Platform
- * js/pdf.js — Professional PDF Generation Engine via jsPDF
- * 
- * Strict Styling & Branding:
- * - White background
- * - Dark-green headings ([49, 92, 58] / #315C3A)
- * - Light-green section dividers ([197, 227, 202] / #C5E3CA)
- * - Prakarti Report branding header
- * - Generation date and reference ID
- * - Selected report IDs appendix
- * - Mandatory verification disclaimer
- */
-
 (function () {
   'use strict';
 
-  /**
-   * Export Structured Proposal to PDF using jsPDF
-   */
   function exportProposalToPdf(proposal) {
     if (!window.jspdf || !window.jspdf.jsPDF) {
       alert('PDF generation engine is initializing. Please retry in a moment.');
@@ -37,17 +20,13 @@
     const contentWidth = pageWidth - (margin * 2);
     let yPos = margin;
 
-    // Color definitions
-    const COLOR_PRIMARY = [49, 92, 58];       // #315C3A
-    const COLOR_TEXT = [23, 35, 26];          // #17231A
-    const COLOR_MUTED = [101, 114, 103];      // #657267
-    const COLOR_BORDER = [197, 227, 202];     // #C5E3CA
-    const COLOR_BG_LIGHT = [240, 247, 241];   // #F0F7F1
+    const COLOR_PRIMARY = [49, 92, 58];
+    const COLOR_TEXT = [23, 35, 26];
+    const COLOR_MUTED = [101, 114, 103];
+    const COLOR_BORDER = [197, 227, 202];
+    const COLOR_BG_LIGHT = [240, 247, 241];
     const COLOR_WHITE = [255, 255, 255];
 
-    /**
-     * Helper to check page break
-     */
     function checkPageBreak(requiredHeight = 20) {
       if (yPos + requiredHeight > pageHeight - 16) {
         doc.addPage();
@@ -56,22 +35,17 @@
       }
     }
 
-    /**
-     * Render Branding Header
-     */
     function renderHeaderBranding(isSubsequentPage = false) {
-      // Top accent bar
+
       doc.setFillColor(...COLOR_PRIMARY);
       doc.rect(margin, yPos, contentWidth, 1.5, 'F');
       yPos += 5;
 
-      // Brand Title
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(14);
       doc.setTextColor(...COLOR_PRIMARY);
       doc.text('PRAKARTI REPORT', margin, yPos);
 
-      // Meta Ref on Right
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(10);
       doc.setTextColor(...COLOR_PRIMARY);
@@ -85,26 +59,21 @@
       doc.text(proposal.generatedDate || 'September 18, 2026', pageWidth - margin, yPos, { align: 'right' });
 
       yPos += 4;
-      // Divider
+
       doc.setDrawColor(...COLOR_BORDER);
       doc.setLineWidth(0.4);
       doc.line(margin, yPos, pageWidth - margin, yPos);
       yPos += 5;
     }
 
-    // ==========================================
-    // PAGE 1: TITLE & MEMORANDUM GRID
-    // ==========================================
     renderHeaderBranding(false);
 
-    // Document Title
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(12);
     doc.setTextColor(...COLOR_PRIMARY);
     doc.text('REMEDIATION ACTION PROPOSAL & INTERVENTION MEMORANDUM', margin, yPos);
     yPos += 6;
 
-    // Routing Box (Light background with green border)
     doc.setFillColor(...COLOR_BG_LIGHT);
     doc.setDrawColor(...COLOR_BORDER);
     doc.setLineWidth(0.4);
@@ -136,7 +105,6 @@
 
     yPos += 38;
 
-    // Metrics Strip
     doc.setFillColor(248, 251, 248);
     doc.setDrawColor(...COLOR_BORDER);
     doc.roundedRect(margin, yPos, contentWidth, 12, 1.5, 1.5, 'FD');
@@ -162,7 +130,6 @@
 
     yPos += 18;
 
-    // Section 1: Observed Pattern & Spatial Telemetry Analysis
     checkPageBreak(30);
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(10);
@@ -181,7 +148,6 @@
     doc.text(patternLines, margin, yPos, { lineHeightFactor: 1.4 });
     yPos += (patternLines.length * 4.2) + 6;
 
-    // Section 2: Proposed Immediate Intervention Actions
     checkPageBreak(45);
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(10);
@@ -203,7 +169,7 @@
 
     actions.forEach((act, i) => {
       checkPageBreak(14);
-      // Circle number
+
       doc.setFillColor(...COLOR_PRIMARY);
       doc.circle(margin + 2.5, yPos - 0.5, 2.2, 'F');
       doc.setFont('helvetica', 'bold');
@@ -211,7 +177,6 @@
       doc.setTextColor(...COLOR_WHITE);
       doc.text(String(i + 1), margin + 2.5, yPos + 0.3, { align: 'center' });
 
-      // Title & description
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(8.5);
       doc.setTextColor(...COLOR_PRIMARY);
@@ -226,7 +191,6 @@
       yPos += (descLines.length * 3.6) + 3;
     });
 
-    // Section 3: Appendix of Selected Reports
     checkPageBreak(40);
     yPos += 2;
     doc.setFont('helvetica', 'bold');
@@ -239,7 +203,6 @@
     doc.line(margin, yPos, margin + 45, yPos);
     yPos += 5;
 
-    // Table Header
     doc.setFillColor(...COLOR_BG_LIGHT);
     doc.rect(margin, yPos, contentWidth, 6, 'F');
     doc.setFont('helvetica', 'bold');
@@ -270,7 +233,6 @@
       doc.text(r.category.substring(0, 22), margin + 28, yPos + 3.8);
       doc.text((r.location || r.city).substring(0, 32), margin + 72, yPos + 3.8);
 
-      // Severity highlight
       if (r.severity === 'High') {
         doc.setFont('helvetica', 'bold');
         doc.setTextColor(...COLOR_PRIMARY);
@@ -287,7 +249,6 @@
       yPos += 5.5;
     });
 
-    // Mandatory Disclaimer Box
     checkPageBreak(25);
     yPos += 6;
     doc.setFillColor(...COLOR_BG_LIGHT);
@@ -308,7 +269,6 @@
     );
     doc.text(discLines, margin + 3, yPos + 8);
 
-    // Number all pages
     const totalPages = doc.internal.getNumberOfPages();
     for (let i = 1; i <= totalPages; i++) {
       doc.setPage(i);
@@ -318,14 +278,13 @@
       doc.text(`Page ${i} of ${totalPages} • Confidential Environmental Intelligence Brief`, pageWidth / 2, pageHeight - 8, { align: 'center' });
     }
 
-    // Download PDF
     const filename = `Prakarti_Report_Intervention_Proposal_${proposal.referenceId || '2026'}.pdf`;
     doc.save(filename);
   }
 
-  // Expose globally
   window.EarthPdf = {
     exportProposalToPdf
   };
 
 })();
+

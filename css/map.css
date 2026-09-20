@@ -1,16 +1,3 @@
-/**
- * Prakarti Report — NGO Environmental Intelligence & Action Platform
- * css/map.css — Spatial Intelligence & Environmental Map Styles
- * 
- * Strict Design System:
- * Colors ONLY: #FFFFFF, #F8FBF8, #F0F7F1, #DDEFE0, #C5E3CA, #8FBC8F, #315C3A,
- * text #17231A / #657267.
- * No blue, red, yellow, orange, or other non-green hues.
- */
-
-/* ==========================================================================
-   1. MAP PAGE LAYOUT & HEADER
-   ========================================================================== */
 .map-header-group {
   display: flex;
   align-items: center;
@@ -76,9 +63,6 @@
   line-height: 1.2;
 }
 
-/* ==========================================================================
-   2. MAP FILTER BAR (CATEGORY CHIPS & DROPDOWNS)
-   ========================================================================== */
 .map-filter-card {
   background-color: var(--c-white);
   border: 1px solid var(--c-border-light);
@@ -187,7 +171,6 @@
   border-color: var(--c-primary);
 }
 
-/* Quick Jump Hotspot Zone Links */
 .map-quick-jump-bar {
   display: flex;
   align-items: center;
@@ -224,9 +207,6 @@
   color: var(--c-primary);
 }
 
-/* ==========================================================================
-   3. MAP CANVAS & LEAFLET WRAPPER
-   ========================================================================== */
 .map-canvas-wrapper {
   position: relative;
   width: 100%;
@@ -251,12 +231,10 @@
   background: #F8FBF8;
 }
 
-/* Leaflet Tile Filter - CartoDB Positron Subtle Adjustment */
 .leaflet-tile-pane {
   filter: contrast(98%) brightness(99%);
 }
 
-/* Custom Zoom Control Styling */
 .leaflet-bar {
   border-radius: var(--radius-md) !important;
   border: 1px solid var(--c-border-medium) !important;
@@ -276,9 +254,6 @@
   color: var(--c-primary) !important;
 }
 
-/* ==========================================================================
-   4. FLOATING MAP LEGEND & CONTROLS OVERLAY
-   ========================================================================== */
 .map-floating-legend {
   position: absolute;
   bottom: 24px;
@@ -354,7 +329,6 @@
   border: 1.5px solid var(--c-text-secondary);
 }
 
-/* Map Mode / Layer Toggles */
 .map-floating-toggles {
   position: absolute;
   top: 16px;
@@ -392,9 +366,6 @@
   color: var(--c-primary);
 }
 
-/* ==========================================================================
-   5. CUSTOM LEAFLET POPUP STYLING
-   ========================================================================== */
 .leaflet-popup-content-wrapper {
   background: var(--c-white) !important;
   color: var(--c-text-primary) !important;
@@ -529,9 +500,6 @@
   transform: translateY(-1px);
 }
 
-/* ==========================================================================
-   6. MARKERCLUSTER CUSTOM MONOCHROME GREEN OVERRIDES
-   ========================================================================== */
 .marker-cluster-small,
 .marker-cluster-medium,
 .marker-cluster-large {
@@ -553,7 +521,6 @@
   justify-content: center !important;
 }
 
-/* Pulse animation on high concentration cluster centers */
 @keyframes clusterPulse {
   0% { transform: scale(1); opacity: 0.8; }
   50% { transform: scale(1.15); opacity: 0.4; }
@@ -564,7 +531,6 @@
   animation: clusterPulse 2.5s infinite ease-in-out;
 }
 
-/* Severity-based MarkerCluster styles */
 .marker-cluster-high {
   background-color: rgba(239, 68, 68, 0.35) !important;
   border-radius: 50% !important;
@@ -600,3 +566,4 @@
   background-color: #657267 !important;
   color: #ffffff !important;
 }
+

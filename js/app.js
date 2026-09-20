@@ -1,21 +1,6 @@
-/**
- * Prakarti Report — NGO Environmental Intelligence & Action Platform
- * js/app.js — Shared Application Shell & Navigation Controller
- *
- * Responsibilities:
- * - Injects shared persistent Sidebar & Topbar across application pages
- * - Active route / link detection by filename
- * - Mobile drawer & sidebar toggle behavior
- * - Global instant search across environmental reports (ID, category, location, severity)
- * - Notification dropdown & dismiss behavior
- * - Shared modal / settings handler
- */
-
 (function () {
   'use strict';
 
-  // Navigation Items per specifications:
-  // Dashboard, Reports, Environmental Map, Analytics, Hotspots, Teams & Specialists, Proposals, Impact, Divider, Settings
   const NAV_ITEMS = [
     { label: 'Dashboard', href: 'dashboard.html', icon: 'layout-dashboard' },
     { label: 'Reports', href: 'reports.html', icon: 'file-search' },
@@ -27,7 +12,6 @@
     { label: 'Impact', href: 'impact.html', icon: 'shield-check' }
   ];
 
-  // Notification Feed (Strictly using responsible AI framing)
   const NOTIFICATIONS = [
     {
       id: 'NOTIF-1',
@@ -80,9 +64,9 @@
       <nav class="sidebar-nav">
         <span class="nav-label">Intelligence &amp; Action</span>
         ${navLinksHtml}
-        
+
         <div class="nav-divider"></div>
-        
+
         <a href="settings.html" class="nav-link ${currentFile === 'settings.html' ? 'active' : ''}">
           <i data-lucide="settings"></i>
           <span>Settings</span>
@@ -134,20 +118,19 @@
       </div>
 
       <div class="topbar-right">
-        <!-- Global Search Input -->
+
         <div class="topbar-search">
           <i data-lucide="search" class="topbar-search-icon"></i>
-          <input 
-            type="text" 
-            id="globalSearchInput" 
-            class="topbar-search-input" 
+          <input
+            type="text"
+            id="globalSearchInput"
+            class="topbar-search-input"
             placeholder="Search reports..."
             autocomplete="off"
           />
           <div id="searchResultsDropdown" class="search-results-dropdown"></div>
         </div>
 
-        <!-- Notifications Bell -->
         <div class="notifications-wrapper">
           <button id="notifBellBtn" class="topbar-icon-btn" aria-label="View notifications">
             <i data-lucide="bell"></i>
@@ -165,7 +148,6 @@
           </div>
         </div>
 
-        <!-- Officer Profile Chip -->
         <a href="#profile" id="profileChipBtn" class="profile-chip">
           <div class="profile-avatar">PO</div>
           <span class="profile-name" id="topbarUserName">Platform Officer</span>
@@ -208,9 +190,8 @@
     `;
   }
 
-  // Bind interactions
   function initInteractions() {
-    // Mobile Drawer Elements
+
     const mobileMenuBtn = document.getElementById('mobileMenuBtn');
     const sidebarCloseBtn = document.getElementById('sidebarCloseBtn');
     const sidebar = document.querySelector('.sidebar');
@@ -231,7 +212,6 @@
       sidebarOverlay.addEventListener('click', closeDrawer);
     }
 
-    // Sign Out Handler (Exclusively Supabase Auth)
     const sidebarSignOutBtn = document.getElementById('sidebarSignOutBtn');
     if (sidebarSignOutBtn) {
       sidebarSignOutBtn.addEventListener('click', async (e) => {
@@ -247,7 +227,6 @@
       });
     }
 
-    // Populate user profile & organization details from Supabase session
     try {
       if (window.EarthData && typeof window.EarthData.getSession === 'function') {
         window.EarthData.getSession().then(({ user, organization }) => {
@@ -283,7 +262,6 @@
       }
     } catch (e) {}
 
-    // Listen for auth events and redirect if signed out
     if (window.EarthData && typeof window.EarthData.onAuthStateChange === 'function') {
       window.EarthData.onAuthStateChange((event, session) => {
         if (event === 'SIGNED_OUT' || !session) {
@@ -292,7 +270,6 @@
       });
     }
 
-    // Notifications Dropdown
     const notifBellBtn = document.getElementById('notifBellBtn');
     const notifDropdown = document.getElementById('notifDropdown');
 
@@ -309,7 +286,6 @@
       });
     }
 
-    // Global Search Controller
     const searchInput = document.getElementById('globalSearchInput');
     const searchDropdown = document.getElementById('searchResultsDropdown');
 
@@ -338,7 +314,6 @@
         }, 150);
       });
 
-      // Close search on outside click
       document.addEventListener('click', (e) => {
         if (!searchDropdown.contains(e.target) && e.target !== searchInput) {
           searchDropdown.classList.remove('active');
@@ -376,7 +351,6 @@
       searchDropdown.classList.add('active');
     }
 
-    // Settings Modal
     const profileChipBtn = document.getElementById('profileChipBtn');
     const settingsModalBackdrop = document.getElementById('settingsModalBackdrop');
     const closeSettingsModal = document.getElementById('closeSettingsModal');
@@ -395,7 +369,6 @@
     if (closeSettingsModal) closeSettingsModal.addEventListener('click', closeSettings);
     if (dismissSettingsModal) dismissSettingsModal.addEventListener('click', closeSettings);
 
-    // Re-instantiate icons
     if (window.lucide && typeof window.lucide.createIcons === 'function') {
       window.lucide.createIcons();
     }
@@ -409,16 +382,13 @@
       .replace(/"/g, '&quot;');
   }
 
-  // Shell Injection Entry Point
   async function initAppShell() {
     const currentFile = getCurrentFilename();
 
-    // Do not inject shell on index.html (the login screen)
     if (currentFile === 'index.html' || document.body.classList.contains('login-page')) {
       return;
     }
 
-    // Auth Guard: Every page except index.html requires an authenticated Supabase session
     try {
       let authSession = null;
       if (window.EarthData && typeof window.EarthData.getSession === 'function') {
@@ -438,7 +408,6 @@
     const appShell = document.getElementById('app-shell') || document.querySelector('.app-shell');
     if (!appShell) return;
 
-    // 1. Inject or update Sidebar
     let sidebar = appShell.querySelector('.sidebar');
     let overlay = appShell.querySelector('.sidebar-overlay');
 
@@ -455,7 +424,6 @@
     }
     sidebar.innerHTML = renderSidebar(currentFile);
 
-    // 2. Inject or update Topbar
     const mainContent = appShell.querySelector('.main-content');
     if (mainContent) {
       let topbar = mainContent.querySelector('.topbar');
@@ -467,7 +435,6 @@
       topbar.innerHTML = renderTopbar();
     }
 
-    // 3. Inject Settings Modal if missing
     if (!document.getElementById('settingsModalBackdrop')) {
       const modalWrapper = document.createElement('div');
       modalWrapper.innerHTML = renderSettingsModal();
@@ -477,14 +444,12 @@
     initInteractions();
   }
 
-  // Run on DOM ready
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initAppShell);
   } else {
     initAppShell();
   }
 
-  // Expose namespace for debugging or custom programmatic trigger
   window.EarthApp = {
     initAppShell,
     getCurrentFilename

@@ -13,13 +13,12 @@
   <div id="app-shell" class="app-shell">
     <main class="main-content">
       <div class="page-container">
-        <!-- Ethical AI Protocol Notice -->
+
         <div class="ai-notice-banner">
           <span class="ai-notice-tag">Ethical AI Protocol</span>
           <span>Every item is an <strong>AI-detected suspected issue</strong>. Field specialists conduct ground checks before advancing status to 'Verified'.</span>
         </div>
 
-        <!-- Page Header -->
         <div class="reports-header-group">
           <div>
             <div style="display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap;">
@@ -35,7 +34,6 @@
           </div>
         </div>
 
-        <!-- Bulk Selection Action Bar (appears when 1+ rows are checked) -->
         <div id="bulkActionBar" class="bulk-action-bar">
           <div class="bulk-meta">
             <i data-lucide="check-square" style="width:16px; height:16px;"></i>
@@ -52,16 +50,15 @@
           </div>
         </div>
 
-        <!-- Filters & Search Toolbar -->
         <div class="reports-filter-panel">
-          <!-- Search Box -->
+
           <div class="reports-search-row">
             <div class="search-input-wrapper">
               <i data-lucide="search" class="search-input-icon"></i>
-              <input 
-                type="text" 
-                id="reportsSearchInput" 
-                class="reports-search-input" 
+              <input
+                type="text"
+                id="reportsSearchInput"
+                class="reports-search-input"
                 placeholder="Search by report ID, category, area, or landmark..."
                 autocomplete="off"
               />
@@ -72,9 +69,8 @@
             </button>
           </div>
 
-          <!-- Dropdowns -->
           <div class="reports-dropdowns-row">
-            <!-- Category -->
+
             <select id="filterCategorySelect" class="filter-select">
               <option value="all">All Categories</option>
               <option value="Garbage Dumping">Garbage Dumping</option>
@@ -89,7 +85,6 @@
               <option value="Plastic Waste">Plastic Waste</option>
             </select>
 
-            <!-- Severity -->
             <select id="filterSeveritySelect" class="filter-select">
               <option value="all">All Severities</option>
               <option value="High">High Severity</option>
@@ -98,7 +93,6 @@
               <option value="Unassessed">Unassessed</option>
             </select>
 
-            <!-- Status -->
             <select id="filterStatusSelect" class="filter-select">
               <option value="all">All Statuses</option>
               <option value="Reported">Reported</option>
@@ -109,7 +103,6 @@
               <option value="Resolved">Resolved</option>
             </select>
 
-            <!-- Date Range (Month) -->
             <select id="filterDateSelect" class="filter-select">
               <option value="all">All Dates (Jun–Sep 2026)</option>
               <option value="2026-06">June 2026</option>
@@ -118,7 +111,6 @@
               <option value="2026-09">September 2026</option>
             </select>
 
-            <!-- Location / City -->
             <select id="filterLocationSelect" class="filter-select">
               <option value="all">All Locations</option>
               <option value="Delhi">Delhi</option>
@@ -129,7 +121,6 @@
           </div>
         </div>
 
-        <!-- Empty State (when 0 records match) -->
         <div id="reportsEmptyState" class="empty-state" style="display:none;">
           <div class="empty-icon">
             <i data-lucide="filter-x"></i>
@@ -142,7 +133,6 @@
           </button>
         </div>
 
-        <!-- Full Reports Table -->
         <div id="reportsTableWrap" class="table-responsive">
           <table class="table">
             <thead>
@@ -188,7 +178,6 @@
           </table>
         </div>
 
-        <!-- Pagination Controls -->
         <div id="reportsPaginationBar" class="reports-pagination-bar">
           <div id="paginationInfo">Loading…</div>
 
@@ -219,7 +208,6 @@
     </main>
   </div>
 
-  <!-- Quick Assign Team Modal -->
   <div id="assignModalBackdrop" class="modal-backdrop">
     <div class="modal">
       <div class="modal-header">
@@ -267,3 +255,4 @@
   <script src="js/reports.js"></script>
 </body>
 </html>
+

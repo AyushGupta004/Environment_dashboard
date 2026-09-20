@@ -1,40 +1,22 @@
-/**
- * Prakarti Report — NGO Environmental Intelligence & Action Platform
- * js/map.js — Spatial Intelligence Map & Geospatial Hotspots Controller
- * 
- * Strict Architecture Rule:
- * All data access goes through EarthData (js/data.js):
- * - EarthData.getReports()
- * - EarthData.getHotspots()
- * 
- * Strictly adheres to Ethical AI Language:
- * - "AI-detected suspected issue"
- * - Never "proves" or "confirms" without ground validation.
- */
-
 (function () {
   'use strict';
 
-  // Map state
   let map = null;
   let allReports = [];
   let allHotspots = [];
   let filteredReports = [];
 
-  // Layers
   let markerClusterGroup = null;
   let hotspotsLayerGroup = null;
   let showIncidentMarkers = true;
   let showHotspotBuffers = true;
 
-  // Filter state
   let selectedCategory = 'All';
   let selectedSeverity = 'All';
   let selectedStatus = 'All';
   let selectedCity = 'All';
   let selectedDateRange = 'All';
 
-  // Standard Severity Palette
   const SEVERITY_PALETTE = {
     High: { stroke: '#B91C1C', fill: '#EF4444', radius: 9, opacity: 0.95 },
     Medium: { stroke: '#B45309', fill: '#F59E0B', radius: 7.5, opacity: 0.90 },
@@ -42,9 +24,6 @@
     Unassessed: { stroke: '#657267', fill: '#F0F7F1', radius: 7, opacity: 0.85, dashed: true }
   };
 
-  /**
-   * Smooth number counter animation
-   */
   function animateCountUp(element, target, duration = 500) {
     if (!element) return;
     const current = parseInt(element.textContent.replace(/[^0-9]/g, ''), 10) || 0;
@@ -65,9 +44,6 @@
     requestAnimationFrame(step);
   }
 
-  /**
-   * Category classification mapping for chips
-   */
   function matchesCategoryChip(category, chipKey, aiCategory) {
     if (!chipKey || chipKey === 'All') return true;
     const cat = (category || '').toLowerCase();
@@ -98,9 +74,6 @@
     return false;
   }
 
-  /**
-   * Helper: Category micro-icon for popups
-   */
   function getCategoryMiniIcon(category) {
     const cat = (category || '').toLowerCase();
     if (cat.includes('industrial')) return 'factory';
@@ -112,9 +85,6 @@
     return 'alert-circle';
   }
 
-  /**
-   * Inline-SVG Category Glyphs (Garbage, Burning, Water, Deforestation, Anomaly)
-   */
   function getCategorySvgGlyph(category, size = 14, color = '#315C3A') {
     const cat = (category || '').toLowerCase();
     if (cat.includes('garbage') || cat.includes('dumping') || cat.includes('waste') || cat.includes('plastic')) {
@@ -132,14 +102,10 @@
     return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; display:inline-block;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`;
   }
 
-  /**
-   * Initialize Leaflet Map with CartoDB Positron Minimal Basemap
-   */
   function initMapCanvas() {
     const mapContainer = document.getElementById('leafletMap');
     if (!mapContainer) return;
 
-    // National Capital Region Centroid: [28.58, 77.38], zoom 11
     map = L.map('leafletMap', {
       center: [28.58, 77.38],
       zoom: 11,
@@ -149,7 +115,6 @@
       scrollWheelZoom: true
     });
 
-    // CartoDB Positron Minimal Basemap (Light Gray / Monochrome)
     const cartoKey = (window.EARTHFORWARD_CONFIG && window.EARTHFORWARD_CONFIG.CARTO_API_KEY) ||
                      (window.EARTH_FORWARD_CONFIG && window.EARTH_FORWARD_CONFIG.CARTO_API_KEY) ||
                      'cb1_3pyb_1_109aed2ce548c48365adc818';
@@ -159,7 +124,6 @@
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
     }).addTo(map);
 
-    // Initialize Layer Groups
     markerClusterGroup = L.markerClusterGroup({
       showCoverageOnHover: false,
       maxClusterRadius: 42,
@@ -198,9 +162,6 @@
     map.addLayer(hotspotsLayerGroup);
   }
 
-  /**
-   * Load Data & Render Markers and Hotspot Zones
-   */
   async function loadMapData() {
     try {
       allReports = await window.EarthData.getReports();
@@ -219,9 +180,6 @@
     }
   }
 
-  /**
-   * Update Badge Counts on Category Chips
-   */
   function updateCategoryChipCounts() {
     const chips = ['All', 'Waste', 'Burning', 'Air', 'Water', 'Industrial', 'Deforestation', 'Plastic'];
     chips.forEach(key => {
@@ -236,10 +194,6 @@
     });
   }
 
-  /**
-   * Render Regional Hotspot Concentration Buffers
-   * Green dashed perimeter and soft tinted radius indicating dense multi-report zones
-   */
   function renderHotspotBuffers() {
     hotspotsLayerGroup.clearLayers();
 
@@ -250,7 +204,6 @@
       const risk = hotspot.riskLevel || 'Medium';
       const palette = SEVERITY_PALETTE[risk] || SEVERITY_PALETTE.Medium;
 
-      // Soft circular density polygon styled with risk palette
       const circle = L.circle([lat, lng], {
         radius: radius,
         color: palette.stroke,
@@ -261,7 +214,6 @@
         interactive: true
       });
 
-      // Hotspot popup
       const popupHtml = `
         <div class="popup-inner-card">
           <div class="popup-header">
@@ -309,19 +261,15 @@
     });
   }
 
-  /**
-   * Apply Filter Bar Criteria Live Without Reload
-   */
   function applyFilters() {
     if (!allReports || allReports.length === 0) return;
 
     filteredReports = allReports.filter(r => {
-      // 1. Category Chip Filter
+
       if (!matchesCategoryChip(r.category, selectedCategory, r.aiCategory)) {
         return false;
       }
 
-      // 2. Severity Dropdown
       if (selectedSeverity !== 'All') {
         const rSev = r.severity || 'Unassessed';
         if (rSev.toLowerCase() !== selectedSeverity.toLowerCase()) {
@@ -329,17 +277,14 @@
         }
       }
 
-      // 3. Status Dropdown
       if (selectedStatus !== 'All' && r.status !== selectedStatus) {
         return false;
       }
 
-      // 4. City Dropdown
       if (selectedCity !== 'All' && r.city !== selectedCity) {
         return false;
       }
 
-      // 5. Date Range Filter
       if (selectedDateRange !== 'All') {
         const days = parseInt(selectedDateRange, 10);
         const reportTime = new Date(r.reportDate).getTime();
@@ -352,20 +297,11 @@
       return true;
     });
 
-    // Re-plot markers
     plotReportMarkers(filteredReports);
 
-    // Update stats strip and label
     updateStatsKPIs(filteredReports);
   }
 
-  /**
-   * Plot Reports as Circle Markers with Green Intensity
-   * High: Dark Forest Green (#315C3A)
-   * Medium: Medium Sage (#8FBC8F)
-   * Low: Light Mint/Sage (#C5E3CA with #315C3A border)
-   * Unassessed: Neutral Muted Mint/Gray with dashed border
-   */
   function plotReportMarkers(reportsToPlot) {
     markerClusterGroup.clearLayers();
 
@@ -388,7 +324,6 @@
         severity: sev
       });
 
-      // Format date
       const dateStr = r.reportDate ? new Date(r.reportDate).toLocaleDateString('en-US', {
         month: 'short',
         day: 'numeric',
@@ -402,7 +337,6 @@
       const statusKey = (r.status || 'reported').toLowerCase().replace(/\s+/g, '');
       const sevLabel = r.severity || 'Unassessed';
 
-      // Styled Custom Leaflet Popup
       const popupContent = `
         <div class="popup-inner-card">
           <div class="popup-header">
@@ -472,9 +406,6 @@
     });
   }
 
-  /**
-   * Update Stats KPIs and Filter Count
-   */
   function updateStatsKPIs(currentFiltered) {
     const totalEl = document.getElementById('statTotalPlotted');
     const highEl = document.getElementById('statHighSeverity');
@@ -497,9 +428,6 @@
     }
   }
 
-  /**
-   * Render Top Hotspots Overview Summary
-   */
   function renderTopHotspotsOverview() {
     const container = document.getElementById('topHotspotsList');
     if (!container || !allHotspots) return;
@@ -525,11 +453,8 @@
     }).join('');
   }
 
-  /**
-   * Event Listeners Setup
-   */
   function setupEventListeners() {
-    // 1. Category Chips Click
+
     const chips = document.querySelectorAll('.chip-btn');
     chips.forEach(chip => {
       chip.addEventListener('click', () => {
@@ -540,7 +465,6 @@
       });
     });
 
-    // 2. Dropdown Filters Change
     const sevSelect = document.getElementById('mapFilterSeverity');
     if (sevSelect) {
       sevSelect.addEventListener('change', (e) => {
@@ -573,7 +497,6 @@
       });
     }
 
-    // 3. Reset Filters Button
     const resetBtn = document.getElementById('btnResetMapFilters');
     if (resetBtn) {
       resetBtn.addEventListener('click', () => {
@@ -600,7 +523,6 @@
       });
     }
 
-    // 4. Quick Jump Hotspots Buttons
     document.addEventListener('click', (e) => {
       const btn = e.target.closest('.quick-jump-btn');
       if (!btn || !map) return;
@@ -617,7 +539,6 @@
       }
     });
 
-    // 5. Layer Toggles (Incidents / Hotspot Buffers)
     const toggleMarkersBtn = document.getElementById('toggleMarkersLayer');
     if (toggleMarkersBtn) {
       toggleMarkersBtn.addEventListener('click', () => {
@@ -646,7 +567,6 @@
       });
     }
 
-    // 6. Realtime Live Subscription
     if (window.EarthData && typeof window.EarthData.subscribeToChanges === 'function') {
       window.EarthData.subscribeToChanges({
         tables: ['reports', 'organizations'],
@@ -678,7 +598,6 @@
     }
   }
 
-  // Initialize on DOM Ready
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
       initMapCanvas();
@@ -692,3 +611,4 @@
   }
 
 })();
+

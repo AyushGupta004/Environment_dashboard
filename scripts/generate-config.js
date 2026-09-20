@@ -1,14 +1,6 @@
-/**
- * scripts/generate-config.js
- * 
- * Generates js/config.js from environment variables (process.env) or local .env file.
- * Zero external dependencies (plain Node.js).
- */
-
 const fs = require('fs');
 const path = require('path');
 
-// Parse command line arguments
 let outPath = path.resolve(__dirname, '..', 'js', 'config.js');
 const args = process.argv.slice(2);
 for (let i = 0; i < args.length; i++) {
@@ -20,7 +12,6 @@ for (let i = 0; i < args.length; i++) {
   }
 }
 
-// Parse local .env file if present
 function parseEnvFile(filePath) {
   const env = {};
   if (!fs.existsSync(filePath)) return env;
@@ -52,7 +43,7 @@ function parseEnvFile(filePath) {
 
 const isVercel = Boolean(process.env.VERCEL);
 const envFilePath = path.resolve(__dirname, '..', '.env');
-// On Vercel, .env is not committed and environment variables must come from process.env
+
 const fileEnv = isVercel ? {} : parseEnvFile(envFilePath);
 
 function getEnvVal(key) {
@@ -71,15 +62,11 @@ const cartoApiKey = getEnvVal('CARTO_API_KEY');
 
 const hasAnyEnvValues = Boolean(supabaseUrl || supabaseAnonKey || cartoApiKey);
 
-// Local behaviour: if js/config.js already exists and no env/.env values are found,
-// leave it untouched and exit 0, so existing local workflow keeps working.
 if (!hasAnyEnvValues && fs.existsSync(outPath) && !isVercel) {
   console.log(`[generate-config] Config exists at ${outPath} and no env/.env values found. Leaving untouched.`);
   process.exit(0);
 }
 
-// Vercel behaviour: if process.env.VERCEL is set and SUPABASE_URL or SUPABASE_ANON_KEY is missing,
-// fail the build with a clear message naming the missing variables.
 if (isVercel) {
   const missing = [];
   if (!supabaseUrl) missing.push('SUPABASE_URL');
@@ -94,27 +81,16 @@ if (isVercel) {
   }
 }
 
-// Build configuration file content (CLIENT-SAFE ONLY: Never expose service role or secret keys)
 const configLines = [
   `  SUPABASE_URL: ${JSON.stringify(supabaseUrl || '')},`,
   `  SUPABASE_ANON_KEY: ${JSON.stringify(supabaseAnonKey || '')},`,
   `  CARTO_API_KEY: ${JSON.stringify(cartoApiKey || '')}`
 ];
 
-const fileContent = `/**
- * Prakarti Report — Runtime Configuration
- *
- * WARNING: This file is generated dynamically by scripts/generate-config.js.
- * Do NOT edit manually or commit this file.
- *
- * SECURITY NOTICE: Anything written to js/config.js is served as static client code
- * and is publicly readable by every site visitor in their browser.
- */
-window.EARTHFORWARD_CONFIG = {
+const fileContent = `window.EARTHFORWARD_CONFIG = {
 ${configLines.join('\n')}
 };
 
-// Global backward-compatibility alias
 if (typeof window !== 'undefined') {
   window.EARTH_FORWARD_CONFIG = window.EARTHFORWARD_CONFIG;
 }
@@ -131,3 +107,4 @@ try {
   console.error(`[generate-config] Failed to write config to ${outPath}:`, err.message);
   process.exit(1);
 }
+

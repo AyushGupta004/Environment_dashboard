@@ -1,34 +1,16 @@
-/**
- * Prakarti Report — NGO Environmental Intelligence & Action Platform
- * js/analytics.js — Comprehensive Environmental Analytics & Dynamic Charting Controller
- * 
- * Strict Architecture Rule:
- * All figures computed live from EarthData (js/data.js):
- * - EarthData.getReports()
- * - EarthData.getAnalytics()
- * 
- * Strict Design System:
- * - Monochrome green charts only (#315C3A, #8FBC8F, #C5E3CA, #DDEFE0, #F0F7F1)
- * - Thin lines, soft fills, minimal grid lines.
- * - Live dynamic updates across all charts on shared filter changes.
- */
-
 (function () {
   'use strict';
 
-  // State
   let allReports = [];
   let filteredReports = [];
-  let timelineGranularity = 'monthly'; // 'monthly' | 'weekly'
+  let timelineGranularity = 'monthly';
 
-  // Chart instances
   let timelineChart = null;
   let categoryChart = null;
   let locationChart = null;
   let severityChart = null;
   let statusChart = null;
 
-  // Shared Monochrome Green Palette Tokens
   const GREEN_PALETTE = {
     darkest: '#17231A',
     primary: '#315C3A',
@@ -42,9 +24,6 @@
     textSecondary: '#657267'
   };
 
-  /**
-   * Common Chart.js Tooltip & Axis Theme
-   */
   const chartTheme = {
     plugins: {
       tooltip: {
@@ -81,9 +60,6 @@
     }
   };
 
-  /**
-   * Number count-up animation helper (animates from current value)
-   */
   function animateCountUp(element, target, duration = 600, isPercentage = false, suffix = '') {
     if (!element) return;
     const currentText = element.textContent.replace(/[^0-9.]/g, '');
@@ -96,7 +72,7 @@
     function update(now) {
       const elapsed = now - startTime;
       const progress = Math.min(elapsed / duration, 1);
-      // Ease out quartic
+
       const ease = 1 - Math.pow(1 - progress, 4);
       const current = start + (target - start) * ease;
 
@@ -116,10 +92,6 @@
     requestAnimationFrame(update);
   }
 
-  /**
-   * Compute Average Resolution Time from statusHistory
-   * Calculates difference between 'Reported' and 'Resolved' timestamps
-   */
   function computeAverageResolutionTime(reports) {
     const resolvedReports = reports.filter(r => r.status === 'Resolved');
     if (resolvedReports.length === 0) {
@@ -141,7 +113,7 @@
         totalDurationMs += (endMs - startMs);
         count++;
       } else {
-        // Realistic fallback from synthetic dataset: 3.5 days average
+
         totalDurationMs += (3.5 * 86400000);
         count++;
       }
@@ -155,9 +127,6 @@
     };
   }
 
-  /**
-   * Initialize Analytics Dashboard
-   */
   async function initAnalytics() {
     try {
       allReports = await window.EarthData.getReports();
@@ -175,9 +144,6 @@
     }
   }
 
-  /**
-   * Update KPI Cards (Resolution Rate, Average Resolution Time, Total, Verification Rate)
-   */
   function updateKPIs(reports) {
     const total = reports.length;
     const resolvedCount = reports.filter(r => r.status === 'Resolved').length;
@@ -187,28 +153,20 @@
     const verificationRate = total > 0 ? Math.round((verifiedCount / total) * 100) : 0;
     const resTime = computeAverageResolutionTime(reports);
 
-    // KPI 1: Resolution Rate
     animateCountUp(document.getElementById('kpiResolutionRate'), resolutionRate, 700, true);
 
-    // KPI 2: Average Resolution Time (Computed from statusHistory timestamps)
     animateCountUp(document.getElementById('kpiAvgResolutionTime'), resTime.days, 700, false, ' Days');
 
-    // KPI 3: Total Ingested Reports
     animateCountUp(document.getElementById('kpiTotalReports'), total, 700, false);
 
-    // KPI 4: Ground Verification Velocity
     animateCountUp(document.getElementById('kpiVerificationRate'), verificationRate, 700, true);
 
-    // Status Indicator
     const indicator = document.getElementById('analyticsFilterCount');
     if (indicator) {
       indicator.textContent = `Analyzing ${total} of ${allReports.length} reports`;
     }
   }
 
-  /**
-   * Render or Update All 5 Chart.js Visualizations
-   */
   function renderAllCharts(reports) {
     renderTimelineChart(reports);
     renderCategoryChart(reports);
@@ -217,9 +175,6 @@
     renderStatusChart(reports);
   }
 
-  /**
-   * 1. Issues Over Time Line Chart (Weekly / Monthly Granularity)
-   */
   function renderTimelineChart(reports) {
     const ctx = document.getElementById('chartTimeline').getContext('2d');
     let labels = [];
@@ -245,7 +200,7 @@
       labels = Object.keys(monthBuckets);
       dataPoints = Object.values(monthBuckets);
     } else {
-      // Weekly Granularity (14 Weeks: June 1 to Sep 18, 2026)
+
       const weekBuckets = {
         'W1 Jun': 0, 'W2 Jun': 0, 'W3 Jun': 0, 'W4 Jun': 0,
         'W1 Jul': 0, 'W2 Jul': 0, 'W3 Jul': 0, 'W4 Jul': 0,
@@ -255,7 +210,7 @@
 
       reports.forEach(r => {
         const d = new Date(r.reportDate);
-        const m = d.getMonth(); // 5=Jun, 6=Jul, 7=Aug, 8=Sep
+        const m = d.getMonth();
         const day = d.getDate();
         const weekNum = Math.min(Math.ceil(day / 7), 4);
 
@@ -313,9 +268,6 @@
     }
   }
 
-  /**
-   * 2. Issues by Category Vertical Bar Chart
-   */
   function renderCategoryChart(reports) {
     const ctx = document.getElementById('chartCategory').getContext('2d');
     const catCounts = {};
@@ -324,7 +276,6 @@
       catCounts[r.category] = (catCounts[r.category] || 0) + 1;
     });
 
-    // Sort categories descending
     const sortedEntries = Object.entries(catCounts).sort((a, b) => b[1] - a[1]);
     const labels = sortedEntries.map(e => e[0]);
     const dataPoints = sortedEntries.map(e => e[1]);
@@ -371,15 +322,12 @@
     }
   }
 
-  /**
-   * 3. Issues by Location Horizontal Bar Chart
-   */
   function renderLocationChart(reports) {
     const ctx = document.getElementById('chartLocation').getContext('2d');
     const locCounts = {};
 
     reports.forEach(r => {
-      // Clean location label
+
       let loc = r.location || r.city;
       if (loc.length > 28) {
         loc = loc.substring(0, 26) + '...';
@@ -387,7 +335,6 @@
       locCounts[loc] = (locCounts[loc] || 0) + 1;
     });
 
-    // Top 7 Locations
     const topLocations = Object.entries(locCounts)
       .sort((a, b) => b[1] - a[1])
       .slice(0, 7);
@@ -436,9 +383,6 @@
     }
   }
 
-  /**
-   * 4. Severity Distribution Doughnut Chart
-   */
   function renderSeverityChart(reports) {
     const ctx = document.getElementById('chartSeverity').getContext('2d');
     const sevCounts = { High: 0, Medium: 0, Low: 0 };
@@ -463,9 +407,9 @@
           datasets: [{
             data: dataPoints,
             backgroundColor: [
-              GREEN_PALETTE.primary,     // High
-              GREEN_PALETTE.sageAccent,  // Medium
-              GREEN_PALETTE.sageLight    // Low
+              GREEN_PALETTE.primary,
+              GREEN_PALETTE.sageAccent,
+              GREEN_PALETTE.sageLight
             ],
             borderColor: GREEN_PALETTE.white,
             borderWidth: 2,
@@ -488,9 +432,6 @@
     }
   }
 
-  /**
-   * 5. Status Distribution Doughnut Chart (Lifecycle Verification Gates)
-   */
   function renderStatusChart(reports) {
     const ctx = document.getElementById('chartStatus').getContext('2d');
     const statusCounts = {
@@ -550,26 +491,21 @@
     }
   }
 
-  /**
-   * Apply Global Date, Category, and Municipal Filters
-   */
   function applyGlobalFilters() {
     const dateVal = document.getElementById('analyticsDateFilter').value;
     const catVal = document.getElementById('analyticsCategoryFilter').value;
     const cityVal = document.getElementById('analyticsCityFilter').value;
 
     filteredReports = allReports.filter(r => {
-      // 1. Category Filter
+
       if (catVal !== 'All' && r.category !== catVal) {
         return false;
       }
 
-      // 2. City Filter
       if (cityVal !== 'All' && r.city !== cityVal) {
         return false;
       }
 
-      // 3. Date Horizon Filter
       if (dateVal !== 'All') {
         const d = new Date(r.reportDate);
         const m = d.getMonth();
@@ -589,16 +525,12 @@
       return true;
     });
 
-    // Update all components simultaneously
     updateKPIs(filteredReports);
     renderAllCharts(filteredReports);
   }
 
-  /**
-   * Setup Event Listeners
-   */
   function setupEventListeners() {
-    // Granularity Toggle Buttons (Monthly / Weekly)
+
     const btnMonthly = document.getElementById('btnGranularityMonthly');
     const btnWeekly = document.getElementById('btnGranularityWeekly');
 
@@ -620,7 +552,6 @@
       });
     }
 
-    // Filter Dropdowns
     const dateSelect = document.getElementById('analyticsDateFilter');
     const catSelect = document.getElementById('analyticsCategoryFilter');
     const citySelect = document.getElementById('analyticsCityFilter');
@@ -639,7 +570,6 @@
       });
     }
 
-    // Realtime live subscription
     if (window.EarthData && typeof window.EarthData.subscribeToChanges === 'function') {
       window.EarthData.subscribeToChanges({
         tables: ['reports'],
@@ -667,7 +597,6 @@
     }
   }
 
-  // Self-execute initialization on DOM Ready
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initAnalytics);
   } else {
@@ -675,3 +604,4 @@
   }
 
 })();
+

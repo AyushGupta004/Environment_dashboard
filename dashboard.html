@@ -14,13 +14,12 @@
   <div id="app-shell" class="app-shell">
     <main class="main-content">
       <div class="page-container">
-        <!-- Ethical AI Protocol Notice -->
+
         <div class="ai-notice-banner">
           <span class="ai-notice-tag">Ethical AI Protocol</span>
           <span>Platform metrics aggregate <strong>AI-detected suspected issues</strong>. Physical ground verification is mandatory before municipal escalation.</span>
         </div>
 
-        <!-- Dashboard Header -->
         <div class="dashboard-header-wrapper">
           <div class="dashboard-title-group">
             <div class="dashboard-title-row">
@@ -36,9 +35,8 @@
           </div>
         </div>
 
-        <!-- 6 KPI Metric Cards (Animate counting up from 0 on load) -->
         <div class="kpi-row">
-          <!-- Total Reports -->
+
           <div class="kpi-metric-card kpi-accent-red">
             <div class="kpi-metric-label">Total Reports</div>
             <div class="kpi-metric-value skeleton-shimmer" id="kpiValTotal">--</div>
@@ -48,7 +46,6 @@
             </div>
           </div>
 
-          <!-- High Priority -->
           <div class="kpi-metric-card kpi-accent-yellow">
             <div class="kpi-metric-label">High Priority</div>
             <div class="kpi-metric-value skeleton-shimmer" id="kpiValHigh">--</div>
@@ -58,7 +55,6 @@
             </div>
           </div>
 
-          <!-- Under Investigation -->
           <div class="kpi-metric-card kpi-accent-yellow">
             <div class="kpi-metric-label">Under Investigation</div>
             <div class="kpi-metric-value skeleton-shimmer" id="kpiValReview">--</div>
@@ -68,7 +64,6 @@
             </div>
           </div>
 
-          <!-- Verified Issues -->
           <div class="kpi-metric-card">
             <div class="kpi-metric-label">Verified Issues</div>
             <div class="kpi-metric-value skeleton-shimmer" id="kpiValVerified">--</div>
@@ -78,7 +73,6 @@
             </div>
           </div>
 
-          <!-- Resolved -->
           <div class="kpi-metric-card kpi-accent-green">
             <div class="kpi-metric-label">Resolved</div>
             <div class="kpi-metric-value skeleton-shimmer" id="kpiValResolved">--</div>
@@ -88,7 +82,6 @@
             </div>
           </div>
 
-          <!-- Resolution Rate % -->
           <div class="kpi-metric-card kpi-accent-green">
             <div class="kpi-metric-label">Resolution Rate</div>
             <div class="kpi-metric-value skeleton-shimmer" id="kpiValRate">--%</div>
@@ -99,7 +92,6 @@
           </div>
         </div>
 
-        <!-- Shared Chart & Table Filter Bar -->
         <div class="dashboard-filter-bar">
           <div class="dashboard-filter-left">
             <span class="dashboard-filter-label">
@@ -107,7 +99,6 @@
               <span>Filter Intelligence:</span>
             </span>
 
-            <!-- Category Filter -->
             <select id="dashFilterCategory" class="dashboard-filter-select">
               <option value="all">All Categories</option>
               <option value="Garbage Dumping">Garbage Dumping</option>
@@ -122,7 +113,6 @@
               <option value="Plastic Waste">Plastic Waste</option>
             </select>
 
-            <!-- Date Range / Month Filter -->
             <select id="dashFilterDate" class="dashboard-filter-select">
               <option value="all">All Months (Jun–Sep 2026)</option>
               <option value="2026-06">June 2026</option>
@@ -131,7 +121,6 @@
               <option value="2026-09">September 2026</option>
             </select>
 
-            <!-- City Filter -->
             <select id="dashFilterCity" class="dashboard-filter-select">
               <option value="all">All Jurisdictions</option>
               <option value="Delhi">Delhi</option>
@@ -151,9 +140,8 @@
           </div>
         </div>
 
-        <!-- 4 Monochrome Green Charts Grid -->
         <div class="charts-grid">
-          <!-- Chart 1: Issues by Category -->
+
           <div class="chart-card">
             <div class="chart-card-header">
               <div>
@@ -167,7 +155,6 @@
             </div>
           </div>
 
-          <!-- Chart 2: Issues Over Time -->
           <div class="chart-card">
             <div class="chart-card-header">
               <div>
@@ -181,7 +168,6 @@
             </div>
           </div>
 
-          <!-- Chart 3: Severity Distribution -->
           <div class="chart-card">
             <div class="chart-card-header">
               <div>
@@ -195,7 +181,6 @@
             </div>
           </div>
 
-          <!-- Chart 4: Status Distribution -->
           <div class="chart-card">
             <div class="chart-card-header">
               <div>
@@ -210,7 +195,6 @@
           </div>
         </div>
 
-        <!-- Recent Reports Table Card -->
         <div class="recent-reports-card">
           <div class="recent-header">
             <div class="recent-title-group">
@@ -223,7 +207,6 @@
             </a>
           </div>
 
-          <!-- Empty State Container (shown when filters yield 0 results) -->
           <div id="dashboardEmptyState" class="empty-state" style="display:none; margin: var(--space-4) 0;">
             <div class="empty-icon">
               <i data-lucide="search-x"></i>
@@ -236,7 +219,6 @@
             </button>
           </div>
 
-          <!-- Table Container with skeleton initial rows -->
           <div id="recentTableWrapper" class="table-responsive">
             <table class="table">
               <thead>
@@ -252,7 +234,7 @@
                 </tr>
               </thead>
               <tbody id="recentReportsBody">
-                <!-- Skeleton loader while data.js resolves -->
+
                 <tr class="skeleton-row">
                   <td colspan="8" style="text-align: center; padding: var(--space-8);">
                     <div class="skeleton-loading-banner">
@@ -276,3 +258,4 @@
   <script src="js/dashboard.js"></script>
 </body>
 </html>
+

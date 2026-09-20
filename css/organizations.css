@@ -1,16 +1,3 @@
-/**
- * Prakarti Report — NGO Environmental Intelligence & Action Platform
- * css/organizations.css — Minimal, Whitespace-First Partner Organizations Styling
- * 
- * Strict Design System:
- * Colors ONLY: #FFFFFF, #F8FBF8, #F0F7F1, #DDEFE0, #C5E3CA, #8FBC8F, #315C3A,
- * text #17231A / #657267.
- * Whitespace-first UI principle — spacious, minimal cards, no dense admin-table feel.
- */
-
-/* ==========================================================================
-   1. PAGE HEADER & NETWORK STATS
-   ========================================================================== */
 .orgs-header-group {
   display: flex;
   align-items: center;
@@ -65,9 +52,6 @@
   color: var(--c-text-secondary);
 }
 
-/* ==========================================================================
-   2. WHITESPACE-FIRST ORGANIZATIONS CARDS GRID
-   ========================================================================== */
 .orgs-list-container {
   display: flex;
   flex-direction: column;
@@ -149,7 +133,6 @@
   max-width: 900px;
 }
 
-/* Three Computed Metrics Row (Spacious & Clean) */
 .org-metrics-row {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -190,7 +173,6 @@
   color: var(--c-text-secondary);
 }
 
-/* Metadata Tags: Focus Areas & Jurisdictions */
 .org-tags-section {
   display: flex;
   align-items: center;
@@ -266,9 +248,6 @@
   text-decoration: underline;
 }
 
-/* ==========================================================================
-   3. TEAM MEMBERS ROSTER SECTION
-   ========================================================================== */
 .org-members-section {
   display: flex;
   flex-direction: column;

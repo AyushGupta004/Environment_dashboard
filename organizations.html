@@ -14,14 +14,12 @@
   <div id="app-shell" class="app-shell">
     <main class="main-content">
       <div class="page-container">
-        
-        <!-- Ethical AI Protocol Notice Banner -->
+
         <div class="ai-notice-banner">
           <span class="ai-notice-tag">Ethical AI Protocol</span>
           <span>Field teams receive prioritized feeds of <strong>AI-detected suspected issues</strong> mapped to their designated regional focus areas. Ground investigations precede all formal statutory escalations.</span>
         </div>
 
-        <!-- Page Header -->
         <div class="orgs-header-group">
           <div>
             <div style="display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap;">
@@ -45,7 +43,6 @@
           </div>
         </div>
 
-        <!-- Network Overview Stats Strip -->
         <div class="orgs-stats-overview">
           <div class="org-stat-card">
             <span class="org-stat-label">Active Teams</span>
@@ -72,7 +69,6 @@
           </div>
         </div>
 
-        <!-- Whitespace-First Organizations Cards List -->
         <div class="orgs-list-container" id="organizationsContainer">
           <div style="text-align: center; padding: var(--space-8);">
             <div class="skeleton-loading-banner">
@@ -86,7 +82,6 @@
     </main>
   </div>
 
-  <!-- Create Team Modal -->
   <div id="createTeamModalBackdrop" class="modal-backdrop" aria-hidden="true">
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="createTeamModalTitle">
       <div class="modal-header">
@@ -118,10 +113,10 @@
               </button>
             </div>
             <input type="number" id="teamMembersInput" class="form-control" placeholder="1–100" min="1" max="100" step="1" value="3" required style="width:100%; padding:8px 12px; border:1px solid var(--c-border-medium); border-radius:var(--radius-md); font-size:var(--text-sm); margin-bottom: var(--space-3);" />
-            
+
             <label style="display:block; margin-bottom:6px; font-weight:600; font-size:var(--text-xs); color:var(--c-text-secondary);">Member Names *</label>
             <div id="memberInputsList" style="display:flex; flex-direction:column; gap:8px; max-height:220px; overflow-y:auto; padding-right:4px;">
-              <!-- Dynamic member name inputs rendered here -->
+
             </div>
             <div id="teamMembersError" class="field-error-msg" style="color:#b91c1c; font-size:11px; margin-top:6px; display:none;"></div>
           </div>
@@ -134,10 +129,8 @@
     </div>
   </div>
 
-  <!-- Toast Notification Container -->
   <div id="toastContainer" class="toast-container" aria-live="polite"></div>
 
-  <!-- Core Scripts -->
   <script src="js/config.js"></script>
   <script src="js/site-config.js"></script>
   <script src="js/data.js"></script>
@@ -145,3 +138,4 @@
   <script src="js/organizations.js"></script>
 </body>
 </html>
+

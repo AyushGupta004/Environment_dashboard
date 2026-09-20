@@ -1,34 +1,14 @@
-/**
- * Prakarti Report — NGO Environmental Intelligence & Action Platform
- * js/proposal.js — Remediation Action Proposal Builder & Document Synthesis Controller
- * 
- * Strict Architecture Rule:
- * All data access goes through EarthData (js/data.js):
- * - EarthData.getReports()
- * - EarthData.getHotspots()
- * 
- * Strict Design System:
- * - Responsible-AI phrasing throughout
- * - Clean document-style memorandum preview
- * - Executive PDF export via js/pdf.js (EarthPdf.exportProposalToPdf)
- */
-
 (function () {
   'use strict';
 
-  // Storage key for proposal generation selection
   const STORAGE_BULK_KEY = 'earthforward_selected_reports';
 
-  // State
   let allReports = [];
   let allHotspots = [];
   let candidateReports = [];
   let selectedReportIds = new Set();
   let currentProposal = null;
 
-  /**
-   * Helper: Format Date nicely
-   */
   function formatDate(dateInput) {
     if (!dateInput) return '—';
     try {
@@ -44,9 +24,6 @@
     }
   }
 
-  /**
-   * Toast notification feedback
-   */
   function showToast(message, type = 'success') {
     const container = document.getElementById('toastContainer');
     if (!container) return;
@@ -69,24 +46,17 @@
     }, 3200);
   }
 
-  /**
-   * Initialize Proposal Builder
-   */
   async function initProposalBuilder() {
     try {
       allReports = await window.EarthData.getReports();
       allHotspots = await window.EarthData.getHotspots();
 
-      // Check URL query parameters and sessionStorage pre-selection
       handlePreSelections();
 
-      // Apply filters and populate candidate table
       filterCandidateReports();
 
-      // Setup event listeners
       setupEventListeners();
 
-      // Auto-generate proposal if pre-selected items exist
       if (selectedReportIds.size >= 1) {
         generateProposalObject();
       } else {
@@ -104,9 +74,6 @@
     }
   }
 
-  /**
-   * Handle arriving pre-filtered via query params or sessionStorage
-   */
   function handlePreSelections() {
     const urlParams = new URLSearchParams(window.location.search);
     const hotspotParam = urlParams.get('hotspot');
@@ -114,29 +81,26 @@
 
     let hasPreSelection = false;
 
-    // 1. Check Hotspot Param (e.g. ?hotspot=HOT-01)
     if (hotspotParam) {
-      const foundHotspot = allHotspots.find(h => 
-        h.id.toLowerCase() === hotspotParam.toLowerCase() || 
+      const foundHotspot = allHotspots.find(h =>
+        h.id.toLowerCase() === hotspotParam.toLowerCase() ||
         h.name.toLowerCase().includes(hotspotParam.toLowerCase())
       );
       if (foundHotspot) {
-        // Set location filter
+
         const locSelect = document.getElementById('filterLocation');
         if (locSelect) locSelect.value = foundHotspot.city;
 
-        // Select all member reports in this hotspot
         (foundHotspot.reportsList || []).forEach(r => selectedReportIds.add(r.id));
         hasPreSelection = true;
         showToast(`Pre-loaded ${foundHotspot.name} clustered reports.`);
       }
     }
 
-    // 2. Check Location Param (e.g. ?location=Sahibabad)
     if (locationParam && !hasPreSelection) {
       const locSelect = document.getElementById('filterLocation');
       if (locSelect) {
-        // Match city or contains
+
         Array.from(locSelect.options).forEach(opt => {
           if (locationParam.toLowerCase().includes(opt.value.toLowerCase())) {
             locSelect.value = opt.value;
@@ -145,7 +109,6 @@
       }
     }
 
-    // 3. Check sessionStorage from reports.html bulk selection or report-details.html
     try {
       const stored = sessionStorage.getItem(STORAGE_BULK_KEY);
       if (stored) {
@@ -160,7 +123,6 @@
       console.warn('Could not read bulk selection from sessionStorage:', e);
     }
 
-    // 4. If still no pre-selection, default to first 8 High/Medium reports
     if (selectedReportIds.size === 0) {
       const defaultSelection = allReports
         .filter(r => r.severity === 'High' || r.severity === 'Medium')
@@ -169,9 +131,6 @@
     }
   }
 
-  /**
-   * Filter candidate reports matching current filter controls
-   */
   function filterCandidateReports() {
     const locVal = document.getElementById('filterLocation').value;
     const catVal = document.getElementById('filterCategory').value;
@@ -180,23 +139,23 @@
     const statusVal = document.getElementById('filterStatus').value;
 
     candidateReports = allReports.filter(r => {
-      // Location filter
+
       if (locVal !== 'All' && r.city !== locVal && !r.location.includes(locVal)) {
         return false;
       }
-      // Category filter
+
       if (catVal !== 'All' && r.category !== catVal) {
         return false;
       }
-      // Severity filter
+
       if (sevVal !== 'All' && r.severity !== sevVal) {
         return false;
       }
-      // Status filter
+
       if (statusVal !== 'All' && r.status !== statusVal) {
         return false;
       }
-      // Date filter
+
       if (dateVal !== 'All') {
         const days = parseInt(dateVal, 10);
         const reportTime = new Date(r.reportDate).getTime();
@@ -210,9 +169,6 @@
     updateLiveSummary();
   }
 
-  /**
-   * Render Candidate Reports Table
-   */
   function renderCandidateTable() {
     const tbody = document.getElementById('candidateReportsTbody');
     const headerCheckbox = document.getElementById('headerCheckbox');
@@ -249,11 +205,11 @@
       return `
         <tr class="${isChecked ? 'selected' : ''}" data-id="${r.id}">
           <td style="text-align: center;">
-            <input 
-              type="checkbox" 
-              class="candidate-checkbox row-item-checkbox" 
-              data-id="${r.id}" 
-              ${isChecked ? 'checked' : ''} 
+            <input
+              type="checkbox"
+              class="candidate-checkbox row-item-checkbox"
+              data-id="${r.id}"
+              ${isChecked ? 'checked' : ''}
               aria-label="Include ${r.id}"
             />
           </td>
@@ -287,9 +243,6 @@
     }).join('');
   }
 
-  /**
-   * Update Live Selection Summary Strip
-   */
   function updateLiveSummary() {
     const selectedReports = allReports.filter(r => selectedReportIds.has(r.id));
 
@@ -321,9 +274,6 @@
     }
   }
 
-  /**
-   * Synthesize Proposal Object and Render Document Preview
-   */
   function generateProposalObject() {
     const selectedReports = allReports.filter(r => selectedReportIds.has(r.id));
     if (selectedReports.length === 0) {
@@ -336,41 +286,35 @@
     if (docPaper) docPaper.style.display = 'block';
     if (emptyState) emptyState.style.display = 'none';
 
-    // 1. Determine Dominant Category
     const catCounts = {};
     selectedReports.forEach(r => {
       catCounts[r.category] = (catCounts[r.category] || 0) + 1;
     });
     const dominantCategory = Object.entries(catCounts).sort((a, b) => b[1] - a[1])[0][0];
 
-    // 2. Determine Primary Location
     const cityCounts = {};
     selectedReports.forEach(r => {
       cityCounts[r.city] = (cityCounts[r.city] || 0) + 1;
     });
     const dominantCity = Object.entries(cityCounts).sort((a, b) => b[1] - a[1])[0][0];
 
-    // Find most representative sector
     const locCounts = {};
     selectedReports.forEach(r => {
       locCounts[r.location] = (locCounts[r.location] || 0) + 1;
     });
     const topLoc = Object.entries(locCounts).sort((a, b) => b[1] - a[1])[0][0];
 
-    // 3. Reporting Period (min - max dates)
     const dates = selectedReports.map(r => new Date(r.reportDate).getTime()).filter(t => !isNaN(t));
     const minDate = dates.length > 0 ? new Date(Math.min(...dates)) : new Date('2026-06-12');
     const maxDate = dates.length > 0 ? new Date(Math.max(...dates)) : new Date('2026-09-14');
     const reportingPeriod = `${formatDate(minDate)} – ${formatDate(maxDate)}`;
 
-    // 4. Metrics
     const totalReports = selectedReports.length;
     const uniqueLocations = new Set(selectedReports.map(r => r.location || r.city)).size;
     const highPriorityCount = selectedReports.filter(r => r.severity === 'High').length;
     const evidenceCount = totalReports * 2 + Math.floor(totalReports * 1.5);
     const affectedPop = selectedReports.reduce((sum, r) => sum + (r.estimatedAffectedPopulation || 0), 0);
 
-    // 5. Synthesize Reference ID & Subject
     const refCode = Math.floor(1000 + Math.random() * 9000);
     const referenceId = `PROP-2026-${refCode}`;
     const generatedDate = new Date().toLocaleDateString('en-US', {
@@ -382,11 +326,9 @@
     const subject = `Intervention Proposal: Comprehensive Remediation of ${dominantCategory} & Clustered Anomalies in ${topLoc}`;
     const targetArea = `${topLoc}, ${dominantCity} (NCR Regional Zone)`;
 
-    // 6. Auto-written Observed Pattern Paragraph
     const popText = affectedPop > 0 ? `impacting an estimated ${affectedPop.toLocaleString()} residents` : `affecting communities`;
     const observedPattern = `Spatial aggregation of ${totalReports} citizen observations and multispectral telemetry reveals a persistent concentration of suspected ${dominantCategory} anomalies across ${targetArea}. Sensor telemetry registers repetitive threshold exceedances, with ${highPriorityCount} incidents classified as High Severity. The clustered pattern indicates an acute public health and environmental vector ${popText} in surrounding residential and buffer zones. Field ground-truthing confirms non-functional emission scrubbers and localized unsegregated waste pooling. Historical recurrence patterns suggest unpermitted nocturnal discharge or localized systemic infrastructure strain requiring prompt statutory containment and multi-agency remediation.`;
 
-    // 7. Structured Suggested Actions
     const suggestedActions = [
       {
         title: 'Field Inspection & Ground-Truthing',
@@ -410,7 +352,6 @@
       }
     ];
 
-    // Structured Proposal Object
     currentProposal = {
       referenceId,
       generatedDate,
@@ -436,10 +377,8 @@
       disclaimer: 'AI classifications are indicative and require appropriate human/organizational verification.'
     };
 
-    // Render Document Preview
     renderDocumentPreview(currentProposal);
 
-    // Scroll to preview
     const previewCard = document.getElementById('proposalPreviewCard');
     if (previewCard) {
       previewCard.classList.add('visible');
@@ -449,9 +388,6 @@
     showToast(`Proposal ${referenceId} generated successfully.`);
   }
 
-  /**
-   * Render Document Preview on Page
-   */
   function renderDocumentPreview(p) {
     const setTxt = (id, val) => {
       const el = document.getElementById(id);
@@ -468,7 +404,6 @@
     setTxt('docHighPriority', `${p.highPriorityReports} High-Priority`);
     setTxt('docObservedPattern', p.observedPattern);
 
-    // Appendix Table
     const tbody = document.getElementById('docAppendixTbody');
     if (tbody) {
       tbody.innerHTML = p.appendixReports.map(r => `
@@ -488,17 +423,13 @@
     }
   }
 
-  /**
-   * Setup Event Listeners
-   */
   function setupEventListeners() {
-    // 1. Filter Dropdowns Change
+
     ['filterLocation', 'filterCategory', 'filterSeverity', 'filterDateRange', 'filterStatus'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.addEventListener('change', filterCandidateReports);
     });
 
-    // 2. Header Checkbox (Select/Deselect All in current filtered view)
     const headerCheckbox = document.getElementById('headerCheckbox');
     if (headerCheckbox) {
       headerCheckbox.addEventListener('change', (e) => {
@@ -512,7 +443,6 @@
       });
     }
 
-    // 3. Top Buttons: Select All & Deselect All
     const btnSelectAll = document.getElementById('btnSelectAll');
     if (btnSelectAll) {
       btnSelectAll.addEventListener('click', () => {
@@ -541,7 +471,6 @@
       });
     }
 
-    // 4. Candidate Table Row Checkbox Click (Event Delegation)
     const tbody = document.getElementById('candidateReportsTbody');
     if (tbody) {
       tbody.addEventListener('change', (e) => {
@@ -561,13 +490,11 @@
       });
     }
 
-    // 5. Generate Intervention Proposal Button Click
     const btnGen = document.getElementById('btnGenerateProposal');
     if (btnGen) {
       btnGen.addEventListener('click', generateProposalObject);
     }
 
-    // 6. Step 3: Export PDF Button
     const btnExportPdf = document.getElementById('btnExportPdf');
     if (btnExportPdf) {
       btnExportPdf.addEventListener('click', () => {
@@ -586,7 +513,6 @@
     }
   }
 
-  // Self-execute on DOM Ready
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initProposalBuilder);
   } else {
@@ -594,3 +520,4 @@
   }
 
 })();
+

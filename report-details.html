@@ -13,14 +13,12 @@
   <div id="app-shell" class="app-shell">
     <main class="main-content">
       <div class="page-container">
-        
-        <!-- Ethical AI Protocol Notice Banner -->
+
         <div class="ai-notice-banner">
           <span class="ai-notice-tag">Ethical AI Protocol</span>
           <span>Every classification represents an <strong>AI-detected suspected issue</strong>. Sensor telemetry flags anomalous patterns but never proves or confirms an environmental infraction prior to authoritative physical field verification.</span>
         </div>
 
-        <!-- Breadcrumb & Utility Navigation Bar -->
         <div class="report-breadcrumb-bar">
           <div style="display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap;">
             <a href="reports.html" class="btn btn-outline btn-sm" id="btnBackToTriage">
@@ -45,7 +43,6 @@
           </div>
         </div>
 
-        <!-- Lightweight Skeleton Loading State Indicator (No Spinner) -->
         <div id="detailsLoadingState" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: var(--space-12); gap: var(--space-4);">
           <div class="skeleton-loading-banner">
             <span class="skeleton-loading-dot"></span>
@@ -56,7 +53,6 @@
           </p>
         </div>
 
-        <!-- Error / Not Found State -->
         <div id="detailsErrorState" class="empty-state" style="display: none;">
           <div class="empty-state-icon">
             <i data-lucide="file-x"></i>
@@ -69,14 +65,10 @@
           </div>
         </div>
 
-        <!-- Main Report Two-Column Layout -->
         <div id="detailsContent" style="display: none;">
-          
+
           <div class="details-two-col-grid">
-            
-            <!-- ==========================================================
-                 LEFT COLUMN: EVIDENCE PANEL
-                 ========================================================== -->
+
             <aside class="evidence-panel" aria-label="Evidence and Sensor Telemetry">
               <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--c-border-light); padding-bottom: var(--space-2);">
                 <span style="font-size: var(--text-xs); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--c-primary); display: flex; align-items: center; gap: 6px;">
@@ -88,7 +80,6 @@
                 </span>
               </div>
 
-              <!-- Real Report Field Evidence Visual Box -->
               <div class="evidence-visual-box" id="evidenceVisualContainer" style="min-height: 200px; height: auto; max-height: 320px; display: flex; align-items: center; justify-content: center; background-color: var(--c-surface-subtle); overflow: hidden; border-radius: var(--radius-md); border: 1px solid var(--c-border-medium);">
                 <img id="evidenceReportImg" src="" alt="Environmental incident field evidence" style="max-height: 320px; width: 100%; object-fit: contain; display: none;" />
                 <div id="evidenceImgFallback" style="padding: var(--space-8) var(--space-4); text-align: center; color: var(--c-text-secondary); font-size: var(--text-xs); display: flex; flex-direction: column; align-items: center; gap: 8px;">
@@ -97,7 +88,6 @@
                 </div>
               </div>
 
-              <!-- Evidence Metadata Table -->
               <table class="evidence-meta-table">
                 <tbody>
                   <tr>
@@ -160,19 +150,14 @@
                 </tbody>
               </table>
 
-              <!-- Action button to center on map / locate -->
               <a id="btnHotspotContext" href="hotspots.html" class="btn btn-outline btn-sm" style="width: 100%; justify-content: center; margin-top: var(--space-2);">
                 <i data-lucide="map-pin"></i>
                 <span>View Regional Hotspot Context &rarr;</span>
               </a>
             </aside>
 
-            <!-- ==========================================================
-                 RIGHT COLUMN: REPORT INFORMATION & VERIFICATION DETAILS
-                 ========================================================== -->
             <section class="report-details-content" aria-label="Incident Information and Action Panel">
-              
-              <!-- 1. Header Overview Card -->
+
               <div class="detail-card">
                 <div class="detail-card-header">
                   <div>
@@ -211,7 +196,6 @@
                 </div>
               </div>
 
-              <!-- 2. AI Observation & Analysis Card -->
               <div class="detail-card">
                 <div class="detail-card-header">
                   <h2 class="detail-card-title">
@@ -231,7 +215,6 @@
                 </div>
               </div>
 
-              <!-- 3. Verification Workflow Controls Card -->
               <div class="workflow-controls-card">
                 <div class="detail-card-header">
                   <div>
@@ -277,7 +260,6 @@
                 </div>
               </div>
 
-              <!-- 4. Team Assignment Card -->
               <div class="assignment-card">
                 <div class="detail-card-header">
                   <div>
@@ -291,7 +273,6 @@
                   </div>
                 </div>
 
-                <!-- Current Assignment State Display -->
                 <div class="assigned-state-badge" id="assignedStateDisplay">
                   <div style="display: flex; align-items: center; gap: var(--space-3);">
                     <div class="category-thumb-wrapper" style="width: 32px; height: 32px;">
@@ -311,7 +292,6 @@
                   </span>
                 </div>
 
-                <!-- Assignment Form Grid -->
                 <form id="assignmentForm" class="assignment-form-grid" onsubmit="return false;">
                   <div class="assignment-input-group">
                     <label for="assignWorkerSelect">Select Team</label>
@@ -341,7 +321,6 @@
                 </form>
               </div>
 
-              <!-- 5. Vertical Issue Status Timeline Card -->
               <div class="timeline-card">
                 <div class="detail-card-header">
                   <div>
@@ -358,13 +337,11 @@
                   </span>
                 </div>
 
-                <!-- Vertical Timeline (green dots + thin connecting line) -->
                 <div class="vertical-timeline" id="verticalIssueTimeline">
-                  <!-- Rendered dynamically by report-details.js -->
+
                 </div>
               </div>
 
-              <!-- 6. Team Internal Notes & Field Observations Card -->
               <div class="notes-card">
                 <div class="detail-card-header">
                   <div>
@@ -381,12 +358,11 @@
                   </span>
                 </div>
 
-                <!-- Add Note Input Form -->
                 <form id="noteForm" class="note-input-container" onsubmit="return false;">
-                  <textarea 
-                    id="noteTextInput" 
-                    class="note-textarea" 
-                    placeholder="Enter internal verification note, observation, or remediation detail..." 
+                  <textarea
+                    id="noteTextInput"
+                    class="note-textarea"
+                    placeholder="Enter internal verification note, observation, or remediation detail..."
                     required
                   ></textarea>
                   <div class="note-submit-bar">
@@ -400,9 +376,8 @@
                   </div>
                 </form>
 
-                <!-- List of Notes -->
                 <div class="notes-list" id="ngoNotesList">
-                  <!-- Rendered dynamically by report-details.js -->
+
                 </div>
               </div>
 
@@ -414,10 +389,8 @@
     </main>
   </div>
 
-  <!-- Toast Notification Container -->
   <div id="toastContainer" class="toast-container" aria-live="polite"></div>
 
-  <!-- Core Scripts -->
   <script src="js/config.js"></script>
   <script src="js/site-config.js"></script>
   <script src="js/data.js"></script>
@@ -425,3 +398,4 @@
   <script src="js/report-details.js"></script>
 </body>
 </html>
+

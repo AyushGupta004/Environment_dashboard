@@ -5,18 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Environmental Map — Prakarti Report</title>
   <meta name="description" content="Spatial Environmental Intelligence, Hotspot Clustering, and Geospatial Verification in NCR">
-  
-  <!-- Leaflet & MarkerCluster Stylesheets -->
+
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
-  
-  <!-- Design System & Application Styles -->
+
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/reports.css">
   <link rel="stylesheet" href="css/map.css">
-  
-  <!-- CDNs -->
+
   <script src="https://unpkg.com/lucide@latest"></script>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
@@ -25,14 +22,12 @@
   <div id="app-shell" class="app-shell">
     <main class="main-content">
       <div class="page-container">
-        
-        <!-- Ethical AI Protocol Notice Banner -->
+
         <div class="ai-notice-banner">
           <span class="ai-notice-tag">Ethical AI Protocol</span>
           <span>Geospatial markers represent <strong>AI-detected suspected issues</strong>. Sensor model classifications require physical verification by authorized field personnel prior to enforcement action.</span>
         </div>
 
-        <!-- Page Header -->
         <div class="map-header-group">
           <div>
             <div style="display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap;">
@@ -53,7 +48,6 @@
           </div>
         </div>
 
-        <!-- Quick Stats KPI Strip -->
         <div class="map-stats-strip">
           <div class="map-stat-card">
             <div class="map-stat-icon">
@@ -96,9 +90,8 @@
           </div>
         </div>
 
-        <!-- Interactive Map Filter Bar -->
         <div class="map-filter-card">
-          <!-- Category Chips Horizontal Scroll -->
+
           <div class="category-chips-scroll" id="categoryChipsContainer">
             <button type="button" class="chip-btn active" data-category="All">
               <span>All Categories</span>
@@ -134,7 +127,6 @@
             </button>
           </div>
 
-          <!-- Secondary Filters Row (Severity, Status, Location, Date) -->
           <div class="map-dropdowns-row">
             <div class="map-dropdowns-group">
               <select id="mapFilterSeverity" class="map-select" aria-label="Filter by Severity">
@@ -181,7 +173,6 @@
             </div>
           </div>
 
-          <!-- Quick Jump Regional Hotspot Locations -->
           <div class="map-quick-jump-bar">
             <span class="quick-jump-label">
               <i data-lucide="crosshair" style="width: 12px; height: 12px; color: var(--c-primary);"></i>
@@ -196,12 +187,10 @@
           </div>
         </div>
 
-        <!-- Map Canvas Wrapper -->
         <div class="map-canvas-wrapper">
-          <!-- Leaflet Map Container -->
+
           <div id="leafletMap" aria-label="Interactive Environmental Intelligence Map"></div>
 
-          <!-- Floating Layer Toggles -->
           <div class="map-floating-toggles">
             <button type="button" id="toggleMarkersLayer" class="layer-toggle-btn active" title="Toggle Individual Incident Circle Markers">
               <i data-lucide="circle-dot" style="width: 12px; height: 12px;"></i>
@@ -213,7 +202,6 @@
             </button>
           </div>
 
-          <!-- Floating Map Legend -->
           <div class="map-floating-legend">
             <div class="legend-title">
               <span>Severity Intensity</span>
@@ -244,9 +232,8 @@
           </div>
         </div>
 
-        <!-- Regional Hotspots Context Overview -->
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: var(--space-4); margin-bottom: var(--space-6);">
-          
+
           <div class="detail-card" style="margin-bottom: 0;">
             <div class="detail-card-header">
               <h3 class="detail-card-title">
@@ -256,7 +243,7 @@
               <a href="hotspots.html" class="cell-compact" style="color: var(--c-primary); font-weight: 700;">View All Hotspots &rarr;</a>
             </div>
             <div id="topHotspotsList" style="display: flex; flex-direction: column; gap: var(--space-3); margin-top: var(--space-3);">
-              <!-- Rendered dynamically by map.js -->
+
             </div>
           </div>
 
@@ -293,10 +280,8 @@
     </main>
   </div>
 
-  <!-- Toast Notification Container -->
   <div id="toastContainer" class="toast-container" aria-live="polite"></div>
 
-  <!-- Core Scripts -->
   <script src="js/config.js"></script>
   <script src="js/site-config.js"></script>
   <script src="js/data.js"></script>
@@ -304,3 +289,4 @@
   <script src="js/map.js"></script>
 </body>
 </html>
+

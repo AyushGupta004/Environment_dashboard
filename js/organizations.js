@@ -1,21 +1,8 @@
-/**
- * Prakarti Report — NGO Environmental Intelligence & Action Platform
- * js/organizations.js — Accredited Regional Teams & Field Directory Controller
- * 
- * Strict Architecture Rule:
- * All data access goes through EarthData (js/data.js):
- * - EarthData.getOrganizations()
- * - EarthData.getReports()
- * - EarthData.createOrganization()
- */
-
 (function () {
   'use strict';
 
-  // Storage key for proposal generation selection
   const STORAGE_BULK_KEY = 'earthforward_selected_reports';
 
-  // State
   let organizationsList = [];
   let allReports = [];
 
@@ -208,7 +195,7 @@
 
       return `
         <article class="org-card" data-org-id="${org.id}">
-          
+
           <div class="org-card-header">
             <div class="org-title-group">
               <div class="org-acronym-badge">${initials}</div>
@@ -234,7 +221,6 @@
             </div>
           </div>
 
-          <!-- The Three Core Computed Metrics -->
           <div class="org-metrics-row">
             <div class="org-metric-item">
               <span class="org-metric-label">Reports Reviewed</span>
@@ -255,7 +241,6 @@
             </div>
           </div>
 
-          <!-- Team Members Roster -->
           ${(() => {
             const membersList = Array.isArray(org.members) ? org.members : [];
             if (membersList.length > 0) {
@@ -286,7 +271,6 @@
             }
           })()}
 
-          <!-- Actions Footer Row -->
           <div class="org-tags-section">
             <div></div>
 
@@ -468,7 +452,6 @@
       form.addEventListener('submit', handleCreateTeamSubmit);
     }
 
-    // Initialize initial member inputs
     renderMemberInputs(3);
   }
 
@@ -484,7 +467,6 @@
     const membersError = document.getElementById('teamMembersError');
     const submitBtn = document.getElementById('submitCreateTeamBtn');
 
-    // Reset errors
     [nameError, emailError, membersError].forEach(el => {
       if (el) { el.textContent = ''; el.style.display = 'none'; }
     });
@@ -495,7 +477,6 @@
 
     let hasError = false;
 
-    // Validate name: 2–80 chars, unique (case-insensitive)
     if (!name || name.length < 2 || name.length > 80) {
       if (nameError) {
         nameError.textContent = 'Team name must be between 2 and 80 characters.';
@@ -514,7 +495,6 @@
       }
     }
 
-    // Validate email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!email || !emailRegex.test(email)) {
       if (emailError) {
@@ -524,7 +504,6 @@
       hasError = true;
     }
 
-    // Collect individual member names
     const memberFields = document.querySelectorAll('#memberInputsList .member-input-field');
     const memberNames = Array.from(memberFields).map(inp => inp.value.trim()).filter(Boolean);
 
@@ -561,7 +540,6 @@
       const code = created.team_code || created.teamCode || 'TEAM';
       showToast(`Team created — ID ${code} with ${memberNames.length} members`);
 
-      // Re-fetch and re-render without page reload
       organizationsList = await window.EarthData.getOrganizations();
       allReports = await window.EarthData.getReports();
 
@@ -590,7 +568,6 @@
     }
   }
 
-  // Self-execute on DOM Ready
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initOrganizations);
   } else {
@@ -598,3 +575,4 @@
   }
 
 })();
+

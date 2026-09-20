@@ -5,30 +5,25 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Platform Settings — Prakarti Report</title>
   <meta name="description" content="Configure environmental platform preferences, notification triggers, and telemetry persistence settings." />
-  
-  <!-- Core Design System -->
+
   <link rel="stylesheet" href="css/style.css" />
-  
-  <!-- Lucide Icons -->
+
   <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
-  <!-- Accessibility Skip Link -->
+
   <a href="#mainContent" class="skip-link">Skip to main content</a>
 
   <div class="app-shell" id="app-shell">
-    <!-- Sidebar and Topbar injected dynamically by js/app.js -->
-    
+
     <main class="main-content" id="mainContent" role="main">
       <div class="page-container">
-        
-        <!-- Ethical AI Protocol Notice Banner -->
+
         <div class="ai-notice-banner">
           <span class="ai-notice-tag">Preferences</span>
           <span>System configuration parameters for Regional Environmental Intelligence Operations.</span>
         </div>
 
-        <!-- Page Header -->
         <div style="display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: var(--space-4); margin-bottom: var(--space-6);">
           <div>
             <div style="display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap;">
@@ -44,10 +39,8 @@
           </div>
         </div>
 
-        <!-- Settings Cards Grid -->
         <div class="grid-2" style="margin-bottom: var(--space-8);">
-          
-          <!-- 1. THEME & DISPLAY PROTOCOL -->
+
           <section class="card" aria-labelledby="themeSettingHeading">
             <div class="card-header" style="border-bottom: 1px solid var(--c-border-light); padding-bottom: var(--space-3); margin-bottom: var(--space-4);">
               <div style="display: flex; align-items: center; justify-content: space-between;">
@@ -66,7 +59,6 @@
                 The platform operates under a strictly enforced <strong>Monochrome Green</strong> ecological palette designed to reduce digital carbon emissions, eliminate sensory distraction, and provide optimal contrast ratios for environmental data analysts.
               </p>
 
-              <!-- Color Swatches -->
               <div style="display: flex; gap: var(--space-2); margin-bottom: var(--space-4); flex-wrap: wrap;">
                 <div style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
                   <div style="width: 44px; height: 28px; background: #315C3A; border-radius: var(--radius-sm); border: 1px solid var(--c-border-light);" title="Primary Forest Green #315C3A"></div>
@@ -104,7 +96,6 @@
             </div>
           </section>
 
-          <!-- 2. NOTIFICATION ALERTS (MOCK TOGGLES) -->
           <section class="card" aria-labelledby="notificationHeading">
             <div class="card-header" style="border-bottom: 1px solid var(--c-border-light); padding-bottom: var(--space-3); margin-bottom: var(--space-4);">
               <div style="display: flex; align-items: center; justify-content: space-between;">
@@ -117,8 +108,7 @@
             </div>
 
             <div class="card-body" style="display: flex; flex-direction: column; gap: var(--space-3);">
-              
-              <!-- Toggle 1 -->
+
               <label style="display: flex; align-items: flex-start; gap: var(--space-3); cursor: pointer; padding: var(--space-2) 0;">
                 <input type="checkbox" id="toggleHighAnomaly" class="report-checkbox" checked style="margin-top: 3px;" />
                 <div>
@@ -131,7 +121,6 @@
                 </div>
               </label>
 
-              <!-- Toggle 2 -->
               <label style="display: flex; align-items: flex-start; gap: var(--space-3); cursor: pointer; padding: var(--space-2) 0;">
                 <input type="checkbox" id="toggleWetland" class="report-checkbox" checked style="margin-top: 3px;" />
                 <div>
@@ -144,7 +133,6 @@
                 </div>
               </label>
 
-              <!-- Toggle 3 -->
               <label style="display: flex; align-items: flex-start; gap: var(--space-3); cursor: pointer; padding: var(--space-2) 0;">
                 <input type="checkbox" id="toggleStatusChanges" class="report-checkbox" checked style="margin-top: 3px;" />
                 <div>
@@ -157,7 +145,6 @@
                 </div>
               </label>
 
-              <!-- Toggle 4 -->
               <label style="display: flex; align-items: flex-start; gap: var(--space-3); cursor: pointer; padding: var(--space-2) 0;">
                 <input type="checkbox" id="toggleWeeklyDigest" class="report-checkbox" style="margin-top: 3px;" />
                 <div>
@@ -180,7 +167,6 @@
             </div>
           </section>
 
-          <!-- 3. ACTIVE JURISDICTION -->
           <section class="card" aria-labelledby="jurisdictionHeading">
             <div class="card-header" style="border-bottom: 1px solid var(--c-border-light); padding-bottom: var(--space-3); margin-bottom: var(--space-4);">
               <div style="display: flex; align-items: center; gap: var(--space-2);">
@@ -207,7 +193,6 @@
             </div>
           </section>
 
-          <!-- 4. DATA RESET & PERSISTENCE STATE -->
           <section class="card" aria-labelledby="dataHeading" style="border-color: var(--c-border-medium);">
             <div class="card-header" style="border-bottom: 1px solid var(--c-border-light); padding-bottom: var(--space-3); margin-bottom: var(--space-4);">
               <div style="display: flex; align-items: center; justify-content: space-between;">
@@ -233,7 +218,6 @@
                 </div>
               </div>
 
-              <!-- Trigger Confirmation Modal -->
               <button type="button" id="btnOpenResetModal" class="btn btn-secondary" style="color: var(--c-primary); font-weight: 700;">
                 <i data-lucide="rotate-ccw"></i>
                 <span>Reset Local Changes</span>
@@ -247,7 +231,6 @@
     </main>
   </div>
 
-  <!-- Confirmation Modal for Demo Data Reset -->
   <div id="resetConfirmModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modalResetTitle">
     <div class="modal" style="max-width: 480px;">
       <div class="modal-header">
@@ -259,7 +242,7 @@
           <i data-lucide="x"></i>
         </button>
       </div>
-      
+
       <div class="modal-body">
         <p style="font-size: var(--text-xs); color: var(--c-text-primary); line-height: 1.6; margin-bottom: var(--space-3);">
           Are you sure you want to reset your local changes?
@@ -290,19 +273,16 @@
     </div>
   </div>
 
-  <!-- Toast Notification Container -->
   <div id="settingsToast" class="toast" role="status" aria-live="polite">Preferences updated successfully.</div>
 
-  <!-- Application Scripts -->
   <script src="js/config.js"></script>
   <script src="js/site-config.js"></script>
   <script src="js/data.js"></script>
   <script src="js/app.js"></script>
   <script>
-    (function () {
+(function () {
       'use strict';
 
-      // Load active count
       async function loadPersistenceStatus() {
         if (window.EarthData && typeof window.EarthData.getReports === 'function') {
           const reports = await window.EarthData.getReports();
@@ -323,7 +303,6 @@
         }, 2800);
       }
 
-      // Modal Controls
       const modal = document.getElementById('resetConfirmModal');
       const openBtn = document.getElementById('btnOpenResetModal');
       const closeBtn = document.getElementById('btnCloseResetModal');
@@ -342,7 +321,6 @@
       if (closeBtn) closeBtn.addEventListener('click', closeModal);
       if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
 
-      // Close on backdrop click or Escape key
       if (modal) {
         modal.addEventListener('click', (e) => {
           if (e.target === modal) closeModal();
@@ -354,7 +332,6 @@
         }
       });
 
-      // Execute Reset
       if (executeBtn) {
         executeBtn.addEventListener('click', () => {
           if (window.EarthData && typeof window.EarthData.resetDemoData === 'function') {
@@ -368,7 +345,6 @@
         });
       }
 
-      // Save Alert Preferences
       const btnSave = document.getElementById('btnSavePreferences');
       if (btnSave) {
         btnSave.addEventListener('click', () => {
@@ -376,7 +352,6 @@
         });
       }
 
-      // Initialize
       document.addEventListener('DOMContentLoaded', () => {
         loadPersistenceStatus();
         if (window.lucide) window.lucide.createIcons();
@@ -385,3 +360,4 @@
   </script>
 </body>
 </html>
+

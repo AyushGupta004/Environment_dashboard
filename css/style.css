@@ -1,22 +1,7 @@
-/**
- * Prakarti Report — NGO Environmental Intelligence & Action Platform
- * css/style.css — Strict Monochrome Green Design System
- * 
- * DESIGN CONSTRAINTS (STRICT):
- * Permitted colors ONLY:
- * - Surface / Base: #FFFFFF, #F8FBF8, #F0F7F1
- * - Borders / Accents: #DDEFE0, #C5E3CA, #8FBC8F, #315C3A
- * - Typography: Primary #17231A, Secondary #657267
- * Zero blue/purple/orange/red/yellow/pink/neon/gradients.
- */
-
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap');
 
-/* ==========================================================================
-   Design Tokens & CSS Custom Properties
-   ========================================================================== */
 :root {
-  /* Strict Monochrome Green Palette */
+
   --c-white: #FFFFFF;
   --c-bg: #F8FBF8;
   --c-surface: #FFFFFF;
@@ -30,55 +15,47 @@
   --c-text-secondary: #657267;
   --c-text-muted: #8FBC8F;
 
-  /* Typography Scale */
   --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-display: 'Manrope', var(--font-sans);
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
-  --text-xs: 0.75rem;    /* 12px */
-  --text-sm: 0.8125rem;  /* 13px */
-  --text-base: 0.875rem; /* 14px */
-  --text-md: 1rem;       /* 16px */
-  --text-lg: 1.125rem;   /* 18px */
-  --text-xl: 1.25rem;    /* 20px */
-  --text-2xl: 1.5rem;    /* 24px */
-  --text-3xl: 1.875rem;  /* 30px */
-  --text-4xl: 2.25rem;   /* 36px */
+  --text-xs: 0.75rem;
+  --text-sm: 0.8125rem;
+  --text-base: 0.875rem;
+  --text-md: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 1.875rem;
+  --text-4xl: 2.25rem;
 
-  /* Spacing Scale */
-  --space-1: 0.25rem;  /* 4px */
-  --space-2: 0.5rem;   /* 8px */
-  --space-3: 0.75rem;  /* 12px */
-  --space-4: 1rem;     /* 16px */
-  --space-5: 1.25rem;  /* 20px */
-  --space-6: 1.5rem;   /* 24px */
-  --space-8: 2rem;     /* 32px */
-  --space-10: 2.5rem;  /* 40px */
-  --space-12: 3rem;    /* 48px */
-  --space-16: 4rem;    /* 64px */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
 
-  /* Radius */
   --radius-sm: 4px;
   --radius-md: 6px;
   --radius-lg: 8px;
   --radius-xl: 12px;
   --radius-full: 9999px;
 
-  /* Subtle Natural Shadows (No harsh black shadows) */
   --shadow-sm: 0 1px 2px rgba(23, 35, 26, 0.04);
   --shadow-md: 0 2px 8px rgba(23, 35, 26, 0.06);
   --shadow-lg: 0 6px 18px rgba(23, 35, 26, 0.08);
 
-  /* Micro-motion Timing */
   --ease-kinetic: cubic-bezier(0.16, 1, 0.3, 1);
   --duration-fast: 150ms;
   --duration-normal: 220ms;
   --duration-slow: 350ms;
 }
 
-/* ==========================================================================
-   Base Resets & Global Styles
-   ========================================================================== */
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
@@ -109,22 +86,20 @@ body {
   max-width: 100vw;
 }
 
-/* Accessibility: Visible Focus Rings */
 :focus-visible {
   outline: 2px solid var(--c-primary);
   outline-offset: 2px;
 }
 
-button:focus-visible, 
-a:focus-visible, 
-input:focus-visible, 
-select:focus-visible, 
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
 textarea:focus-visible {
   outline: 2px solid var(--c-primary);
   outline-offset: 2px;
 }
 
-/* Typography Defaults */
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-display);
   color: var(--c-text-primary);
@@ -164,9 +139,6 @@ code, kbd, samp, pre {
   font-size: var(--text-xs);
 }
 
-/* ==========================================================================
-   Global App Layout & Shell
-   ========================================================================== */
 .app-shell {
   display: flex;
   min-height: 100vh;
@@ -174,7 +146,6 @@ code, kbd, samp, pre {
   position: relative;
 }
 
-/* Sidebar Drawer Overlay for Mobile */
 .sidebar-overlay {
   display: none;
   position: fixed;
@@ -343,9 +314,6 @@ code, kbd, samp, pre {
   background-color: var(--c-bg);
 }
 
-/* ==========================================================================
-   Top Bar & Global Search / Notifications / Profile
-   ========================================================================== */
 .topbar {
   height: 64px;
   background-color: var(--c-white);
@@ -402,7 +370,6 @@ code, kbd, samp, pre {
   flex-shrink: 0;
 }
 
-/* Topbar Global Search */
 .topbar-search {
   position: relative;
   width: 320px;
@@ -438,7 +405,6 @@ code, kbd, samp, pre {
   pointer-events: none;
 }
 
-/* Global Search Dropdown */
 .search-results-dropdown {
   position: absolute;
   top: calc(100% + 6px);
@@ -495,7 +461,6 @@ code, kbd, samp, pre {
   color: var(--c-text-secondary);
 }
 
-/* Notifications Dropdown */
 .notifications-wrapper {
   position: relative;
 }
@@ -588,7 +553,6 @@ code, kbd, samp, pre {
   color: var(--c-text-secondary);
 }
 
-/* NGO Profile Chip */
 .profile-chip {
   display: flex;
   align-items: center;
@@ -655,11 +619,6 @@ code, kbd, samp, pre {
   color: var(--c-text-secondary);
 }
 
-/* ==========================================================================
-   Reusable UI Components
-   ========================================================================== */
-
-/* 1. BUTTONS (.btn) */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -766,7 +725,6 @@ code, kbd, samp, pre {
   box-shadow: none !important;
 }
 
-/* 2. CARDS (.card) */
 .card {
   background-color: var(--c-white);
   border: 1px solid var(--c-border-light);
@@ -820,7 +778,6 @@ code, kbd, samp, pre {
   color: var(--c-text-secondary);
 }
 
-/* 3. BADGES & STATUS DOTS (.badge) - Pure Green Shades Only */
 .badge {
   display: inline-flex;
   align-items: center;
@@ -841,7 +798,6 @@ code, kbd, samp, pre {
   flex-shrink: 0;
 }
 
-/* Severity Badges (Monochrome Green Scale) */
 .badge-severity-high {
   background-color: var(--c-primary);
   color: var(--c-white);
@@ -868,7 +824,6 @@ code, kbd, samp, pre {
   background-color: var(--c-border-medium);
 }
 
-/* Status Badges */
 .badge-status-reported {
   background-color: var(--c-white);
   color: var(--c-text-secondary);
@@ -922,7 +877,6 @@ code, kbd, samp, pre {
   background-color: var(--c-border-medium);
 }
 
-/* 4. TABLES (.table) */
 .table-responsive {
   width: 100%;
   max-width: 100%;
@@ -979,7 +933,6 @@ code, kbd, samp, pre {
   color: var(--c-text-secondary);
 }
 
-/* 5. MODALS (.modal) */
 .modal-backdrop {
   position: fixed;
   inset: 0;
@@ -1049,7 +1002,6 @@ code, kbd, samp, pre {
   border-bottom-right-radius: var(--radius-xl);
 }
 
-/* 6. SKELETON LOADERS (.skeleton-loader) */
 .skeleton-loader {
   background: linear-gradient(
     90deg,
@@ -1085,7 +1037,6 @@ code, kbd, samp, pre {
   100% { background-position: -200% 0; }
 }
 
-/* 7. EMPTY STATES (.empty-state) */
 .empty-state {
   padding: var(--space-12) var(--space-6);
   text-align: center;
@@ -1125,9 +1076,6 @@ code, kbd, samp, pre {
   margin-bottom: var(--space-5);
 }
 
-/* ==========================================================================
-   Forms & Filter Controls
-   ========================================================================== */
 .form-group {
   margin-bottom: var(--space-4);
   display: flex;
@@ -1189,9 +1137,6 @@ code, kbd, samp, pre {
   position: relative;
 }
 
-/* ==========================================================================
-   KPI Metrics Grid & Count-Up Micro-Interactions
-   ========================================================================== */
 .kpi-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -1242,9 +1187,6 @@ code, kbd, samp, pre {
   gap: var(--space-1);
 }
 
-/* ==========================================================================
-   Responsible AI Callouts & Ethical Framing
-   ========================================================================== */
 .ai-notice-banner {
   background-color: var(--c-surface-subtle);
   border: 1px solid var(--c-border-medium);
@@ -1270,9 +1212,6 @@ code, kbd, samp, pre {
   flex-shrink: 0;
 }
 
-/* ==========================================================================
-   Authentication & Login Page Styles (index.html)
-   ========================================================================== */
 .login-screen {
   min-height: 100vh;
   display: flex;
@@ -1312,7 +1251,6 @@ code, kbd, samp, pre {
   background-color: var(--c-primary);
 }
 
-/* Placeholder Page Container */
 .stub-container {
   padding: var(--space-8);
   background-color: var(--c-white);
@@ -1322,9 +1260,6 @@ code, kbd, samp, pre {
   margin-top: var(--space-4);
 }
 
-/* ==========================================================================
-   Clean Unified Empty State Component (Green line icon + short message)
-   ========================================================================== */
 .empty-state {
   display: flex;
   flex-direction: column;
@@ -1375,9 +1310,6 @@ code, kbd, samp, pre {
   margin: 0 auto var(--space-3);
 }
 
-/* ==========================================================================
-   Lightweight Skeleton Loader System (No spinners)
-   ========================================================================== */
 .skeleton-box, .skeleton-shimmer {
   background: linear-gradient(90deg, #F0F7F1 25%, #DDEFE0 50%, #F0F7F1 75%);
   background-size: 200% 100%;
@@ -1428,9 +1360,6 @@ code, kbd, samp, pre {
   border-radius: var(--radius-sm);
 }
 
-/* ==========================================================================
-   Grids & Layout Utilities
-   ========================================================================== */
 .grid-2 {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -1485,7 +1414,7 @@ code, kbd, samp, pre {
     padding: 0 var(--space-4);
   }
   .topbar-search {
-    display: none; /* Can be opened via search button or shown compact */
+    display: none;
   }
   .topbar-search.mobile-visible {
     display: block;
@@ -1518,9 +1447,6 @@ code, kbd, samp, pre {
   }
 }
 
-/* ==========================================================================
-   Real-Time Live Indicator Pill (.live-pill)
-   ========================================================================== */
 .live-pill {
   display: inline-flex;
   align-items: center;

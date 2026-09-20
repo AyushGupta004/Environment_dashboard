@@ -8,8 +8,7 @@
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/reports.css">
   <link rel="stylesheet" href="css/proposal.css">
-  
-  <!-- CDNs: Lucide Icons & jsPDF -->
+
   <script src="https://unpkg.com/lucide@latest"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
@@ -17,14 +16,12 @@
   <div id="app-shell" class="app-shell">
     <main class="main-content">
       <div class="page-container">
-        
-        <!-- Ethical AI Protocol Notice Banner -->
+
         <div class="ai-notice-banner">
           <span class="ai-notice-tag">Ethical AI Protocol</span>
           <span>Intervention proposals cite <strong>AI-detected suspected issues</strong> confirmed via field verification audits to support formal municipal intervention and statutory remediation.</span>
         </div>
 
-        <!-- Page Header -->
         <div class="proposal-header-group">
           <div>
             <div style="display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap;">
@@ -44,7 +41,6 @@
           </div>
         </div>
 
-        <!-- STEP 1: INCIDENT SELECTION & FILTERING -->
         <section class="step-card" id="stepSelectionCard" aria-label="Step 1 Selection">
           <div class="step-header">
             <div class="step-title-wrap">
@@ -64,7 +60,6 @@
             </div>
           </div>
 
-          <!-- Filter Controls Row -->
           <div class="selection-filters-grid">
             <div class="filter-input-wrap">
               <label for="filterLocation">Target Location</label>
@@ -127,7 +122,6 @@
             </div>
           </div>
 
-          <!-- Live Summary Strip as Filters / Selections Change -->
           <div class="selection-summary-strip">
             <div class="summary-stat-box">
               <span class="summary-stat-label">Selected Reports</span>
@@ -147,7 +141,6 @@
             </div>
           </div>
 
-          <!-- Candidate Reports Scrollable Table -->
           <div class="candidate-table-container">
             <table class="candidate-table" aria-label="Selectable candidate reports">
               <thead>
@@ -164,12 +157,11 @@
                 </tr>
               </thead>
               <tbody id="candidateReportsTbody">
-                <!-- Dynamically populated -->
+
               </tbody>
             </table>
           </div>
 
-          <!-- Generate Action Button -->
           <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--space-3);">
             <span style="font-size: var(--text-xs); color: var(--c-text-secondary);" id="selectionHintText">
               Select at least 1 incident to generate a remediation proposal.
@@ -181,9 +173,8 @@
           </div>
         </section>
 
-        <!-- STEP 2: PROPOSAL DOCUMENT PREVIEW -->
         <section class="proposal-preview-card" id="proposalPreviewCard" aria-label="Step 2 Proposal Preview">
-          
+
           <div class="preview-toolbar">
             <div style="display: flex; align-items: center; gap: var(--space-2);">
               <span class="step-number-badge">2</span>
@@ -209,7 +200,6 @@
             </div>
           </div>
 
-          <!-- Empty State when no proposal is generated yet -->
           <div id="proposalEmptyState" class="empty-state" style="display: none; margin: var(--space-6) 0;">
             <div class="empty-state-icon">
               <i data-lucide="file-plus"></i>
@@ -218,10 +208,8 @@
             <div class="empty-state-desc">Select one or more candidate incident reports above and click "Generate Intervention Proposal" to synthesize an official remediation memo.</div>
           </div>
 
-          <!-- Document Paper Container (Official Memo Format) -->
           <div class="document-paper" id="documentPaper">
-            
-            <!-- Document Header -->
+
             <div class="doc-header">
               <div>
                 <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 2px;">
@@ -242,7 +230,6 @@
               </div>
             </div>
 
-            <!-- Memorandum Routing Grid -->
             <div class="doc-memo-grid">
               <div class="doc-memo-label">TO:</div>
               <div class="doc-memo-val">Municipal Environmental Commission &amp; District Task Force</div>
@@ -269,7 +256,6 @@
               </div>
             </div>
 
-            <!-- 1. Executive Summary & Observed Pattern -->
             <h4 class="doc-section-title">
               <i data-lucide="eye" style="width: 15px; height: 15px;"></i>
               <span>1. Observed Incident Pattern &amp; Spatial Convergence</span>
@@ -278,12 +264,11 @@
               Loading pattern analysis...
             </p>
 
-            <!-- 2. Structured Suggested Actions -->
             <h4 class="doc-section-title">
               <i data-lucide="check-square" style="width: 15px; height: 15px;"></i>
               <span>2. Proposed Immediate Intervention Actions</span>
             </h4>
-            
+
             <div class="doc-actions-list">
               <div class="doc-action-item">
                 <div class="doc-action-num">1</div>
@@ -326,7 +311,6 @@
               </div>
             </div>
 
-            <!-- 3. Appendix: Clustered Reports -->
             <h4 class="doc-section-title">
               <i data-lucide="table" style="width: 15px; height: 15px;"></i>
               <span>3. Appendix: Clustered Evidence &amp; Report Dossier</span>
@@ -344,12 +328,11 @@
                   </tr>
                 </thead>
                 <tbody id="docAppendixTbody">
-                  <!-- Dynamically populated -->
+
                 </tbody>
               </table>
             </div>
 
-            <!-- Mandatory Responsible-AI Disclaimer -->
             <div class="doc-disclaimer-box">
               <strong>Mandatory Verification Disclaimer:</strong> AI classifications are indicative and require appropriate human/organizational verification. Ground evidence must be physically audited before formal statutory enforcement or punitive measures are enacted.
             </div>
@@ -361,10 +344,8 @@
     </main>
   </div>
 
-  <!-- Toast Notification Container -->
   <div id="toastContainer" class="toast-container" aria-live="polite"></div>
 
-  <!-- Core Scripts -->
   <script src="js/config.js"></script>
   <script src="js/site-config.js"></script>
   <script src="js/data.js"></script>
@@ -373,3 +354,4 @@
   <script src="js/proposal.js"></script>
 </body>
 </html>
+

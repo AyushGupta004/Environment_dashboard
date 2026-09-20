@@ -14,14 +14,12 @@
   <div id="app-shell" class="app-shell">
     <main class="main-content">
       <div class="page-container">
-        
-        <!-- Ethical AI Protocol Notice Banner -->
+
         <div class="ai-notice-banner">
           <span class="ai-notice-tag">Ethical AI Protocol</span>
           <span>Hotspot clusters represent <strong>AI-detected suspected recurring issues</strong> calculated via geospatial report convergence and spectral anomaly overlays. Ground-truthing is required prior to formal statutory notices.</span>
         </div>
 
-        <!-- Page Header -->
         <div class="hotspots-header-group">
           <div>
             <div style="display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap;">
@@ -41,7 +39,6 @@
           </div>
         </div>
 
-        <!-- KPI Stats Overview Strip -->
         <div class="hotspots-stats-grid">
           <div class="hotspots-stat-card">
             <div class="hotspots-stat-icon">
@@ -84,7 +81,6 @@
           </div>
         </div>
 
-        <!-- Filter & Sort Toolbar -->
         <div class="hotspots-filter-bar">
           <div class="hotspots-search-box">
             <i data-lucide="search"></i>
@@ -125,7 +121,6 @@
           </div>
         </div>
 
-        <!-- Hotspots Cards Grid (Ranked List View) -->
         <div class="hotspots-grid" id="hotspotsGrid">
           <div style="grid-column: 1 / -1; text-align: center; padding: var(--space-8);">
             <div class="skeleton-loading-banner">
@@ -135,7 +130,6 @@
           </div>
         </div>
 
-        <!-- Empty State -->
         <div id="hotspotsEmptyState" class="empty-state" style="display: none;">
           <div class="empty-state-icon">
             <i data-lucide="map-pin-off"></i>
@@ -152,9 +146,8 @@
     </main>
   </div>
 
-  <!-- Detail View: Slide-In Drawer Backdrop & Panel -->
   <div class="hotspot-drawer-backdrop" id="hotspotDrawerBackdrop" aria-hidden="true"></div>
-  
+
   <aside class="hotspot-drawer" id="hotspotDrawer" aria-label="Hotspot Detail Dossier" aria-hidden="true">
     <div class="drawer-header">
       <div>
@@ -175,8 +168,7 @@
     </div>
 
     <div class="drawer-content" id="drawerContent">
-      
-      <!-- 1. AI Risk Assessment Callout -->
+
       <div style="background-color: var(--c-surface-subtle); border-left: 3px solid var(--c-primary); border-radius: var(--radius-md); padding: var(--space-3) var(--space-4);">
         <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--c-text-secondary); margin-bottom: 4px; display: flex; align-items: center; gap: 4px;">
           <i data-lucide="shield-alert" style="width: 12px; height: 12px; color: var(--c-primary);"></i>
@@ -187,7 +179,6 @@
         </p>
       </div>
 
-      <!-- 2. Density & Priority Summary Metrics -->
       <div>
         <div class="drawer-section-title">
           <i data-lucide="activity" style="width: 13px; height: 13px;"></i>
@@ -209,31 +200,28 @@
         </div>
       </div>
 
-      <!-- 3. Category Breakdown with Visual Meters -->
       <div>
         <div class="drawer-section-title">
           <i data-lucide="pie-chart" style="width: 13px; height: 13px;"></i>
           <span>Category Breakdown</span>
         </div>
         <div class="category-bars-list" id="drawerCategoryBars">
-          <!-- Rendered dynamically -->
+
         </div>
       </div>
 
-      <!-- 4. Member Reports List in this Cluster -->
       <div>
         <div class="drawer-section-title">
           <i data-lucide="file-text" style="width: 13px; height: 13px;"></i>
           <span>Clustered Member Reports</span>
         </div>
         <div class="member-reports-list" id="drawerMemberReports">
-          <!-- Rendered dynamically -->
+
         </div>
       </div>
 
     </div>
 
-    <!-- Drawer Footer Actions -->
     <div class="drawer-footer-actions">
       <button type="button" id="btnDrawerViewReports" class="btn btn-outline btn-sm">
         <i data-lucide="table"></i>
@@ -246,10 +234,8 @@
     </div>
   </aside>
 
-  <!-- Toast Notification Container -->
   <div id="toastContainer" class="toast-container" aria-live="polite"></div>
 
-  <!-- Core Scripts -->
   <script src="js/config.js"></script>
   <script src="js/site-config.js"></script>
   <script src="js/data.js"></script>
@@ -257,3 +243,4 @@
   <script src="js/hotspots.js"></script>
 </body>
 </html>
+

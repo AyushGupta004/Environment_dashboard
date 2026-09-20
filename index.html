@@ -27,22 +27,22 @@
       <form id="loginForm" onsubmit="handleLogin(event)">
         <div class="form-group">
           <label class="form-label" for="loginEmail">Officer Email</label>
-          <input 
-            type="email" 
-            id="loginEmail" 
-            class="form-control" 
-            placeholder="officer@domain.org" 
+          <input
+            type="email"
+            id="loginEmail"
+            class="form-control"
+            placeholder="officer@domain.org"
             required
           />
         </div>
 
         <div class="form-group" style="margin-bottom:var(--space-5);">
           <label class="form-label" for="loginPassword">Password</label>
-          <input 
-            type="password" 
-            id="loginPassword" 
-            class="form-control" 
-            placeholder="Enter secure password" 
+          <input
+            type="password"
+            id="loginPassword"
+            class="form-control"
+            placeholder="Enter secure password"
             required
           />
           <span class="form-helper">Enter your credentials to continue.</span>
@@ -57,7 +57,7 @@
       </form>
 
       <div style="margin-top:var(--space-4); text-align:center; font-size:var(--text-xs); color:var(--c-text-secondary);">
-        Are you a citizen reporter? 
+        Are you a citizen reporter?
         <a id="citizenAppLink" href="#" target="_blank" rel="noopener noreferrer" style="color:var(--c-primary); font-weight:600; text-decoration:none; display:inline-flex; align-items:center; gap:4px;">
           <span>Open Citizen Reporting App</span>
           <i data-lucide="external-link" style="width:12px; height:12px;"></i>
@@ -75,8 +75,7 @@
   <script src="js/site-config.js"></script>
   <script src="js/data.js"></script>
   <script>
-    // Bind citizen app URL from site config
-    const citizenLink = document.getElementById('citizenAppLink');
+const citizenLink = document.getElementById('citizenAppLink');
     if (citizenLink) {
       const userAppBase = (window.EARTHFORWARD_SITE && window.EARTHFORWARD_SITE.USER_APP_URL) || 'https://pollution-detection-user.vercel.app';
       citizenLink.href = new URL('/', userAppBase).href;
@@ -84,7 +83,6 @@
 
     if (window.lucide) lucide.createIcons();
 
-    // Check if authenticated Supabase session already exists on page load
     document.addEventListener('DOMContentLoaded', async () => {
       try {
         if (window.EarthData && typeof window.EarthData.getSession === 'function') {
