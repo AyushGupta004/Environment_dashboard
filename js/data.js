@@ -1397,8 +1397,8 @@ function clearLocalSession() {
 
 async function signIn(email, password) {
   const config = (typeof window !== 'undefined' && window.LOCAL_AUTH_CONFIG) || {};
-  const expectedEmail = config.email || 'admin@earthforward.local';
-  const expectedPassword = config.password || 'EarthForward@123';
+  const expectedEmail = config.email || 'Sankalp@gmail.com';
+  const expectedPassword = config.password || 'Sankalp123';
 
   if (email && email.toLowerCase() === expectedEmail.toLowerCase() && password === expectedPassword) {
     const session = {

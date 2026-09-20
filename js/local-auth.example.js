@@ -5,6 +5,6 @@
  * js/local-auth.js is gitignored and will never be committed.
  */
 window.LOCAL_AUTH_CONFIG = {
-  email: "admin@earthforward.local",
+  email: "admin@example.com",
   password: "ChangeMe123!"
 };

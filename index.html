@@ -116,36 +116,48 @@
         errBox.textContent = '';
       }
 
-      // Check against local-auth config
-      const config = window.LOCAL_AUTH_CONFIG || {};
-      const expectedEmail = config.email || 'admin@earthforward.local';
-      const expectedPassword = config.password || 'EarthForward@123';
-
-      if (email.toLowerCase() === expectedEmail.toLowerCase() && password === expectedPassword) {
-        if (submitBtn) {
-          submitBtn.disabled = true;
-          submitBtn.innerHTML = '<span>Signing in...</span>';
-        }
-
-        const localSession = {
-          authenticated: true,
-          email: expectedEmail,
-          role: 'Platform Officer'
-        };
-
-        try {
-          if (typeof sessionStorage !== 'undefined') {
-            sessionStorage.setItem('earth_forward_local_session', JSON.stringify(localSession));
+      if (window.EarthData && typeof window.EarthData.signIn === 'function') {
+        const result = await window.EarthData.signIn(email, password);
+        if (!result.error && result.data && result.data.session) {
+          if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span>Signing in...</span>';
           }
-          if (typeof localStorage !== 'undefined') {
-            localStorage.setItem('earth_forward_local_session', JSON.stringify(localSession));
-          }
-        } catch (e) {
-          console.warn('Session storage error:', e);
+          window.location.href = 'dashboard.html';
+          return;
         }
+      } else {
+        // Fallback if EarthData is unavailable
+        const config = window.LOCAL_AUTH_CONFIG || {};
+        const expectedEmail = config.email || 'Sankalp@gmail.com';
+        const expectedPassword = config.password || 'Sankalp123';
 
-        window.location.href = 'dashboard.html';
-        return;
+        if (email.toLowerCase() === expectedEmail.toLowerCase() && password === expectedPassword) {
+          if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span>Signing in...</span>';
+          }
+
+          const localSession = {
+            authenticated: true,
+            email: expectedEmail,
+            role: 'Platform Officer'
+          };
+
+          try {
+            if (typeof sessionStorage !== 'undefined') {
+              sessionStorage.setItem('earth_forward_local_session', JSON.stringify(localSession));
+            }
+            if (typeof localStorage !== 'undefined') {
+              localStorage.setItem('earth_forward_local_session', JSON.stringify(localSession));
+            }
+          } catch (e) {
+            console.warn('Session storage error:', e);
+          }
+
+          window.location.href = 'dashboard.html';
+          return;
+        }
       }
 
       // Incorrect credentials
