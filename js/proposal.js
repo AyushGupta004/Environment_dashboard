@@ -296,7 +296,7 @@
     const selectedCount = selectedReports.length;
     const uniqueLocations = new Set(selectedReports.map(r => r.location || r.city)).size;
     const highPriorityCount = selectedReports.filter(r => r.severity === 'High').length;
-    const affectedPopulation = selectedReports.reduce((sum, r) => sum + (r.estimatedAffectedPopulation || 5200), 0);
+    const affectedPopulation = selectedReports.reduce((sum, r) => sum + (r.estimatedAffectedPopulation || 0), 0);
 
     const elSelected = document.getElementById('summarySelectedCount');
     const elLocations = document.getElementById('summaryLocationsCount');
@@ -308,7 +308,7 @@
     if (elSelected) elSelected.textContent = selectedCount;
     if (elLocations) elLocations.textContent = uniqueLocations;
     if (elHigh) elHigh.textContent = highPriorityCount;
-    if (elPop) elPop.textContent = affectedPopulation > 0 ? affectedPopulation.toLocaleString() : '0';
+    if (elPop) elPop.textContent = affectedPopulation > 0 ? affectedPopulation.toLocaleString() : '—';
 
     if (hintText) {
       hintText.textContent = selectedCount > 0
@@ -368,7 +368,7 @@
     const uniqueLocations = new Set(selectedReports.map(r => r.location || r.city)).size;
     const highPriorityCount = selectedReports.filter(r => r.severity === 'High').length;
     const evidenceCount = totalReports * 2 + Math.floor(totalReports * 1.5);
-    const affectedPop = selectedReports.reduce((sum, r) => sum + (r.estimatedAffectedPopulation || 5200), 0);
+    const affectedPop = selectedReports.reduce((sum, r) => sum + (r.estimatedAffectedPopulation || 0), 0);
 
     // 5. Synthesize Reference ID & Subject
     const refCode = Math.floor(1000 + Math.random() * 9000);
@@ -383,13 +383,14 @@
     const targetArea = `${topLoc}, ${dominantCity} (NCR Regional Zone)`;
 
     // 6. Auto-written Observed Pattern Paragraph
-    const observedPattern = `Spatial aggregation of ${totalReports} citizen observations and multispectral telemetry reveals a persistent concentration of suspected ${dominantCategory} anomalies across ${targetArea}. Sensor telemetry registers repetitive threshold exceedances, with ${highPriorityCount} incidents classified as High Severity. The clustered pattern indicates an acute public health and environmental vector impacting an estimated ${affectedPop.toLocaleString()} residents in surrounding residential and buffer zones. Field ground-truthing confirms non-functional emission scrubbers and localized unsegregated waste pooling. Historical recurrence patterns suggest unpermitted nocturnal discharge or localized systemic infrastructure strain requiring prompt statutory containment and multi-agency remediation.`;
+    const popText = affectedPop > 0 ? `impacting an estimated ${affectedPop.toLocaleString()} residents` : `affecting communities`;
+    const observedPattern = `Spatial aggregation of ${totalReports} citizen observations and multispectral telemetry reveals a persistent concentration of suspected ${dominantCategory} anomalies across ${targetArea}. Sensor telemetry registers repetitive threshold exceedances, with ${highPriorityCount} incidents classified as High Severity. The clustered pattern indicates an acute public health and environmental vector ${popText} in surrounding residential and buffer zones. Field ground-truthing confirms non-functional emission scrubbers and localized unsegregated waste pooling. Historical recurrence patterns suggest unpermitted nocturnal discharge or localized systemic infrastructure strain requiring prompt statutory containment and multi-agency remediation.`;
 
     // 7. Structured Suggested Actions
     const suggestedActions = [
       {
         title: 'Field Inspection & Ground-Truthing',
-        desc: 'Deploy joint task force with accredited NGO specialists to physically inspect suspected outfalls/stacks, take water/particulate samples, and document optical plume opacity.'
+        desc: 'Deploy joint task force with accredited field specialists to physically inspect suspected outfalls/stacks, take water/particulate samples, and document optical plume opacity.'
       },
       {
         title: 'Targeted Municipal Intervention',

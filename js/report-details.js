@@ -24,7 +24,17 @@
   // State
   let currentReportId = null;
   let currentReport = null;
-  let fieldWorkers = [];
+  let registeredTeams = [];
+
+  function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
 
   /**
    * Helper: Category Large Evidence SVG Graphics (Monochrome Green Scale Only)
@@ -215,7 +225,7 @@
    */
   async function initReportDetails() {
     const urlParams = new URLSearchParams(window.location.search);
-    currentReportId = urlParams.get('id') || 'REP-2026-001';
+    currentReportId = urlParams.get('id');
 
     const loadingState = document.getElementById('detailsLoadingState');
     const errorState = document.getElementById('detailsErrorState');
@@ -223,10 +233,31 @@
 
     try {
       // 1. Fetch report from EarthData
-      currentReport = await window.EarthData.getReportById(currentReportId);
+      if (!currentReportId) {
+        const allReports = await window.EarthData.getReports();
+        if (allReports && allReports.length > 0) {
+          currentReportId = allReports[0].id;
+        }
+      }
 
-      // 2. Fetch field workers for assignment dropdown
-      fieldWorkers = await window.EarthData.getFieldWorkers();
+      if (currentReportId) {
+        currentReport = await window.EarthData.getReportById(currentReportId);
+      }
+
+      // 2. Fetch teams for assignment dropdown
+      try {
+        registeredTeams = await window.EarthData.getOrganizations();
+      } catch (e) {
+        console.warn('Failed to load organizations:', e);
+        registeredTeams = [];
+      }
+
+      // Update hotspot context link
+      const btnHotspotContext = document.getElementById('btnHotspotContext');
+      if (btnHotspotContext && currentReportId) {
+        btnHotspotContext.href = `hotspots.html?report=${encodeURIComponent(currentReportId)}`;
+        console.log('hotspot link:', btnHotspotContext.href);
+      }
 
       if (!currentReport) {
         loadingState.style.display = 'none';
@@ -274,21 +305,22 @@
     const idDisplay = document.getElementById('displayReportId');
     if (idDisplay) idDisplay.textContent = r.id;
 
-    // Evidence SVG Visual Graphic
-    const svgBox = document.getElementById('evidenceVisualSvg');
-    if (svgBox) {
-      svgBox.innerHTML = getCategoryEvidenceGraphic(r.category);
-    }
-
-    // Overlay details
-    const overlayCoords = document.getElementById('evidenceOverlayCoords');
-    if (overlayCoords && r.coordinates) {
-      overlayCoords.textContent = `${r.coordinates[0].toFixed(4)}° N, ${r.coordinates[1].toFixed(4)}° E`;
-    }
-
-    const overlaySensor = document.getElementById('evidenceOverlaySensor');
-    if (overlaySensor) {
-      overlaySensor.textContent = `SPECTRAL REF: ${r.id.split('-').pop()}`;
+    // Real Report Image or Fallback
+    const imgEl = document.getElementById('evidenceReportImg');
+    const fallbackEl = document.getElementById('evidenceImgFallback');
+    if (imgEl && fallbackEl) {
+      if (r.imageUrl) {
+        imgEl.src = r.imageUrl;
+        imgEl.style.display = 'block';
+        fallbackEl.style.display = 'none';
+        imgEl.onerror = () => {
+          imgEl.style.display = 'none';
+          fallbackEl.style.display = 'flex';
+        };
+      } else {
+        imgEl.style.display = 'none';
+        fallbackEl.style.display = 'flex';
+      }
     }
 
     // Verified badge flag
@@ -315,39 +347,53 @@
       if (el) el.textContent = val || '—';
     };
 
-    setTxt('metaCategory', r.category);
-    setTxt('metaLocation', r.location);
-    setTxt('metaCity', `${r.city}, NCR`);
+    setTxt('metaCategory', r.category || 'Uncategorized');
+    setTxt('metaLocation', r.location || '—');
+    setTxt('metaCity', r.city ? `${r.city}, NCR` : '—');
 
-    if (r.coordinates) {
+    if (r.coordinates && r.coordinates[0] && r.coordinates[1]) {
       setTxt('metaCoordinates', `${r.coordinates[0].toFixed(4)}°N, ${r.coordinates[1].toFixed(4)}°E`);
+    } else {
+      setTxt('metaCoordinates', '—');
     }
 
     setTxt('metaDate', formatDate(r.reportDate, true));
 
-    // Confidence score with visual fill bar
-    const confPct = Math.round((r.confidence || 0.85) * 100);
+    // Confidence score with visual fill bar (null -> —)
     const confBar = document.getElementById('metaConfidenceBar');
     const confTxt = document.getElementById('metaConfidenceText');
-    if (confBar) confBar.style.width = `${confPct}%`;
-    if (confTxt) confTxt.textContent = `${confPct}%`;
+    if (r.confidence !== null && r.confidence !== undefined) {
+      const confPct = Math.round(r.confidence * 100);
+      if (confBar) confBar.style.width = `${confPct}%`;
+      if (confTxt) confTxt.textContent = `${confPct}%`;
+    } else {
+      if (confBar) confBar.style.width = '0%';
+      if (confTxt) confTxt.textContent = '—';
+    }
 
-    // Severity dot & text
+    // Severity dot & text (null -> Unassessed)
     const sevDot = document.getElementById('metaSeverityDot');
     const sevTxt = document.getElementById('metaSeverityText');
+    const sev = r.severity || 'Unassessed';
     if (sevDot) {
       sevDot.className = 'intensity-dot ' + (
-        r.severity === 'High' ? 'dot-high' :
-        r.severity === 'Medium' ? 'dot-medium' : 'dot-low'
+        sev === 'High' ? 'dot-high' :
+        sev === 'Medium' ? 'dot-medium' :
+        sev === 'Low' ? 'dot-low' : 'dot-unassessed'
       );
     }
-    if (sevTxt) sevTxt.textContent = r.severity;
+    if (sevTxt) sevTxt.textContent = sev;
 
     // Current Audit Status Badge
     updateStatusBadgeUI(r.status, false);
 
-    // Organization
-    setTxt('metaOrganization', r.organization || 'NCR Clean Air & Climate Alliance');
+    // Organization / Team
+    if (r.isAssigned) {
+      const codeStr = r.assignedTeamCode ? ` (${r.assignedTeamCode})` : '';
+      setTxt('metaOrganization', `${r.assignedTeamName || r.assignedTo || r.organization}${codeStr}`);
+    } else {
+      setTxt('metaOrganization', '—');
+    }
   }
 
   /**
@@ -380,26 +426,41 @@
       if (el) el.textContent = val || '—';
     };
 
-    setTxt('reportTitle', r.title);
+    setTxt('reportTitle', r.title || 'Environmental Incident');
     setTxt('reportSubmittedBy', r.submittedBy || 'Citizen Sentinel');
     setTxt('reportHeaderDate', formatDate(r.reportDate, false));
-    setTxt('reportHeaderLocation', `${r.location}, ${r.city}`);
+    setTxt('reportHeaderLocation', r.location ? `${r.location}, ${r.city || ''}` : (r.city || '—'));
 
     // Narrative description
-    setTxt('reportDescription', r.description);
+    setTxt('reportDescription', r.description || 'No citizen description recorded.');
 
-    // AI sensor observations
-    const aiObsEl = document.getElementById('reportAiObservations');
-    if (aiObsEl) {
-      aiObsEl.textContent = r.aiObservations || 
-        'AI-detected suspected issue: Spectral imaging anomalies indicate anomalous surface reflectance and particulate density exceeding local baselines.';
+    // AI Observation & Analysis card
+    const aiCatEl = document.getElementById('aiMetaCategory');
+    if (aiCatEl) aiCatEl.textContent = r.aiCategory || r.category || '—';
+
+    const aiConfEl = document.getElementById('aiMetaConfidence');
+    if (aiConfEl) {
+      const c = r.aiConfidence !== null && r.aiConfidence !== undefined ? r.aiConfidence : r.confidence;
+      aiConfEl.textContent = (c !== null && c !== undefined) ? `${Math.round(c * 100)}%` : '—';
     }
 
-    // Telemetry stats
-    const pop = r.estimatedAffectedPopulation || 8500;
-    setTxt('telemetryPopulation', `${pop.toLocaleString()} Residents`);
-    setTxt('telemetryGroundTruth', r.verified ? 'Verified Infraction' : 'Suspected Anomaly');
+    const aiObsEl = document.getElementById('reportAiObservations');
+    if (aiObsEl) {
+      const text = r.aiDescription || r.aiObservations;
+      aiObsEl.textContent = (text && text.trim().length > 0)
+        ? text
+        : 'AI analysis not available for this report yet.';
+    }
   }
+
+  const WORKFLOW_ORDER = [
+    'Reported',
+    'AI Analyzed',
+    'Under Review',
+    'Verified',
+    'Action Initiated',
+    'Resolved'
+  ];
 
   /**
    * Render Workflow Stage Control Buttons
@@ -410,54 +471,85 @@
 
     const currentStatus = currentReport.status;
     const stageButtons = container.querySelectorAll('.btn-stage');
+    const currentIndex = WORKFLOW_ORDER.indexOf(currentStatus);
 
     stageButtons.forEach(btn => {
       const stage = btn.getAttribute('data-stage');
-      if (stage === currentStatus) {
-        btn.classList.add('current-stage');
-      } else {
-        btn.classList.remove('current-stage');
+      btn.classList.remove('completed-stage', 'current-stage');
+
+      if (stage === 'Rejected') {
+        if (currentStatus === 'Rejected') {
+          btn.classList.add('current-stage');
+        }
+        return;
+      }
+
+      if (currentStatus === 'Rejected') {
+        return;
+      }
+
+      const stageIdx = WORKFLOW_ORDER.indexOf(stage);
+      if (stageIdx !== -1 && currentIndex !== -1) {
+        if (stageIdx < currentIndex) {
+          btn.classList.add('completed-stage');
+        } else if (stageIdx === currentIndex) {
+          btn.classList.add('completed-stage', 'current-stage');
+        }
       }
     });
   }
 
   /**
-   * Render Field Specialist Assignment Panel
+   * Render Team Assignment Panel
    */
   function renderAssignmentPanel() {
     const r = currentReport;
 
-    // 1. Populate Specialist dropdown
     const select = document.getElementById('assignWorkerSelect');
-    if (select && fieldWorkers.length > 0) {
-      select.innerHTML = '<option value="">Choose Specialist...</option>' + 
-        fieldWorkers.map(w => `
-          <option value="${w.name}" ${r.assignedTo === w.name ? 'selected' : ''}>
-            ${w.name} — ${w.role} (${w.zone})
-          </option>
-        `).join('');
-    }
-
-    // 2. Set priority
+    const submitBtn = document.getElementById('btnSubmitAssignment');
     const prioritySelect = document.getElementById('assignPrioritySelect');
-    if (prioritySelect && r.priority) {
-      prioritySelect.value = r.priority;
-    }
-
-    // 3. Set target due date
     const dateInput = document.getElementById('assignDueDateInput');
-    if (dateInput) {
-      if (r.dueDate) {
-        dateInput.value = r.dueDate.split('T')[0];
+
+    const today = new Date();
+    const minDateStr = today.toISOString().split('T')[0];
+    const defaultDue = new Date(today.getTime() + 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
+    if (select) {
+      if (registeredTeams && registeredTeams.length > 0) {
+        select.disabled = false;
+        select.innerHTML = '<option value="">Choose Team...</option>' + 
+          registeredTeams.map(t => {
+            const code = t.teamCode || t.team_code || '—';
+            const count = t.memberCount !== null && t.memberCount !== undefined ? t.memberCount : (t.member_count || 0);
+            const isSelected = (r.organizationId && String(r.organizationId) === String(t.id));
+            return `
+              <option value="${t.id}" ${isSelected ? 'selected' : ''}>
+                ${escapeHtml(t.name)} (${escapeHtml(code)}) — ${count} members
+              </option>
+            `;
+          }).join('');
+
+        if (prioritySelect) {
+          prioritySelect.disabled = false;
+          prioritySelect.value = r.assignedPriority || r.priority || 'Medium';
+        }
+
+        if (dateInput) {
+          dateInput.disabled = false;
+          dateInput.min = minDateStr;
+          dateInput.value = r.dueDate ? r.dueDate.split('T')[0] : defaultDue;
+        }
+
+        if (submitBtn) submitBtn.disabled = false;
       } else {
-        // Default to 5 days from today
-        const target = new Date();
-        target.setDate(target.getDate() + 5);
-        dateInput.value = target.toISOString().split('T')[0];
+        select.disabled = true;
+        select.innerHTML = '<option value="" disabled selected>No teams registered yet.</option>';
+        if (prioritySelect) prioritySelect.disabled = true;
+        if (dateInput) dateInput.disabled = true;
+        if (submitBtn) submitBtn.disabled = true;
       }
     }
 
-    // 4. Update Current Assignment Display State
     updateAssignmentBadgeDisplay();
   }
 
@@ -466,24 +558,39 @@
     const nameEl = document.getElementById('assignedWorkerName');
     const detailsEl = document.getElementById('assignedWorkerDetails');
     const priorityBadge = document.getElementById('assignedPriorityBadge');
+    const submitBtn = document.getElementById('btnSubmitAssignment');
 
-    if (r.assignedTo) {
-      nameEl.textContent = `Assigned to ${r.assignedTo}`;
-      detailsEl.textContent = `Target Due Date: ${formatDate(r.dueDate, false)} • Priority: ${r.priority || 'Medium'}`;
+    if (r.isAssigned || r.assignedTo) {
+      const teamName = r.assignedTeamName || r.assignedTo;
+      const teamCode = r.assignedTeamCode ? `[${r.assignedTeamCode}] • ` : '';
+      const priority = r.assignedPriority || r.priority || 'Medium';
+      const dueStr = r.dueDate ? formatDate(r.dueDate, false) : '—';
+
+      if (nameEl) nameEl.textContent = `Assigned to ${teamName}`;
+      if (detailsEl) detailsEl.textContent = `${teamCode}Target Due Date: ${dueStr} • Priority: ${priority}`;
       if (priorityBadge) {
         priorityBadge.className = 'badge ' + (
-          r.priority === 'High' ? 'badge-severity-high' :
-          r.priority === 'Low' ? 'badge-severity-low' : 'badge-severity-medium'
+          priority === 'High' ? 'badge-severity-high' :
+          priority === 'Low' ? 'badge-severity-low' : 'badge-severity-medium'
         );
-        priorityBadge.innerHTML = `<span class="dot"></span> ${r.priority || 'Medium'} Priority`;
+        priorityBadge.innerHTML = `<span class="dot"></span> Assigned (${priority})`;
+      }
+      if (submitBtn) {
+        submitBtn.innerHTML = '<i data-lucide="check"></i> <span>Reassign Team</span>';
       }
     } else {
-      nameEl.textContent = 'Unassigned';
-      detailsEl.textContent = 'Field team dispatch pending verification triage';
+      if (nameEl) nameEl.textContent = 'Unassigned';
+      if (detailsEl) detailsEl.textContent = 'Field team dispatch pending registration of teams';
       if (priorityBadge) {
         priorityBadge.className = 'badge';
         priorityBadge.innerHTML = '<span class="dot"></span> Action Pending';
       }
+      if (submitBtn) {
+        submitBtn.innerHTML = '<i data-lucide="check"></i> <span>Assign Team</span>';
+      }
+    }
+    if (submitBtn && window.lucide) {
+      window.lucide.createIcons({ root: submitBtn });
     }
   }
 
@@ -561,7 +668,7 @@
     listEl.innerHTML = notes.map(note => `
       <div class="note-entry">
         <div class="note-header">
-          <span class="note-author">${note.author || 'NGO Field Officer'}</span>
+          <span class="note-author">${note.author || 'Team member'}</span>
           <span class="note-timestamp">${formatDate(note.timestamp, true)}</span>
         </div>
         <p class="note-body">${note.text}</p>
@@ -592,7 +699,7 @@
           updateStatusBadgeUI(newStage, true);
           renderWorkflowControls();
           renderTimeline();
-          renderNotes(); // updateReportStatus appends an audit note
+          renderNotes();
 
           // Update verified flag in evidence panel
           const verifiedFlag = document.getElementById('evidenceVerifiedFlag');
@@ -612,10 +719,10 @@
             }
           }
 
-          showToast(`Incident status advanced to "${newStage}". Audit entry recorded.`);
+          showToast(`Incident status updated to "${newStage}".`);
         } catch (err) {
           console.error('Error updating status:', err);
-          showToast('Failed to update incident status.', 'error');
+          showToast(err.message || 'Update failed: You do not have permission to update this report. Only the report author or an authorized team member can update status.', 'error');
         } finally {
           btn.style.opacity = '1';
           btn.style.pointerEvents = 'auto';
@@ -623,17 +730,17 @@
       });
     });
 
-    // 2. Field Worker Assignment Form
+    // 2. Team Assignment Form
     const assignmentForm = document.getElementById('assignmentForm');
     if (assignmentForm) {
       assignmentForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const workerName = document.getElementById('assignWorkerSelect').value;
+        const teamId = document.getElementById('assignWorkerSelect').value;
         const priority = document.getElementById('assignPrioritySelect').value;
         const dueDate = document.getElementById('assignDueDateInput').value;
 
-        if (!workerName) {
-          showToast('Please select a field specialist.', 'error');
+        if (!teamId) {
+          showToast('Please select a team.', 'error');
           return;
         }
 
@@ -644,32 +751,38 @@
             submitBtn.innerHTML = 'Assigning...';
           }
 
-          // Call EarthData.assignReport
-          const updated = await window.EarthData.assignReport(
+          await window.EarthData.assignReportToTeam(
             currentReport.id,
-            workerName,
+            teamId,
             priority,
-            dueDate,
-            currentReport.organization
+            dueDate
           );
-          currentReport = updated;
+
+          const matchedTeam = registeredTeams.find(t => String(t.id) === String(teamId));
+          currentReport.organizationId = teamId;
+          currentReport.assignedTo = matchedTeam ? matchedTeam.name : teamId;
+          currentReport.isAssigned = true;
+          currentReport.assignedTeamName = matchedTeam ? matchedTeam.name : '';
+          currentReport.assignedTeamCode = matchedTeam ? (matchedTeam.teamCode || matchedTeam.team_code) : '';
+          currentReport.assignedPriority = priority;
+          currentReport.dueDate = dueDate;
 
           // Re-render UI
+          renderEvidencePanel();
           updateAssignmentBadgeDisplay();
           renderWorkflowControls();
           updateStatusBadgeUI(currentReport.status, true);
           renderTimeline();
           renderNotes();
 
-          showToast(`Assigned to ${workerName} — Target: ${formatDate(dueDate, false)}`);
+          showToast(`Assigned to ${matchedTeam ? matchedTeam.name : 'team'} — Target: ${formatDate(dueDate, false)}`);
         } catch (err) {
-          console.error('Error assigning worker:', err);
-          showToast('Failed to assign field specialist.', 'error');
+          console.error('Error assigning team:', err);
+          showToast(err.message || 'Failed to assign team.', 'error');
         } finally {
           if (submitBtn) {
             submitBtn.disabled = false;
-            submitBtn.innerHTML = '<i data-lucide="check"></i> <span>Assign Issue</span>';
-            if (window.lucide) window.lucide.createIcons({ root: submitBtn });
+            updateAssignmentBadgeDisplay();
           }
         }
       });
@@ -695,8 +808,7 @@
           // Persist note via EarthData.addReportNote
           const updated = await window.EarthData.addReportNote(
             currentReport.id,
-            text,
-            'NGO Field Specialist'
+            text
           );
           currentReport = updated;
 
@@ -704,10 +816,10 @@
           textarea.value = '';
           renderNotes();
 
-          showToast('Internal field observation recorded and saved.');
+          showToast('Internal note recorded and saved.');
         } catch (err) {
           console.error('Error adding note:', err);
-          showToast('Failed to save note.', 'error');
+          showToast(err.message || 'Failed to save note. Make sure you are signed in.', 'error');
         } finally {
           if (addBtn) {
             addBtn.disabled = false;

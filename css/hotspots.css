@@ -104,7 +104,7 @@
 
 .hotspots-search-box input {
   width: 100%;
-  padding: 0.45rem 0.75rem 0.45rem 2rem;
+  padding: 0.45rem 0.75rem 0.45rem 2.2rem;
   font-size: var(--text-xs);
   border: 1px solid var(--c-border-medium);
   border-radius: var(--radius-md);
@@ -118,9 +118,10 @@
   border-color: var(--c-primary);
 }
 
-.hotspots-search-box i {
+.hotspots-search-box i,
+.hotspots-search-box svg {
   position: absolute;
-  left: 8px;
+  left: 10px;
   top: 50%;
   transform: translateY(-50%);
   width: 14px;

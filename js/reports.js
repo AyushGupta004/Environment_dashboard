@@ -130,7 +130,18 @@
     `;
   }
 
+  function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
   /**
+
    * Toast Notification Generator (Calm Green Shades)
    */
   function showToast(message) {
@@ -220,28 +231,33 @@
     filteredReports = allReports.filter(r => {
       // Search
       if (searchVal) {
-        const matches = r.id.toLowerCase().includes(searchVal) ||
-          r.title.toLowerCase().includes(searchVal) ||
-          r.category.toLowerCase().includes(searchVal) ||
-          r.location.toLowerCase().includes(searchVal) ||
-          r.city.toLowerCase().includes(searchVal);
+        const matches = (r.id || '').toLowerCase().includes(searchVal) ||
+          (r.title || '').toLowerCase().includes(searchVal) ||
+          (r.category || '').toLowerCase().includes(searchVal) ||
+          (r.location || '').toLowerCase().includes(searchVal) ||
+          (r.city || '').toLowerCase().includes(searchVal) ||
+          (r.assignedTeamName || '').toLowerCase().includes(searchVal) ||
+          (r.assignedTeamCode || '').toLowerCase().includes(searchVal);
         if (!matches) return false;
       }
 
       // Category
-      if (catVal !== 'all' && r.category.toLowerCase() !== catVal.toLowerCase()) return false;
+      if (catVal !== 'all' && (r.category || '').toLowerCase() !== catVal.toLowerCase()) return false;
 
       // Severity
-      if (sevVal !== 'all' && r.severity.toLowerCase() !== sevVal.toLowerCase()) return false;
+      if (sevVal !== 'all') {
+        const rSev = (r.severity || 'Unassessed').toLowerCase();
+        if (rSev !== sevVal.toLowerCase()) return false;
+      }
 
       // Status
-      if (statVal !== 'all' && r.status.toLowerCase() !== statVal.toLowerCase()) return false;
+      if (statVal !== 'all' && (r.status || '').toLowerCase() !== statVal.toLowerCase()) return false;
 
       // Date Range (starts with '2026-06', etc.)
-      if (dateVal !== 'all' && !r.reportDate.startsWith(dateVal)) return false;
+      if (dateVal !== 'all' && !(r.reportDate || '').startsWith(dateVal)) return false;
 
       // Location / City
-      if (locVal !== 'all' && r.city.toLowerCase() !== locVal.toLowerCase()) return false;
+      if (locVal !== 'all' && (r.city || '').toLowerCase() !== locVal.toLowerCase()) return false;
 
       return true;
     });
@@ -304,16 +320,22 @@
 
     tbody.innerHTML = visibleReports.map(r => {
       const isSelected = selectedReportIds.has(r.id);
-      const dotClass = r.severity === 'High' ? 'dot-high'
-        : r.severity === 'Medium' ? 'dot-medium' : 'dot-low';
+      const sev = r.severity || 'Unassessed';
+      const dotClass = sev === 'High' ? 'dot-high'
+        : sev === 'Medium' ? 'dot-medium'
+        : sev === 'Low' ? 'dot-low' : 'dot-unassessed';
 
-      const dateStr = new Date(r.reportDate).toLocaleDateString('en-US', {
+      const dateStr = r.reportDate ? new Date(r.reportDate).toLocaleDateString('en-US', {
         month: 'short',
         day: 'numeric',
         year: 'numeric'
-      });
+      }) : '—';
 
-      const statusKey = r.status.toLowerCase().replace(/\s+/g, '');
+      const confText = (r.confidence !== null && r.confidence !== undefined)
+        ? `${Math.round(r.confidence * 100)}%`
+        : '—';
+
+      const statusKey = (r.status || 'reported').toLowerCase().replace(/\s+/g, '');
 
       return `
         <tr data-report-id="${r.id}" style="${isSelected ? 'background-color:var(--c-surface-subtle);' : ''}">
@@ -333,27 +355,35 @@
             ${getCategoryThumbnail(r.category)}
           </td>
           <td>
-            <span style="font-weight:600; font-size:var(--text-xs); color:var(--c-text-primary);">${r.category}</span>
+            <span style="font-weight:600; font-size:var(--text-xs); color:var(--c-text-primary);">${r.category || 'Uncategorized'}</span>
           </td>
           <td>
-            <div style="font-weight:600; font-size:var(--text-xs); max-width:220px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${r.title}">
-              ${r.title}
+            <div style="font-weight:600; font-size:var(--text-xs); max-width:220px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${r.title || ''}">
+              ${r.title || 'Untitled Report'}
             </div>
-            <div class="cell-compact">${r.location}, ${r.city}</div>
+            <div class="cell-compact">${r.location ? `${r.location}, ${r.city || ''}` : (r.city || '—')}</div>
           </td>
           <td>
             <div class="severity-indicator">
               <span class="intensity-dot ${dotClass}"></span>
-              <span>${r.severity}</span>
+              <span>${sev}</span>
             </div>
           </td>
           <td>
-            <span class="cell-compact" style="font-weight:600;">${Math.round(r.confidence * 100)}%</span>
+            <span class="cell-compact" style="font-weight:600;">${confText}</span>
           </td>
           <td>
             <span class="badge badge-status-${statusKey}">
               <span class="dot"></span> ${r.status}
             </span>
+            ${r.isAssigned ? `
+              <div style="margin-top:4px;">
+                <span class="badge" style="background:var(--c-surface-subtle); color:var(--c-primary); border:1px solid rgba(49,92,58,0.25); font-size:10px; padding:2px 6px; display:inline-flex; align-items:center; gap:3px;">
+                  <i data-lucide="users" style="width:10px; height:10px;"></i>
+                  <span>${escapeHtml(r.assignedTeamCode || r.assignedTeamName || 'Assigned')}</span>
+                </span>
+              </div>
+            ` : ''}
           </td>
           <td>
             <span class="cell-compact">${dateStr}</span>
@@ -369,17 +399,9 @@
                   <i data-lucide="more-horizontal" style="width:14px; height:14px;"></i>
                 </button>
                 <div class="action-menu-dropdown" id="dropdown-${r.id}">
-                  <button class="action-menu-item" onclick="window.quickVerifyReport('${r.id}')">
-                    <i data-lucide="check" style="width:13px; height:13px; color:var(--c-primary);"></i>
-                    <span>Verify Issue</span>
-                  </button>
-                  <button class="action-menu-item" onclick="window.quickRejectReport('${r.id}')">
-                    <i data-lucide="x" style="width:13px; height:13px; color:var(--c-text-secondary);"></i>
-                    <span>Reject / Flag</span>
-                  </button>
                   <button class="action-menu-item" onclick="window.quickAssignReport('${r.id}')">
-                    <i data-lucide="user-plus" style="width:13px; height:13px; color:var(--c-accent-sage);"></i>
-                    <span>Assign Officer</span>
+                    <i data-lucide="users" style="width:13px; height:13px; color:var(--c-accent-sage);"></i>
+                    <span>Assign Team</span>
                   </button>
                 </div>
               </div>
@@ -439,65 +461,77 @@
   }
 
   /**
-   * Row Action: Quick Verify
-   */
-  window.quickVerifyReport = async function (id) {
-    try {
-      await window.EarthData.updateReportStatus(id, 'Verified');
-      // Update in memory
-      const item = allReports.find(r => r.id === id);
-      if (item) {
-        item.status = 'Verified';
-        item.verified = true;
-      }
-      showToast(`Report ${id} successfully verified.`);
-      applyFiltersAndSort();
-      renderTable();
-    } catch (err) {
-      alert(`Error verifying report: ${err.message}`);
-    }
-  };
-
-  /**
-   * Row Action: Quick Reject / Review
-   */
-  window.quickRejectReport = async function (id) {
-    try {
-      await window.EarthData.updateReportStatus(id, 'Under Review');
-      const item = allReports.find(r => r.id === id);
-      if (item) {
-        item.status = 'Under Review';
-        item.verified = false;
-      }
-      showToast(`Report ${id} flagged as Under Review / Requires Clarification.`);
-      applyFiltersAndSort();
-      renderTable();
-    } catch (err) {
-      alert(`Error updating report: ${err.message}`);
-    }
-  };
-
-  /**
    * Row Action: Quick Assign Modal
    */
   window.quickAssignReport = async function (id) {
     const modalBackdrop = document.getElementById('assignModalBackdrop');
     const modalTitle = document.getElementById('assignModalReportTitle');
-    const workerSelect = document.getElementById('assignWorkerSelect');
+    const teamSelect = document.getElementById('assignWorkerSelect');
     const hiddenIdInput = document.getElementById('assignReportId');
+    const prioritySelect = document.getElementById('assignPrioritySelect');
+    const dueDateInput = document.getElementById('assignDueDate');
+    const noTeamsNotice = document.getElementById('noTeamsNotice');
+    const submitBtn = document.getElementById('submitAssignModalBtn');
 
-    if (!modalBackdrop || !workerSelect) return;
+    if (!modalBackdrop || !teamSelect) return;
 
     hiddenIdInput.value = id;
-    modalTitle.textContent = `Assign Field Officer for ${id}`;
+    const report = allReports.find(r => r.id === id);
+    const isAlreadyAssigned = !!(report && report.isAssigned);
 
-    // Populate officers
-    const workers = await window.EarthData.getFieldWorkers();
-    workerSelect.innerHTML = workers.map(w => `
-      <option value="${w.name}">${w.name} (${w.role} — ${w.zone})</option>
-    `).join('');
+    if (modalTitle) {
+      modalTitle.textContent = isAlreadyAssigned
+        ? `Reassign Team for Report ${id}`
+        : `Assign Team to Report ${id}`;
+    }
+    if (submitBtn) {
+      submitBtn.textContent = isAlreadyAssigned ? 'Reassign Team' : 'Dispatch Assignment';
+    }
+
+    // Default due date: today + 5 days
+    const today = new Date();
+    const minDateStr = today.toISOString().split('T')[0];
+    const defaultDue = new Date(today.getTime() + 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
+    if (dueDateInput) {
+      dueDateInput.min = minDateStr;
+      dueDateInput.value = (report && report.dueDate) ? report.dueDate.split('T')[0] : defaultDue;
+    }
+
+    if (prioritySelect) {
+      prioritySelect.value = (report && (report.assignedPriority || report.priority)) || 'Medium';
+    }
+
+    // Populate teams
+    let teams = [];
+    try {
+      teams = await window.EarthData.getOrganizations();
+    } catch (e) {
+      console.warn('Failed to load organizations:', e);
+    }
+
+    if (!teams || teams.length === 0) {
+      teamSelect.innerHTML = '<option value="" disabled selected>No teams registered yet.</option>';
+      teamSelect.disabled = true;
+      if (noTeamsNotice) noTeamsNotice.style.display = 'block';
+      if (submitBtn) submitBtn.disabled = true;
+    } else {
+      teamSelect.disabled = false;
+      if (noTeamsNotice) noTeamsNotice.style.display = 'none';
+      if (submitBtn) submitBtn.disabled = false;
+
+      const currentOrgId = report ? (report.organizationId || report.organization_id) : null;
+
+      teamSelect.innerHTML = teams.map(t => {
+        const code = t.teamCode || t.team_code || '—';
+        const members = t.memberCount !== null && t.memberCount !== undefined ? t.memberCount : (t.member_count || 0);
+        const isSelected = currentOrgId && (String(t.id) === String(currentOrgId));
+        return `<option value="${t.id}" ${isSelected ? 'selected' : ''}>${escapeHtml(t.name)} (${escapeHtml(code)}) — ${members} members</option>`;
+      }).join('');
+    }
 
     modalBackdrop.classList.add('active');
+    if (window.lucide) lucide.createIcons();
   };
 
   /**
@@ -505,22 +539,40 @@
    */
   async function submitAssignModal() {
     const id = document.getElementById('assignReportId').value;
-    const worker = document.getElementById('assignWorkerSelect').value;
+    const teamSelect = document.getElementById('assignWorkerSelect');
+    const teamId = teamSelect ? teamSelect.value : null;
     const priority = document.getElementById('assignPrioritySelect').value;
-    const dueDate = document.getElementById('assignDueDate').value || '2026-09-30';
+    const dueDate = document.getElementById('assignDueDate').value;
+
+    if (!teamId) {
+      alert('Please select a team.');
+      return;
+    }
 
     try {
-      await window.EarthData.assignReport(id, worker, priority, dueDate, 'NCR Clean Air & Climate Alliance');
+      await window.EarthData.assignReportToTeam(id, teamId, priority, dueDate);
+      
+      let teams = [];
+      try {
+        teams = await window.EarthData.getOrganizations();
+      } catch (e) {
+        // ignore
+      }
+      const assignedTeam = teams.find(t => String(t.id) === String(teamId));
+
       const item = allReports.find(r => r.id === id);
       if (item) {
-        item.assignedTo = worker;
-        item.priority = priority;
+        item.organizationId = teamId;
+        item.assignedTo = assignedTeam ? assignedTeam.name : teamId;
+        item.isAssigned = true;
+        item.assignedTeamName = assignedTeam ? assignedTeam.name : '';
+        item.assignedTeamCode = assignedTeam ? (assignedTeam.teamCode || assignedTeam.team_code) : '';
+        item.assignedPriority = priority;
         item.dueDate = dueDate;
-        item.status = 'Action Initiated';
       }
 
       document.getElementById('assignModalBackdrop').classList.remove('active');
-      showToast(`Report ${id} assigned to ${worker}.`);
+      showToast(`Report ${id} successfully assigned to ${assignedTeam ? assignedTeam.name : 'team'}.`);
       applyFiltersAndSort();
       renderTable();
     } catch (err) {
@@ -590,6 +642,25 @@
     renderTable();
   };
 
+  let listenersAttached = false;
+
+  window.initReportsRetry = function () {
+    const tbody = document.getElementById('reportsTableBody');
+    if (tbody) {
+      tbody.innerHTML = `
+        <tr class="skeleton-row">
+          <td colspan="10" style="text-align: center; padding: var(--space-8);">
+            <div class="skeleton-loading-banner">
+              <span class="skeleton-loading-dot"></span>
+              <span>Loading environmental intelligence...</span>
+            </div>
+          </td>
+        </tr>
+      `;
+    }
+    initReports();
+  };
+
   /**
    * Initialize Reports Controller
    */
@@ -597,7 +668,32 @@
     loadStoredSelection();
 
     // Fetch reports
-    allReports = await window.EarthData.getReports();
+    try {
+      allReports = await window.EarthData.getReports();
+    } catch (err) {
+      console.error('Failed to load reports:', err);
+      const tbody = document.getElementById('reportsTableBody');
+      if (tbody) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="10" style="text-align: center; padding: var(--space-8); color: var(--c-text-primary);">
+              <div style="display: flex; flex-direction: column; align-items: center; gap: var(--space-3);">
+                <i data-lucide="alert-circle" style="width: 28px; height: 28px; color: var(--c-accent-brick, #B91C1C);"></i>
+                <div style="font-weight: 600; font-size: var(--text-sm);">
+                  Could not load reports &mdash; ${escapeHtml(err.message || 'Unknown error')}
+                </div>
+                <button type="button" class="btn btn-primary btn-sm" onclick="window.initReportsRetry()">
+                  <i data-lucide="rotate-ccw"></i>
+                  <span>Retry</span>
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+        if (window.lucide) lucide.createIcons();
+      }
+      return;
+    }
 
     // Bind Filter Controls
     const searchInput = document.getElementById('reportsSearchInput');
@@ -608,101 +704,116 @@
     const locSelect = document.getElementById('filterLocationSelect');
     const pageSizeSelect = document.getElementById('pageSizeSelect');
 
-    let debounceTimer = null;
-    if (searchInput) {
-      searchInput.addEventListener('input', () => {
-        clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(() => {
-          currentPage = 1;
-          applyFiltersAndSort();
-          renderTable();
-        }, 150);
-      });
+    // Prefill filter inputs from URL search parameters if provided
+    const urlParams = new URLSearchParams(window.location.search);
+    const searchParam = urlParams.get('search');
+    const statusParam = urlParams.get('status');
+    if (searchParam && searchInput) {
+      searchInput.value = searchParam;
+    }
+    if (statusParam && statSelect) {
+      statSelect.value = statusParam;
     }
 
-    [catSelect, sevSelect, statSelect, dateSelect, locSelect].forEach(el => {
-      if (el) {
-        el.addEventListener('change', () => {
-          currentPage = 1;
-          applyFiltersAndSort();
-          renderTable();
+    if (!listenersAttached) {
+      listenersAttached = true;
+
+      let debounceTimer = null;
+      if (searchInput) {
+        searchInput.addEventListener('input', () => {
+          clearTimeout(debounceTimer);
+          debounceTimer = setTimeout(() => {
+            currentPage = 1;
+            applyFiltersAndSort();
+            renderTable();
+          }, 150);
         });
       }
-    });
 
-    if (pageSizeSelect) {
-      pageSizeSelect.addEventListener('change', (e) => {
-        pageSize = parseInt(e.target.value, 10) || 10;
-        currentPage = 1;
-        renderTable();
-      });
-    }
-
-    // Bind Pagination Buttons
-    document.getElementById('btnPrevPage').addEventListener('click', () => {
-      if (currentPage > 1) {
-        currentPage--;
-        renderTable();
-      }
-    });
-
-    document.getElementById('btnNextPage').addEventListener('click', () => {
-      const totalPages = Math.ceil(filteredReports.length / pageSize);
-      if (currentPage < totalPages) {
-        currentPage++;
-        renderTable();
-      }
-    });
-
-    // Bind Master Select-All Checkbox
-    const selectAllCheckbox = document.getElementById('selectAllCheckbox');
-    if (selectAllCheckbox) {
-      selectAllCheckbox.addEventListener('change', (e) => {
-        const visibleReports = getPaginatedReports();
-        if (e.target.checked) {
-          visibleReports.forEach(r => selectedReportIds.add(r.id));
-        } else {
-          visibleReports.forEach(r => selectedReportIds.delete(r.id));
+      [catSelect, sevSelect, statSelect, dateSelect, locSelect].forEach(el => {
+        if (el) {
+          el.addEventListener('change', () => {
+            currentPage = 1;
+            applyFiltersAndSort();
+            renderTable();
+          });
         }
-        saveStoredSelection();
-        renderTable();
       });
-    }
 
-    // Bind Sortable Headers
-    document.querySelectorAll('.table th.sortable').forEach(th => {
-      th.addEventListener('click', () => {
-        const field = th.getAttribute('data-sort');
-        if (field) handleSortClick(field);
-      });
-    });
-
-    // Close action dropdowns on outside click
-    document.addEventListener('click', (e) => {
-      if (!e.target.closest('.action-menu-container')) {
-        document.querySelectorAll('.action-menu-dropdown.active').forEach(m => {
-          m.classList.remove('active');
+      if (pageSizeSelect) {
+        pageSizeSelect.addEventListener('change', (e) => {
+          pageSize = parseInt(e.target.value, 10) || 10;
+          currentPage = 1;
+          renderTable();
         });
       }
-    });
 
-    // Assign Modal Close buttons
-    const closeAssignBtn = document.getElementById('closeAssignModalBtn');
-    const cancelAssignBtn = document.getElementById('cancelAssignModalBtn');
-    const submitAssignBtn = document.getElementById('submitAssignModalBtn');
+      // Bind Pagination Buttons
+      document.getElementById('btnPrevPage').addEventListener('click', () => {
+        if (currentPage > 1) {
+          currentPage--;
+          renderTable();
+        }
+      });
 
-    if (closeAssignBtn) {
-      closeAssignBtn.addEventListener('click', () => {
-        document.getElementById('assignModalBackdrop').classList.remove('active');
+      document.getElementById('btnNextPage').addEventListener('click', () => {
+        const totalPages = Math.ceil(filteredReports.length / pageSize);
+        if (currentPage < totalPages) {
+          currentPage++;
+          renderTable();
+        }
       });
-    }
-    if (cancelAssignBtn) {
-      cancelAssignBtn.addEventListener('click', () => {
-        document.getElementById('assignModalBackdrop').classList.remove('active');
+
+      // Bind Master Select-All Checkbox
+      const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+      if (selectAllCheckbox) {
+        selectAllCheckbox.addEventListener('change', (e) => {
+          const visibleReports = getPaginatedReports();
+          if (e.target.checked) {
+            visibleReports.forEach(r => selectedReportIds.add(r.id));
+          } else {
+            visibleReports.forEach(r => selectedReportIds.delete(r.id));
+          }
+          saveStoredSelection();
+          renderTable();
+        });
+      }
+
+      // Bind Sortable Headers
+      document.querySelectorAll('.table th.sortable').forEach(th => {
+        th.addEventListener('click', () => {
+          const field = th.getAttribute('data-sort');
+          if (field) handleSortClick(field);
+        });
       });
-    }
-    if (submitAssignBtn) {
-      submitAssignBtn.addEventListener('click', submitAssignModal);
+
+      // Close action dropdowns on outside click
+      document.addEventListener('click', (e) => {
+        if (!e.target.closest('.action-menu-container')) {
+          document.querySelectorAll('.action-menu-dropdown.active').forEach(m => {
+            m.classList.remove('active');
+          });
+        }
+      });
+
+      // Assign Modal Close buttons
+      const closeAssignBtn = document.getElementById('closeAssignModalBtn');
+      const cancelAssignBtn = document.getElementById('cancelAssignModalBtn');
+      const submitAssignBtn = document.getElementById('submitAssignModalBtn');
+
+      if (closeAssignBtn) {
+        closeAssignBtn.addEventListener('click', () => {
+          document.getElementById('assignModalBackdrop').classList.remove('active');
+        });
+      }
+      if (cancelAssignBtn) {
+        cancelAssignBtn.addEventListener('click', () => {
+          document.getElementById('assignModalBackdrop').classList.remove('active');
+        });
+      }
+      if (submitAssignBtn) {
+        submitAssignBtn.addEventListener('click', submitAssignModal);
+      }
     }
 
     // Initial Filter & Render

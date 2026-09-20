@@ -238,3 +238,132 @@
     grid-template-columns: 1fr !important;
   }
 }
+
+.org-team-code-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  background-color: var(--c-surface-subtle);
+  border: 1px solid var(--c-border-medium);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--c-primary);
+}
+
+.org-email-link {
+  color: var(--c-primary);
+  text-decoration: none;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.org-email-link:hover {
+  text-decoration: underline;
+}
+
+/* ==========================================================================
+   3. TEAM MEMBERS ROSTER SECTION
+   ========================================================================== */
+.org-members-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  background-color: var(--c-surface-subtle);
+  border: 1px solid var(--c-border-light);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+}
+
+.org-members-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--c-text-secondary);
+}
+
+.org-members-chips {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.org-member-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: var(--radius-full);
+  background-color: var(--c-white);
+  border: 1px solid var(--c-border-medium);
+  color: var(--c-text-primary);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.org-member-chip i {
+  color: var(--c-primary);
+  width: 12px;
+  height: 12px;
+}
+
+.member-input-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.member-input-num {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--c-text-secondary);
+  font-family: var(--font-mono);
+  width: 22px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.member-input-field {
+  flex: 1;
+  padding: 7px 10px;
+  border: 1px solid var(--c-border-medium);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  background-color: var(--c-white);
+  color: var(--c-text-primary);
+}
+
+.member-input-field:focus {
+  border-color: var(--c-primary);
+  outline: none;
+}
+
+.btn-remove-member-row {
+  padding: 5px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--c-text-secondary);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--duration-fast) var(--ease-kinetic);
+}
+
+.btn-remove-member-row:hover {
+  background-color: #fee2e2;
+  color: #b91c1c;
+  border-color: #fca5a5;
+}
+

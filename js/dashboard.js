@@ -73,6 +73,48 @@
     animateCountUp(document.getElementById('kpiValVerified'), verified);
     animateCountUp(document.getElementById('kpiValResolved'), resolved);
     animateCountUp(document.getElementById('kpiValRate'), resolutionRate, 800, true);
+
+    // Compute trend dynamically: last 30 days vs previous 30 days
+    const trendEl = document.getElementById('kpiTrendTotal');
+    const trendTxt = document.getElementById('kpiTrendTotalText');
+    if (trendEl && trendTxt) {
+      const now = Date.now();
+      const ms30d = 30 * 24 * 60 * 60 * 1000;
+      const t30 = now - ms30d;
+      const t60 = now - (2 * ms30d);
+
+      const curr30 = reports.filter(r => {
+        const t = new Date(r.reportDate).getTime();
+        return t >= t30 && t <= now;
+      }).length;
+
+      const prev30 = reports.filter(r => {
+        const t = new Date(r.reportDate).getTime();
+        return t >= t60 && t < t30;
+      }).length;
+
+      if (prev30 > 0) {
+        const pct = Math.round(((curr30 - prev30) / prev30) * 100);
+        trendEl.style.display = 'inline-flex';
+        if (pct > 0) {
+          trendEl.className = 'kpi-trend trend-rising';
+          trendTxt.textContent = `↑ ${pct}% vs prior 30d`;
+        } else if (pct < 0) {
+          trendEl.className = 'kpi-trend trend-falling';
+          trendTxt.textContent = `↓ ${Math.abs(pct)}% vs prior 30d`;
+        } else {
+          trendEl.className = 'kpi-trend trend-falling';
+          trendTxt.textContent = `0% vs prior 30d`;
+        }
+      } else {
+        trendEl.style.display = 'none';
+      }
+    }
+
+    const trendRateEl = document.getElementById('kpiTrendRate');
+    if (trendRateEl) {
+      trendRateEl.style.display = 'none';
+    }
   }
 
   /**
@@ -87,7 +129,7 @@
     const catLabels = Object.keys(catCounts);
     const catData = Object.values(catCounts);
 
-    // 2. Timeline Breakdown (Group by Month Jun - Sep 2026)
+    // 2. Timeline Breakdown (Group by Month)
     const monthBuckets = { 'Jun 2026': 0, 'Jul 2026': 0, 'Aug 2026': 0, 'Sep 2026': 0 };
     reports.forEach(r => {
       const d = new Date(r.reportDate);
@@ -99,9 +141,10 @@
     });
 
     // 3. Severity Breakdown
-    const sevCounts = { High: 0, Medium: 0, Low: 0 };
+    const sevCounts = { High: 0, Medium: 0, Low: 0, Unassessed: 0 };
     reports.forEach(r => {
       if (sevCounts[r.severity] !== undefined) sevCounts[r.severity]++;
+      else sevCounts.Unassessed = (sevCounts.Unassessed || 0) + 1;
     });
 
     // 4. Status Breakdown
@@ -222,21 +265,29 @@
 
     // --- Chart 3: Severity Distribution (Doughnut) ---
     const ctxSeverity = document.getElementById('chartSeverity').getContext('2d');
+    const sevLabels = ['High Severity', 'Medium Severity', 'Low Severity'];
+    const sevData = [sevCounts.High, sevCounts.Medium, sevCounts.Low];
+    const sevColors = ['#315C3A', '#8FBC8F', '#DDEFE0'];
+
+    if (sevCounts.Unassessed > 0) {
+      sevLabels.push('Unassessed');
+      sevData.push(sevCounts.Unassessed);
+      sevColors.push('#C5E3CA');
+    }
+
     if (severityChartInstance) {
-      severityChartInstance.data.datasets[0].data = [sevCounts.High, sevCounts.Medium, sevCounts.Low];
+      severityChartInstance.data.labels = sevLabels;
+      severityChartInstance.data.datasets[0].data = sevData;
+      severityChartInstance.data.datasets[0].backgroundColor = sevColors;
       severityChartInstance.update();
     } else {
       severityChartInstance = new Chart(ctxSeverity, {
         type: 'doughnut',
         data: {
-          labels: ['High Severity', 'Medium Severity', 'Low Severity'],
+          labels: sevLabels,
           datasets: [{
-            data: [sevCounts.High, sevCounts.Medium, sevCounts.Low],
-            backgroundColor: [
-              '#315C3A', // High
-              '#8FBC8F', // Medium
-              '#DDEFE0'  // Low
-            ],
+            data: sevData,
+            backgroundColor: sevColors,
             borderColor: '#FFFFFF',
             borderWidth: 2,
             hoverOffset: 4
@@ -262,7 +313,7 @@
       });
     }
 
-    // --- Chart 4: Status Distribution (Horizontal Bar / Doughnut) ---
+    // --- Chart 4: Status Distribution (Horizontal Bar) ---
     const ctxStatus = document.getElementById('chartStatus').getContext('2d');
     if (statusChartInstance) {
       statusChartInstance.data.labels = Object.keys(statusCounts);
@@ -312,7 +363,7 @@
   }
 
   /**
-   * Render Recent Reports Table (Latest 8-10 items)
+   * Render Recent Reports Table (Latest items)
    */
   function renderRecentReports(reports) {
     const tbody = document.getElementById('recentReportsBody');
@@ -332,19 +383,20 @@
     const latest = reports.slice(0, 10);
 
     tbody.innerHTML = latest.map(r => {
-      // Green intensity dot based on severity
       const dotIntensityClass = r.severity === 'High' ? 'intensity-high'
-        : r.severity === 'Medium' ? 'intensity-medium' : 'intensity-low';
+        : r.severity === 'Medium' ? 'intensity-medium'
+        : r.severity === 'Low' ? 'intensity-low' : 'intensity-unassessed';
 
-      // Clean date formatting
       const dateFormatted = new Date(r.reportDate).toLocaleDateString('en-US', {
         month: 'short',
         day: 'numeric',
         year: 'numeric'
       });
 
-      // Status class
       const statusKey = r.status.toLowerCase().replace(/\s+/g, '');
+      const confDisplay = (r.confidence !== null && r.confidence !== undefined)
+        ? `${Math.round(r.confidence * 100)}%`
+        : '—';
 
       return `
         <tr>
@@ -366,7 +418,7 @@
             </div>
           </td>
           <td>
-            <span class="cell-compact" style="font-weight:600;">${Math.round(r.confidence * 100)}%</span>
+            <span class="cell-compact" style="font-weight:600;">${confDisplay}</span>
           </td>
           <td>
             <span class="badge badge-status-${statusKey}">

@@ -37,10 +37,7 @@
           <div>
             <div style="display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap;">
               <h1 class="page-title">Environmental Map</h1>
-              <span class="demo-data-pill" style="margin-bottom: 0;">
-                <span class="dot"></span>
-                <span>● DEMO DATA</span>
-              </span>
+              <div id="livePill" class="live-pill">● Live</div>
             </div>
             <p class="page-subtitle">Spatial distribution of AI-detected suspected environmental anomalies, regional concentration buffers, and multi-agency field dispatches.</p>
           </div>
@@ -64,7 +61,7 @@
             </div>
             <div class="map-stat-content">
               <span class="map-stat-label">Plotted Incidents</span>
-              <span class="map-stat-value" id="statTotalPlotted">50</span>
+              <span class="map-stat-value" id="statTotalPlotted">0</span>
             </div>
           </div>
 
@@ -84,7 +81,7 @@
             </div>
             <div class="map-stat-content">
               <span class="map-stat-label">Active Hotspot Zones</span>
-              <span class="map-stat-value" id="statActiveHotspots">8</span>
+              <span class="map-stat-value" id="statActiveHotspots">0</span>
             </div>
           </div>
 
@@ -105,7 +102,7 @@
           <div class="category-chips-scroll" id="categoryChipsContainer">
             <button type="button" class="chip-btn active" data-category="All">
               <span>All Categories</span>
-              <span class="chip-badge" id="chipCountAll">50</span>
+              <span class="chip-badge" id="chipCountAll">0</span>
             </button>
             <button type="button" class="chip-btn" data-category="Waste">
               <span>Waste &amp; Dumping</span>
@@ -145,6 +142,7 @@
                 <option value="High">High Severity</option>
                 <option value="Medium">Medium Severity</option>
                 <option value="Low">Low Severity</option>
+                <option value="Unassessed">Unassessed</option>
               </select>
 
               <select id="mapFilterStatus" class="map-select" aria-label="Filter by Status">
@@ -234,9 +232,13 @@
                 <span class="legend-circle circle-low"></span>
                 <span><strong>Low</strong> — Isolated Observation</span>
               </div>
+              <div class="legend-item">
+                <span class="legend-circle circle-unassessed"></span>
+                <span><strong>Unassessed</strong> — Triage Pending</span>
+              </div>
               <div class="legend-item" style="margin-top: 2px;">
                 <span class="legend-circle circle-hotspot"></span>
-                <span><strong>Hotspot</strong> — Multi-Report Zone</span>
+                <span><strong>Hotspot</strong> — Multi-Report Zone (colour = risk)</span>
               </div>
             </div>
           </div>
@@ -251,7 +253,7 @@
                 <i data-lucide="flame" style="width: 16px; height: 16px; color: var(--c-primary);"></i>
                 <span>Top Regional Hotspot Clusters</span>
               </h3>
-              <a href="hotspots.html" class="cell-compact" style="color: var(--c-primary); font-weight: 700;">View All 8 &rarr;</a>
+              <a href="hotspots.html" class="cell-compact" style="color: var(--c-primary); font-weight: 700;">View All Hotspots &rarr;</a>
             </div>
             <div id="topHotspotsList" style="display: flex; flex-direction: column; gap: var(--space-3); margin-top: var(--space-3);">
               <!-- Rendered dynamically by map.js -->
@@ -295,9 +297,9 @@
   <div id="toastContainer" class="toast-container" aria-live="polite"></div>
 
   <!-- Core Scripts -->
+  <script src="js/config.js"></script>
   <script src="js/data.js"></script>
   <script src="js/app.js"></script>
-  <script src="config.js"></script>
   <script src="js/map.js"></script>
 </body>
 </html>

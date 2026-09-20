@@ -15,40 +15,33 @@
   'use strict';
 
   // Navigation Items per specifications:
-  // Dashboard, Reports, Environmental Map, Analytics, Hotspots, Organizations, Proposals, Impact, Divider, Settings
+  // Dashboard, Reports, Environmental Map, Analytics, Hotspots, Teams & Specialists, Proposals, Impact, Divider, Settings
   const NAV_ITEMS = [
     { label: 'Dashboard', href: 'dashboard.html', icon: 'layout-dashboard' },
     { label: 'Reports', href: 'reports.html', icon: 'file-search' },
     { label: 'Environmental Map', href: 'map.html', icon: 'map' },
     { label: 'Analytics', href: 'analytics.html', icon: 'bar-chart-3' },
     { label: 'Hotspots', href: 'hotspots.html', icon: 'map-pin' },
-    { label: 'Organizations', href: 'organizations.html', icon: 'users' },
+    { label: 'Teams & Specialists', href: 'organizations.html', icon: 'users' },
     { label: 'Proposals', href: 'proposal.html', icon: 'file-text' },
     { label: 'Impact', href: 'impact.html', icon: 'shield-check' }
   ];
 
-  // Mock Notification Feed (Strictly using responsible AI framing)
+  // Notification Feed (Strictly using responsible AI framing)
   const NOTIFICATIONS = [
     {
       id: 'NOTIF-1',
-      title: 'AI-detected suspected issue in Sector 63',
-      meta: 'High-opacity plume reported • 12m ago',
+      title: 'AI-detected suspected issue in Greater Noida',
+      meta: 'Plume reported',
       unread: true,
-      link: 'report-details.html?id=REP-2026-001'
+      link: 'reports.html'
     },
     {
       id: 'NOTIF-2',
-      title: 'Surajpur Wetland Debris Triage Required',
-      meta: '400 sq.m encroachment flagged • 1h ago',
+      title: 'Tree cutting reported',
+      meta: 'Field inspection pending',
       unread: true,
-      link: 'report-details.html?id=REP-2026-004'
-    },
-    {
-      id: 'NOTIF-3',
-      title: 'Dr. Radhika Sen logged water sample report',
-      meta: 'Mangolpuri drain investigation • 3h ago',
-      unread: false,
-      link: 'report-details.html?id=REP-2026-008'
+      link: 'reports.html'
     }
   ];
 
@@ -76,7 +69,7 @@
           <div class="brand-badge">EF</div>
           <div class="brand-meta">
             <span class="brand-title">EARTH FORWARD</span>
-            <span class="brand-sub">NGO Intelligence</span>
+            <span class="brand-sub">Platform Intelligence</span>
           </div>
         </a>
         <button id="sidebarCloseBtn" class="sidebar-close-btn" aria-label="Close Navigation">
@@ -85,7 +78,7 @@
       </div>
 
       <nav class="sidebar-nav">
-        <span class="nav-label">Intelligence & Action</span>
+        <span class="nav-label">Intelligence &amp; Action</span>
         ${navLinksHtml}
         
         <div class="nav-divider"></div>
@@ -99,9 +92,9 @@
       <div class="sidebar-footer">
         <div>
           <strong style="color:var(--c-text-primary);">NCR Sector Ops</strong>
-          <div style="font-size:11px; margin-top:2px;">Person 3: NGO Platform</div>
+          <div style="font-size:11px; margin-top:2px;">Platform Officer</div>
         </div>
-        <a href="index.html" title="Sign Out" style="color:var(--c-text-secondary); display:flex; align-items:center;">
+        <a href="index.html" id="sidebarSignOutBtn" title="Sign Out" style="color:var(--c-text-secondary); display:flex; align-items:center;">
           <i data-lucide="log-out" style="width:16px; height:16px;"></i>
         </a>
       </div>
@@ -135,11 +128,8 @@
         <div>
           <div style="display:flex; align-items:center; gap:8px;">
             <span class="topbar-platform-title">Earth Forward</span>
-            <span class="demo-data-pill" style="margin:0; padding:2px 7px; font-size:10px;">
-              <span class="dot" style="width:5px; height:5px;"></span> DEMO DATA
-            </span>
           </div>
-          <span class="topbar-platform-sub">NGO Environmental Intelligence &amp; Action</span>
+          <span class="topbar-platform-sub">Environmental Intelligence &amp; Action</span>
         </div>
       </div>
 
@@ -175,10 +165,10 @@
           </div>
         </div>
 
-        <!-- NGO Profile Chip -->
+        <!-- Officer Profile Chip -->
         <a href="#profile" id="profileChipBtn" class="profile-chip">
-          <div class="profile-avatar">NGO</div>
-          <span class="profile-name">NGO Officer</span>
+          <div class="profile-avatar">PO</div>
+          <span class="profile-name" id="topbarUserName">Platform Officer</span>
         </a>
       </div>
     `;
@@ -196,26 +186,18 @@
           </div>
           <div class="modal-body">
             <div class="ai-notice-banner" style="margin-bottom:var(--space-4);">
-              <span class="ai-notice-tag">Demo Mode</span>
-              <span>Local storage overlay active. All mutations persist in your browser session.</span>
+              <span class="ai-notice-tag">Active</span>
+              <span>Data synchronized with Supabase.</span>
             </div>
 
             <div class="form-group">
-              <label class="form-label">Active NGO Jurisdiction</label>
-              <input type="text" class="form-control" value="NCR Regional Coalition (Delhi, Noida, Ghaziabad)" readonly>
+              <label class="form-label">Active Jurisdiction</label>
+              <input type="text" class="form-control" value="NCR Regional Sector (Delhi, Noida, Greater Noida, Ghaziabad)" readonly>
             </div>
 
             <div class="form-group">
               <label class="form-label">Responsible AI Threshold</label>
               <input type="text" class="form-control" value="0.70 Minimum Confidence for Automated Triage" readonly>
-            </div>
-
-            <div class="form-group" style="margin-top:var(--space-4);">
-              <label class="form-label">Reset Local Demo Storage</label>
-              <p style="font-size:var(--text-xs); color:var(--c-text-secondary); margin-bottom:var(--space-2);">Restores original 50 citizen reports and resets any field notes or status changes.</p>
-              <button id="modalResetDataBtn" class="btn btn-secondary btn-sm">
-                <i data-lucide="rotate-ccw"></i> Reset to Base Data
-              </button>
             </div>
           </div>
           <div class="modal-footer">
@@ -228,8 +210,6 @@
 
   // Bind interactions
   function initInteractions() {
-    const currentFile = getCurrentFilename();
-
     // Mobile Drawer Elements
     const mobileMenuBtn = document.getElementById('mobileMenuBtn');
     const sidebarCloseBtn = document.getElementById('sidebarCloseBtn');
@@ -250,6 +230,43 @@
       if (sidebarCloseBtn) sidebarCloseBtn.addEventListener('click', closeDrawer);
       sidebarOverlay.addEventListener('click', closeDrawer);
     }
+
+    // Sign Out Handler
+    const sidebarSignOutBtn = document.getElementById('sidebarSignOutBtn');
+    if (sidebarSignOutBtn) {
+      sidebarSignOutBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        try {
+          if (window.EarthData && typeof window.EarthData.clearLocalSession === 'function') {
+            window.EarthData.clearLocalSession();
+          } else {
+            if (typeof sessionStorage !== 'undefined') sessionStorage.removeItem('earth_forward_local_session');
+            if (typeof localStorage !== 'undefined') localStorage.removeItem('earth_forward_local_session');
+          }
+        } catch (err) {
+          console.warn('[EarthApp] Sign out error:', err);
+        }
+        window.location.href = 'index.html';
+      });
+    }
+
+    // Populate user profile info if local session exists
+    try {
+      const localSession = (window.EarthData && typeof window.EarthData.getLocalSession === 'function')
+        ? window.EarthData.getLocalSession()
+        : JSON.parse((typeof sessionStorage !== 'undefined' && sessionStorage.getItem('earth_forward_local_session')) ||
+                     (typeof localStorage !== 'undefined' && localStorage.getItem('earth_forward_local_session')) || 'null');
+      if (localSession && localSession.email) {
+        const nameEl = document.getElementById('topbarUserName');
+        if (nameEl) {
+          nameEl.textContent = localSession.email.split('@')[0];
+        }
+        const roleEl = document.getElementById('topbarUserRole');
+        if (roleEl && localSession.role) {
+          roleEl.textContent = localSession.role;
+        }
+      }
+    } catch (e) {}
 
     // Notifications Dropdown
     const notifBellBtn = document.getElementById('notifBellBtn');
@@ -287,8 +304,12 @@
 
         debounceTimer = setTimeout(async () => {
           if (window.EarthData && typeof window.EarthData.getReports === 'function') {
-            const results = await window.EarthData.getReports({ search: query });
-            renderSearchResults(results.slice(0, 6), query);
+            try {
+              const results = await window.EarthData.getReports({ search: query });
+              renderSearchResults(results.slice(0, 6), query);
+            } catch (err) {
+              console.warn('Search query error:', err);
+            }
           }
         }, 150);
       });
@@ -332,12 +353,10 @@
     }
 
     // Settings Modal
-    const settingsNavLink = document.getElementById('settingsNavLink');
     const profileChipBtn = document.getElementById('profileChipBtn');
     const settingsModalBackdrop = document.getElementById('settingsModalBackdrop');
     const closeSettingsModal = document.getElementById('closeSettingsModal');
     const dismissSettingsModal = document.getElementById('dismissSettingsModal');
-    const modalResetDataBtn = document.getElementById('modalResetDataBtn');
 
     function openSettings(e) {
       if (e) e.preventDefault();
@@ -348,21 +367,9 @@
       if (settingsModalBackdrop) settingsModalBackdrop.classList.remove('active');
     }
 
-    if (settingsNavLink) settingsNavLink.addEventListener('click', openSettings);
     if (profileChipBtn) profileChipBtn.addEventListener('click', openSettings);
     if (closeSettingsModal) closeSettingsModal.addEventListener('click', closeSettings);
     if (dismissSettingsModal) dismissSettingsModal.addEventListener('click', closeSettings);
-
-    if (modalResetDataBtn) {
-      modalResetDataBtn.addEventListener('click', () => {
-        const confirmed = confirm('Confirm Demo Data Reset: This will restore the base 50 citizen reports and permanently clear custom field assignments, status transitions, and NGO notes. Proceed?');
-        if (confirmed && window.EarthData && typeof window.EarthData.resetDemoData === 'function') {
-          window.EarthData.resetDemoData();
-          alert('Demo data successfully reseeded to original base state.');
-          location.reload();
-        }
-      });
-    }
 
     // Re-instantiate icons
     if (window.lucide && typeof window.lucide.createIcons === 'function') {
@@ -379,11 +386,27 @@
   }
 
   // Shell Injection Entry Point
-  function initAppShell() {
+  async function initAppShell() {
     const currentFile = getCurrentFilename();
 
     // Do not inject shell on index.html (the login screen)
     if (currentFile === 'index.html' || document.body.classList.contains('login-page')) {
+      return;
+    }
+
+    // Auth Guard: Every page except index.html requires an authenticated local session
+    try {
+      const session = (window.EarthData && typeof window.EarthData.getLocalSession === 'function')
+        ? window.EarthData.getLocalSession()
+        : JSON.parse((typeof sessionStorage !== 'undefined' && sessionStorage.getItem('earth_forward_local_session')) ||
+                     (typeof localStorage !== 'undefined' && localStorage.getItem('earth_forward_local_session')) || 'null');
+      if (!session || !session.authenticated) {
+        window.location.href = 'index.html';
+        return;
+      }
+    } catch (err) {
+      console.warn('[EarthApp] Auth guard check failed, redirecting to index.html:', err);
+      window.location.href = 'index.html';
       return;
     }
 
@@ -442,3 +465,4 @@
     getCurrentFilename
   };
 })();
+

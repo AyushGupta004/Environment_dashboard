@@ -327,21 +327,31 @@
 }
 
 .legend-circle.circle-high {
-  background-color: var(--c-primary);
-  box-shadow: 0 0 0 2px rgba(49, 92, 58, 0.2);
+  background-color: #EF4444;
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
 }
 
 .legend-circle.circle-medium {
-  background-color: var(--c-accent-sage);
+  background-color: #F59E0B;
 }
 
 .legend-circle.circle-low {
-  background-color: var(--c-border-medium);
+  background-color: #3B82F6;
+}
+
+.legend-circle.circle-unassessed {
+  background-color: #F0F7F1;
+  border: 1.5px dashed #657267;
 }
 
 .legend-circle.circle-hotspot {
   background-color: transparent;
-  border: 1.5px dashed var(--c-primary);
+  border: 1.5px dashed #657267;
+}
+
+.intensity-dot.dot-unassessed {
+  background-color: transparent;
+  border: 1.5px solid var(--c-text-secondary);
 }
 
 /* Map Mode / Layer Toggles */
@@ -552,4 +562,41 @@
 
 .hotspot-pulse-ring {
   animation: clusterPulse 2.5s infinite ease-in-out;
+}
+
+/* Severity-based MarkerCluster styles */
+.marker-cluster-high {
+  background-color: rgba(239, 68, 68, 0.35) !important;
+  border-radius: 50% !important;
+}
+.marker-cluster-high div {
+  background-color: #EF4444 !important;
+  color: #ffffff !important;
+}
+
+.marker-cluster-medium-sev {
+  background-color: rgba(245, 158, 11, 0.35) !important;
+  border-radius: 50% !important;
+}
+.marker-cluster-medium-sev div {
+  background-color: #F59E0B !important;
+  color: #ffffff !important;
+}
+
+.marker-cluster-low-sev {
+  background-color: rgba(59, 130, 246, 0.35) !important;
+  border-radius: 50% !important;
+}
+.marker-cluster-low-sev div {
+  background-color: #3B82F6 !important;
+  color: #ffffff !important;
+}
+
+.marker-cluster-unassessed {
+  background-color: rgba(101, 114, 103, 0.35) !important;
+  border-radius: 50% !important;
+}
+.marker-cluster-unassessed div {
+  background-color: #657267 !important;
+  color: #ffffff !important;
 }

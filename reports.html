@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Environmental Reports — EARTH FORWARD</title>
-  <meta name="description" content="NGO Environmental Intelligence & Action Platform — Verification Triage Matrix">
+  <meta name="description" content="Environmental Intelligence &amp; Action Platform — Verification Triage Matrix">
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/reports.css">
   <script src="https://unpkg.com/lucide@latest"></script>
@@ -16,7 +16,7 @@
         <!-- Ethical AI Protocol Notice -->
         <div class="ai-notice-banner">
           <span class="ai-notice-tag">Ethical AI Protocol</span>
-          <span>Every item is an <strong>AI-detected suspected issue</strong>. NGO field officers conduct ground checks before advancing status to 'Verified'.</span>
+          <span>Every item is an <strong>AI-detected suspected issue</strong>. Field specialists conduct ground checks before advancing status to 'Verified'.</span>
         </div>
 
         <!-- Page Header -->
@@ -24,10 +24,6 @@
           <div>
             <div style="display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap;">
               <h1 class="page-title">Environmental Reports</h1>
-              <span class="demo-data-pill" style="margin-bottom: 0;">
-                <span class="dot"></span>
-                <span>● DEMO DATA</span>
-              </span>
             </div>
             <p class="page-subtitle">Full triage matrix of citizen-submitted observations, remote sensing confidence scores, and multi-agency field dispatch.</p>
           </div>
@@ -66,7 +62,7 @@
                 type="text" 
                 id="reportsSearchInput" 
                 class="reports-search-input" 
-                placeholder="Search by report ID (REP-2026-...), category, area, or landmark..."
+                placeholder="Search by report ID, category, area, or landmark..."
                 autocomplete="off"
               />
             </div>
@@ -99,6 +95,7 @@
               <option value="High">High Severity</option>
               <option value="Medium">Medium Severity</option>
               <option value="Low">Low Severity</option>
+              <option value="Unassessed">Unassessed</option>
             </select>
 
             <!-- Status -->
@@ -193,7 +190,7 @@
 
         <!-- Pagination Controls -->
         <div id="reportsPaginationBar" class="reports-pagination-bar">
-          <div id="paginationInfo">Showing 1–10 of 50 reports</div>
+          <div id="paginationInfo">Loading…</div>
 
           <div class="pagination-controls">
             <div class="page-size-selector">
@@ -210,7 +207,7 @@
               <span>Previous</span>
             </button>
 
-            <span id="paginationCurrentPage" class="cell-compact" style="font-weight:600; padding:0 var(--space-2);">Page 1 of 5</span>
+            <span id="paginationCurrentPage" class="cell-compact" style="font-weight:600; padding:0 var(--space-2);">Loading…</span>
 
             <button id="btnNextPage" class="btn btn-outline btn-sm">
               <span>Next</span>
@@ -222,11 +219,11 @@
     </main>
   </div>
 
-  <!-- Quick Assign Officer Modal -->
+  <!-- Quick Assign Team Modal -->
   <div id="assignModalBackdrop" class="modal-backdrop">
     <div class="modal">
       <div class="modal-header">
-        <div class="modal-title" id="assignModalReportTitle">Assign Field Officer</div>
+        <div class="modal-title" id="assignModalReportTitle">Select Team</div>
         <button id="closeAssignModalBtn" class="btn btn-ghost btn-sm" aria-label="Close modal">
           <i data-lucide="x"></i>
         </button>
@@ -235,8 +232,11 @@
         <input type="hidden" id="assignReportId" value="">
 
         <div class="form-group">
-          <label class="form-label" for="assignWorkerSelect">Assigned Field Verification Specialist</label>
+          <label class="form-label" for="assignWorkerSelect">Select Team</label>
           <select id="assignWorkerSelect" class="form-select"></select>
+          <div id="noTeamsNotice" style="display:none; font-size:11px; margin-top:6px;">
+            <a href="organizations.html" style="color:var(--c-primary); font-weight:600;">Create a team &rarr;</a>
+          </div>
         </div>
 
         <div class="form-group">
@@ -250,7 +250,7 @@
 
         <div class="form-group">
           <label class="form-label" for="assignDueDate">Target Inspection Due Date</label>
-          <input type="date" id="assignDueDate" class="form-control" value="2026-09-30">
+          <input type="date" id="assignDueDate" class="form-control">
         </div>
       </div>
       <div class="modal-footer">
@@ -260,6 +260,7 @@
     </div>
   </div>
 
+  <script src="js/config.js"></script>
   <script src="js/data.js"></script>
   <script src="js/app.js"></script>
   <script src="js/reports.js"></script>

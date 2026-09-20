@@ -3,79 +3,142 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sign In — EARTH FORWARD NGO Intelligence</title>
-  <meta name="description" content="NGO Environmental Intelligence & Action Platform — Sign In">
+  <title>Sign In — EARTH FORWARD</title>
+  <meta name="description" content="Environmental Intelligence &amp; Action Platform — Sign In">
   <link rel="stylesheet" href="css/style.css">
   <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body class="login-page">
   <div class="login-screen">
-    <!-- Demo Data Indicator -->
-    <div class="demo-data-pill">
-      <span>● DEMO DATA</span>
-    </div>
-
     <div class="login-card">
       <div style="display:flex; align-items:center; gap:var(--space-3); margin-bottom:var(--space-6);">
         <div class="brand-badge">EF</div>
         <div>
           <div class="brand-title">EARTH FORWARD</div>
-          <div class="brand-sub">NGO Environmental Intelligence</div>
+          <div class="brand-sub">Environmental Intelligence Platform</div>
         </div>
       </div>
 
       <div style="margin-bottom:var(--space-6);">
-        <h1 style="font-size:var(--text-xl); font-weight:800; margin-bottom:var(--space-1);">NGO Officer Authentication</h1>
+        <h1 style="font-size:var(--text-xl); font-weight:800; margin-bottom:var(--space-1);">Specialist Authentication</h1>
         <p style="font-size:var(--text-xs); color:var(--c-text-secondary);">Access verification triage, spatial cluster mapping, and municipal remediation dispatch.</p>
       </div>
 
       <form id="loginForm" onsubmit="handleLogin(event)">
         <div class="form-group">
-          <label class="form-label" for="loginEmail">Officer Email / Organization ID</label>
+          <label class="form-label" for="loginEmail">Officer Email</label>
           <input 
             type="email" 
             id="loginEmail" 
             class="form-control" 
-            placeholder="officer@ncrcleanair.org" 
-            value="coordinator@yamuna-eco.org" 
+            placeholder="officer@domain.org" 
             required
           />
         </div>
 
         <div class="form-group" style="margin-bottom:var(--space-5);">
-          <label class="form-label" for="loginPassword">Access Token / Password</label>
+          <label class="form-label" for="loginPassword">Password</label>
           <input 
             type="password" 
             id="loginPassword" 
             class="form-control" 
-            value="••••••••••••" 
-            placeholder="Enter secure credentials" 
+            placeholder="Enter secure password" 
             required
           />
-          <span class="form-helper">Mock Auth Mode: Any credentials will log in directly.</span>
+          <span class="form-helper">Enter your credentials to continue.</span>
         </div>
 
-        <button type="submit" class="btn btn-primary" style="width:100%; padding:0.7rem;">
+        <div id="loginErrorMsg" class="login-error-msg" style="display:none; color:#b71c1c; background:#ffebee; border:1px solid #ffcdd2; padding:10px 12px; border-radius:6px; font-size:12px; margin-bottom:var(--space-4); line-height:1.4;"></div>
+
+        <button type="submit" id="loginSubmitBtn" class="btn btn-primary" style="width:100%; padding:0.7rem;">
           <span>Sign In to Intelligence Suite</span>
           <i data-lucide="arrow-right" style="width:16px; height:16px;"></i>
         </button>
       </form>
 
       <div style="margin-top:var(--space-6); padding-top:var(--space-4); border-top:1px solid var(--c-border-light); font-size:11px; color:var(--c-text-secondary); line-height:1.5;">
-        <strong>Responsible AI Disclosure:</strong> This platform processes citizen submissions classified as <em>AI-detected suspected issues</em>. NGO ground verification is required before initiating regulatory citations.
+        <strong>Responsible AI Disclosure:</strong> This platform processes citizen submissions classified as <em>AI-detected suspected issues</em>. Physical ground verification is required before initiating regulatory citations.
       </div>
     </div>
   </div>
 
+  <script src="js/config.js"></script>
+  <script src="js/local-auth.js"></script>
   <script src="js/data.js"></script>
   <script>
     if (window.lucide) lucide.createIcons();
 
-    function handleLogin(e) {
+    // Check if local session already exists
+    document.addEventListener('DOMContentLoaded', () => {
+      try {
+        const raw = (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('earth_forward_local_session')) ||
+                    (typeof localStorage !== 'undefined' && localStorage.getItem('earth_forward_local_session'));
+        if (raw) {
+          const session = JSON.parse(raw);
+          if (session && session.authenticated) {
+            window.location.href = 'dashboard.html';
+            return;
+          }
+        }
+      } catch (e) {}
+    });
+
+    async function handleLogin(e) {
       e.preventDefault();
-      // Mock auth — any input immediately directs to dashboard.html
-      window.location.href = 'dashboard.html';
+      const emailInput = document.getElementById('loginEmail');
+      const passwordInput = document.getElementById('loginPassword');
+      const submitBtn = document.getElementById('loginSubmitBtn');
+      const errBox = document.getElementById('loginErrorMsg');
+
+      const email = emailInput ? emailInput.value.trim() : '';
+      const password = passwordInput ? passwordInput.value : '';
+
+      if (!email || !password) return;
+
+      if (errBox) {
+        errBox.style.display = 'none';
+        errBox.textContent = '';
+      }
+
+      // Check against local-auth config
+      const config = window.LOCAL_AUTH_CONFIG || {};
+      const expectedEmail = config.email || 'admin@earthforward.local';
+      const expectedPassword = config.password || 'EarthForward@123';
+
+      if (email.toLowerCase() === expectedEmail.toLowerCase() && password === expectedPassword) {
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.innerHTML = '<span>Signing in...</span>';
+        }
+
+        const localSession = {
+          authenticated: true,
+          email: expectedEmail,
+          role: 'Platform Officer'
+        };
+
+        try {
+          if (typeof sessionStorage !== 'undefined') {
+            sessionStorage.setItem('earth_forward_local_session', JSON.stringify(localSession));
+          }
+          if (typeof localStorage !== 'undefined') {
+            localStorage.setItem('earth_forward_local_session', JSON.stringify(localSession));
+          }
+        } catch (e) {
+          console.warn('Session storage error:', e);
+        }
+
+        window.location.href = 'dashboard.html';
+        return;
+      }
+
+      // Incorrect credentials
+      if (errBox) {
+        errBox.textContent = 'Invalid email or password.';
+        errBox.style.display = 'block';
+      }
     }
   </script>
 </body>
 </html>
+

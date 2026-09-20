@@ -66,12 +66,34 @@
     }
   };
 
+  function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  function getTeamInitials(name) {
+    if (!name) return 'TM';
+    const words = name.trim().split(/\s+/);
+    if (words.length >= 2) {
+      return (words[0][0] + words[1][0]).toUpperCase();
+    }
+    return name.slice(0, 2).toUpperCase();
+  }
+
   /**
-   * Number count-up animation helper (~800ms)
+   * Number count-up animation helper (animates from current value)
    */
-  function animateCountUp(element, target, duration = 800, isPercentage = false, suffix = '') {
+  function animateCountUp(element, target, duration = 600, isPercentage = false, suffix = '') {
     if (!element) return;
-    const start = 0;
+    const currentText = element.textContent.replace(/[^0-9.]/g, '');
+    const start = parseFloat(currentText) || 0;
+    if (start === target) return;
+
     const startTime = performance.now();
     const isFloat = String(target).includes('.');
 
@@ -123,29 +145,25 @@
   function computeAverageResolutionTime(reports) {
     const resolvedReports = reports.filter(r => r.status === 'Resolved');
     if (resolvedReports.length === 0) {
-      return { days: 0, count: 0, text: '0.0 Days' };
+      return { days: 0, count: 0, text: 'Not available' };
     }
 
     let totalDurationMs = 0;
     let count = 0;
 
     resolvedReports.forEach(r => {
-      const history = r.statusHistory || [];
-      const resolvedEntry = history.find(h => h.status === 'Resolved');
-      const reportedEntry = history.find(h => h.status === 'Reported') || history[0];
+      const startMs = r.createdAt ? new Date(r.createdAt).getTime() : new Date(r.reportDate).getTime();
+      const endMs = r.updatedAt ? new Date(r.updatedAt).getTime() : (r.reportDate ? new Date(r.reportDate).getTime() : 0);
 
-      let startMs = reportedEntry ? new Date(reportedEntry.timestamp).getTime() : new Date(r.reportDate).getTime();
-      let endMs = resolvedEntry ? new Date(resolvedEntry.timestamp).getTime() : 0;
-
-      if (endMs && startMs && endMs > startMs) {
+      if (endMs && startMs && endMs >= startMs) {
         totalDurationMs += (endMs - startMs);
-        count++;
-      } else {
-        // Fallback for demo dataset: ~3.4 days average
-        totalDurationMs += (3.4 * 86400000);
         count++;
       }
     });
+
+    if (count === 0) {
+      return { days: 0, count: 0, text: 'Not available' };
+    }
 
     const avgDays = (totalDurationMs / count) / (86400000);
     return {
@@ -236,8 +254,8 @@
       // 3. Render Recent Resolved Incidents Table
       renderResolvedIncidents(reports);
 
-      // 4. Render NGO Coalition Cards
-      renderCoalitionCards(organizations);
+      // 4. Render Teams & Specialists Cards
+      renderCoalitionCards(organizations, reports);
 
       if (window.lucide) {
         window.lucide.createIcons();
@@ -257,15 +275,11 @@
     const underInvestigation = reports.filter(r => 
       r.status === 'Under Review' || r.status === 'Action Initiated' || r.status === 'AI Analyzed'
     ).length;
-    const uniqueLocations = new Set(reports.map(r => r.location || r.city)).size;
-    const ngoPartnersCount = (organizations || []).length;
 
     animateCountUp(document.getElementById('kpiTotalReports'), totalReports, 800);
     animateCountUp(document.getElementById('kpiVerifiedIssues'), verifiedCount, 800);
     animateCountUp(document.getElementById('kpiIssuesResolved'), resolvedCount, 800);
     animateCountUp(document.getElementById('kpiUnderInvestigation'), underInvestigation, 800);
-    animateCountUp(document.getElementById('kpiCommunitiesEngaged'), uniqueLocations, 800);
-    animateCountUp(document.getElementById('kpiNgoPartners'), ngoPartnersCount, 800);
   }
 
   /**
@@ -283,7 +297,14 @@
     // Large Stat Display with animation
     animateCountUp(document.getElementById('statResolutionRate'), resolutionRate, 800, true);
     animateCountUp(document.getElementById('statVerificationRate'), verificationRate, 800, true);
-    animateCountUp(document.getElementById('statAvgResolutionTime'), resTime.days, 800, false, ' Days');
+    const statAvgEl = document.getElementById('statAvgResolutionTime');
+    if (statAvgEl) {
+      if (resTime.count === 0) {
+        statAvgEl.textContent = 'Not available';
+      } else {
+        animateCountUp(statAvgEl, resTime.days, 800, false, ' Days');
+      }
+    }
 
     // Monthly Trend Sparklines
     const trends = computeMonthlyTrends(reports);
@@ -450,7 +471,7 @@
           <div class="cell-compact">${r.city}</div>
         </td>
         <td>
-          <span style="font-weight:600; font-size:11px;">${r.assignedTo || 'Coalition Task Force'}</span>
+          <span style="font-weight:600; font-size:11px;">${r.assignedTo || '—'}</span>
         </td>
         <td>
           <span class="cell-compact">${formatDate(r.reportDate)}</span>
@@ -470,48 +491,111 @@
   }
 
   /**
-   * 4. Render NGO Coalition Partner Contribution Cards
+   * 4. Render Teams & Specialists Network Contribution Cards
    */
-  function renderCoalitionCards(organizations) {
+  function renderCoalitionCards(organizations, allReports = []) {
     const container = document.getElementById('coalitionCardsGrid');
-    if (!container || !organizations) return;
+    if (!container) return;
 
-    container.innerHTML = organizations.map(org => `
-      <article class="coalition-card">
-        <div class="coalition-card-header">
-          <span class="coalition-acronym">${org.acronym}</span>
-          <span style="font-size:11px; color:var(--c-text-secondary);">Est. ${org.establishedYear}</span>
+    if (!organizations || organizations.length === 0) {
+      container.innerHTML = `
+        <div style="padding: var(--space-6); text-align: center; color: var(--c-text-secondary); font-size: var(--text-xs); background: var(--c-surface-subtle); border-radius: var(--radius-md); border: 1px dashed var(--c-border-light);">
+          No teams registered yet.
         </div>
-        <h4 class="coalition-name">${org.name}</h4>
-        <div style="font-size:11px; color:var(--c-text-secondary); line-height:1.4;">
-          <strong>Lead:</strong> ${org.lead}
-        </div>
-        <div class="coalition-metrics-row">
-          <div>
-            <span style="font-size:10px; color:var(--c-text-secondary); text-transform:uppercase;">Verified Actions</span>
-            <div style="font-weight:800; font-family:var(--font-mono); color:var(--c-primary); font-size:13px;">
-              ${org.verifiedActionsCount || 0}
+      `;
+      return;
+    }
+
+    container.innerHTML = organizations.map(t => {
+      const teamReports = (allReports || []).filter(r => String(r.organizationId || r.organization_id) === String(t.id));
+      const assignedCount = teamReports.length;
+      const resolvedCount = teamReports.filter(r => r.status === 'Resolved').length;
+      const resolutionRate = assignedCount > 0 ? `${Math.round((resolvedCount / assignedCount) * 100)}%` : '—';
+      const members = (t.memberCount !== null && t.memberCount !== undefined) ? t.memberCount : (t.member_count !== null && t.member_count !== undefined ? t.member_count : '—');
+      const code = t.teamCode || t.team_code || '—';
+      const emailHtml = t.email ? `<a href="mailto:${escapeHtml(t.email)}" style="color:var(--c-text-secondary); text-decoration:none;">${escapeHtml(t.email)}</a>` : '—';
+      const year = t.created_at || t.createdAt ? new Date(t.created_at || t.createdAt).getFullYear() : '2026';
+
+      return `
+        <article class="coalition-card">
+          <div class="coalition-card-header">
+            <span class="coalition-acronym">${escapeHtml(getTeamInitials(t.name))}</span>
+            <span style="font-size:11px; color:var(--c-text-secondary);">Since ${year}</span>
+          </div>
+          <h4 class="coalition-name">${escapeHtml(t.name)}</h4>
+          <div style="font-size:11px; color:var(--c-text-secondary); line-height:1.4; margin-top:2px;">
+            <strong>Code:</strong> <span style="font-family:var(--font-mono); font-weight:700;">${escapeHtml(code)}</span> &bull; <span>${members !== '—' ? `${members} members` : '—'}</span>
+          </div>
+          <div style="font-size:11px; color:var(--c-text-secondary); margin-top:2px;">
+            <strong>Contact:</strong> ${emailHtml}
+          </div>
+          <div class="coalition-metrics-row" style="margin-top:var(--space-3);">
+            <div>
+              <span style="font-size:10px; color:var(--c-text-secondary); text-transform:uppercase;">Assigned</span>
+              <div style="font-weight:800; font-family:var(--font-mono); color:var(--c-text-primary); font-size:13px;">
+                ${assignedCount}
+              </div>
+            </div>
+            <div style="text-align:center;">
+              <span style="font-size:10px; color:var(--c-text-secondary); text-transform:uppercase;">Resolved</span>
+              <div style="font-weight:800; font-family:var(--font-mono); color:var(--c-primary); font-size:13px;">
+                ${resolvedCount}
+              </div>
+            </div>
+            <div style="text-align:right;">
+              <span style="font-size:10px; color:var(--c-text-secondary); text-transform:uppercase;">Resolution</span>
+              <div style="font-weight:800; font-family:var(--font-mono); color:var(--c-primary); font-size:13px;">
+                ${resolutionRate}
+              </div>
             </div>
           </div>
-          <div style="text-align:right;">
-            <span style="font-size:10px; color:var(--c-text-secondary); text-transform:uppercase;">Field Specialists</span>
-            <div style="font-weight:800; font-family:var(--font-mono); color:var(--c-text-primary); font-size:13px;">
-              ${org.activeFieldAgents || 0}
-            </div>
-          </div>
-        </div>
-        <div style="font-size:10px; color:var(--c-text-secondary); margin-top:2px;">
-          <strong>Jurisdiction:</strong> ${org.jurisdiction ? org.jurisdiction[0] : 'NCR Corridor'}
-        </div>
-      </article>
-    `).join('');
+        </article>
+      `;
+    }).join('');
+  }
+
+  // Realtime Live Subscription
+  function setupRealtimeSubscription() {
+    if (window.EarthData && typeof window.EarthData.subscribeToChanges === 'function') {
+      window.EarthData.subscribeToChanges({
+        tables: ['reports', 'organizations'],
+        onStatus: (status) => {
+          const pill = document.getElementById('livePill');
+          if (pill) {
+            if (status === 'SUBSCRIBED') {
+              pill.classList.remove('polling');
+              pill.textContent = '● Live';
+            } else if (status === 'POLLING') {
+              pill.classList.add('polling');
+              pill.textContent = '● Live (30s)';
+            }
+          }
+        },
+        onChange: async () => {
+          try {
+            const reports = await window.EarthData.getReports();
+            const organizations = await window.EarthData.getOrganizations();
+            renderKpiCards(reports, organizations);
+            renderComputedMetrics(reports);
+            renderResolvedIncidents(reports);
+            renderCoalitionCards(organizations, reports);
+          } catch (err) {
+            console.warn('Impact live reload error:', err);
+          }
+        }
+      });
+    }
   }
 
   // Self-execute on DOM Ready
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initImpact);
+    document.addEventListener('DOMContentLoaded', () => {
+      initImpact();
+      setupRealtimeSubscription();
+    });
   } else {
     initImpact();
+    setupRealtimeSubscription();
   }
 
 })();

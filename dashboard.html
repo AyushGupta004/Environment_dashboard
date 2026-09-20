@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Environmental Intelligence Dashboard — EARTH FORWARD</title>
-  <meta name="description" content="NGO Environmental Intelligence & Action Platform — Executive Command Center">
+  <meta name="description" content="Environmental Intelligence &amp; Action Platform — Executive Command Center">
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/dashboard.css">
   <script src="https://unpkg.com/lucide@latest"></script>
@@ -17,7 +17,7 @@
         <!-- Ethical AI Protocol Notice -->
         <div class="ai-notice-banner">
           <span class="ai-notice-tag">Ethical AI Protocol</span>
-          <span>Platform metrics aggregate <strong>AI-detected suspected issues</strong>. NGO ground verification is mandatory before municipal escalation.</span>
+          <span>Platform metrics aggregate <strong>AI-detected suspected issues</strong>. Physical ground verification is mandatory before municipal escalation.</span>
         </div>
 
         <!-- Dashboard Header -->
@@ -25,10 +25,6 @@
           <div class="dashboard-title-group">
             <div class="dashboard-title-row">
               <h1 class="page-title">Environmental Intelligence Dashboard</h1>
-              <div class="demo-data-badge">
-                <span class="dot"></span>
-                <span>● DEMO DATA</span>
-              </div>
             </div>
             <p class="page-subtitle">Consolidated telemetry, verification velocity, and regional incident intelligence across Delhi, Noida, Greater Noida, and Ghaziabad.</p>
           </div>
@@ -43,17 +39,17 @@
         <!-- 6 KPI Metric Cards (Animate counting up from 0 on load) -->
         <div class="kpi-row">
           <!-- Total Reports -->
-          <div class="kpi-metric-card">
+          <div class="kpi-metric-card kpi-accent-red">
             <div class="kpi-metric-label">Total Reports</div>
             <div class="kpi-metric-value skeleton-shimmer" id="kpiValTotal">--</div>
-            <div class="kpi-trend">
+            <div class="kpi-trend" id="kpiTrendTotal" style="display: none;">
               <i data-lucide="trending-up" style="width:12px; height:12px;"></i>
-              <span>↑ 14% this month</span>
+              <span id="kpiTrendTotalText"></span>
             </div>
           </div>
 
           <!-- High Priority -->
-          <div class="kpi-metric-card">
+          <div class="kpi-metric-card kpi-accent-yellow">
             <div class="kpi-metric-label">High Priority</div>
             <div class="kpi-metric-value skeleton-shimmer" id="kpiValHigh">--</div>
             <div class="kpi-trend">
@@ -63,7 +59,7 @@
           </div>
 
           <!-- Under Investigation -->
-          <div class="kpi-metric-card">
+          <div class="kpi-metric-card kpi-accent-yellow">
             <div class="kpi-metric-label">Under Investigation</div>
             <div class="kpi-metric-value skeleton-shimmer" id="kpiValReview">--</div>
             <div class="kpi-trend">
@@ -83,7 +79,7 @@
           </div>
 
           <!-- Resolved -->
-          <div class="kpi-metric-card">
+          <div class="kpi-metric-card kpi-accent-green">
             <div class="kpi-metric-label">Resolved</div>
             <div class="kpi-metric-value skeleton-shimmer" id="kpiValResolved">--</div>
             <div class="kpi-trend">
@@ -93,12 +89,12 @@
           </div>
 
           <!-- Resolution Rate % -->
-          <div class="kpi-metric-card">
+          <div class="kpi-metric-card kpi-accent-green">
             <div class="kpi-metric-label">Resolution Rate</div>
             <div class="kpi-metric-value skeleton-shimmer" id="kpiValRate">--%</div>
-            <div class="kpi-trend">
+            <div class="kpi-trend" id="kpiTrendRate" style="display: none;">
               <i data-lucide="arrow-up-right" style="width:12px; height:12px;"></i>
-              <span>↑ 6% vs baseline</span>
+              <span id="kpiTrendRateText"></span>
             </div>
           </div>
         </div>
@@ -219,7 +215,7 @@
           <div class="recent-header">
             <div class="recent-title-group">
               <h2 class="card-title">Recent Environmental Reports</h2>
-              <div class="chart-subtitle">Latest citizen submissions queued for NGO field inspection</div>
+              <div class="chart-subtitle">Latest citizen submissions queued for field inspection</div>
             </div>
             <a href="reports.html" class="btn btn-outline btn-sm">
               <span>View all reports</span>
@@ -273,6 +269,7 @@
     </main>
   </div>
 
+  <script src="js/config.js"></script>
   <script src="js/data.js"></script>
   <script src="js/app.js"></script>
   <script src="js/dashboard.js"></script>

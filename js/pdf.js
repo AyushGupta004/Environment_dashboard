@@ -81,7 +81,7 @@
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(8);
       doc.setTextColor(...COLOR_MUTED);
-      doc.text('NGO Environmental Intelligence & Action Platform • Official Brief', margin, yPos);
+      doc.text('Environmental Intelligence & Action Platform • Official Brief', margin, yPos);
       doc.text(proposal.generatedDate || 'September 18, 2026', pageWidth - margin, yPos, { align: 'right' });
 
       yPos += 4;
@@ -129,7 +129,7 @@
     };
 
     renderMemoField('TO:', 'Municipal Environmental Commission & District Task Force');
-    renderMemoField('FROM:', 'Earth Forward NGO Intelligence & Ground-Truthing Desk');
+    renderMemoField('FROM:', 'Earth Forward Intelligence & Ground-Truthing Desk');
     renderMemoField('SUBJECT:', proposal.subject || 'Intervention Proposal for Environmental Remediation', true);
     renderMemoField('TARGET AREA:', proposal.targetArea || 'NCR Corridor');
     renderMemoField('REPORTING PERIOD:', proposal.reportingPeriod || 'June 2026 – September 2026');
@@ -194,7 +194,7 @@
     yPos += 5;
 
     const actions = proposal.suggestedActions || [
-      { title: 'Field Inspection & Ground-Truthing', desc: 'Deploy joint task force with accredited NGO specialists to physically inspect suspected outfalls/stacks and calibrate sensors.' },
+      { title: 'Field Inspection & Ground-Truthing', desc: 'Deploy joint task force with accredited field specialists to physically inspect suspected outfalls/stacks and calibrate sensors.' },
       { title: 'Targeted Municipal Intervention', desc: 'Issue formal remediation request to municipal corporation for drain dredging and waste containment.' },
       { title: 'Source Identification & Permit Audit', desc: 'Cross-reference high-opacity plume coordinates with State Pollution Control Board licensing data.' },
       { title: 'Continued Remote Sensing Monitoring', desc: 'Maintain automated bi-weekly PlanetScope and Sentinel-2 multispectral pass overlays over the corridor.' },
@@ -315,7 +315,7 @@
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(7);
       doc.setTextColor(...COLOR_MUTED);
-      doc.text(`Page ${i} of ${totalPages} • Confidential NGO Environmental Intelligence Brief`, pageWidth / 2, pageHeight - 8, { align: 'center' });
+      doc.text(`Page ${i} of ${totalPages} • Confidential Environmental Intelligence Brief`, pageWidth / 2, pageHeight - 8, { align: 'center' });
     }
 
     // Download PDF

@@ -29,6 +29,16 @@
   let selectedRisk = 'All';
   let sortCriterion = 'density_desc';
 
+  function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
   /**
    * Helper: Format Date nicely
    */
@@ -92,6 +102,20 @@
   }
 
   /**
+   * Populate City/Location filter options dynamically from loaded hotspots
+   */
+  function populateFilterDropdowns() {
+    const cityFilter = document.getElementById('hotspotsCityFilter');
+    if (!cityFilter) return;
+
+    const uniqueCities = Array.from(new Set(allHotspots.map(h => h.city).filter(Boolean))).sort();
+    if (uniqueCities.length > 0) {
+      cityFilter.innerHTML = '<option value="All">All Locations</option>' +
+        uniqueCities.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+    }
+  }
+
+  /**
    * Initialize Hotspots Dashboard
    */
   async function initHotspots() {
@@ -99,9 +123,25 @@
       allHotspots = await window.EarthData.getHotspots();
       filteredHotspots = [...allHotspots];
 
+      populateFilterDropdowns();
       updateTopKPIs();
       applyFiltersAndSort();
       setupEventListeners();
+
+      // Deep-link handler: ?report=<reportId>
+      const urlParams = new URLSearchParams(window.location.search);
+      const reportIdParam = urlParams.get('report');
+      if (reportIdParam) {
+        const target = allHotspots.find(h =>
+          (h.reportIds && h.reportIds.includes(reportIdParam)) ||
+          (h.reportsList && h.reportsList.some(r => r.id === reportIdParam))
+        );
+        if (target) {
+          openHotspotDetail(target);
+        } else {
+          showToast('This report is not part of a hotspot yet.', 'info');
+        }
+      }
 
       if (window.lucide) {
         window.lucide.createIcons();
@@ -124,9 +164,10 @@
 
     const totalClusters = allHotspots.length;
     const totalClustered = allHotspots.reduce((acc, h) => acc + (h.reportCount || 0), 0);
-    const highPriorityClusters = allHotspots.filter(h => h.riskLevel === 'High' || h.highPriorityCount >= 4).length;
+    const highPriorityClusters = allHotspots.filter(h => h.riskLevel === 'High' || (h.highPriorityCount && h.highPriorityCount >= 4)).length;
     const activeInterventions = allHotspots.filter(h => 
-      h.interventionStatus && h.interventionStatus.toLowerCase().includes('active')
+      (h.activeInterventionCount && h.activeInterventionCount > 0) ||
+      (h.interventionStatus && h.interventionStatus.toLowerCase().includes('active'))
     ).length;
 
     if (statHotspotCount) statHotspotCount.textContent = totalClusters;
@@ -553,7 +594,7 @@
         if (!selectedHotspot) return;
         // Search by corridor or city in triage matrix
         const locationQuery = selectedHotspot.city || selectedHotspot.name.split(' ')[0];
-        window.location.href = `reports.html?location=${encodeURIComponent(locationQuery)}`;
+        window.location.href = `reports.html?search=${encodeURIComponent(locationQuery)}`;
       });
     }
 

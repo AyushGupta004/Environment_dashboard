@@ -29,10 +29,7 @@
           <div>
             <div style="display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap;">
               <h1 class="page-title">Environmental Impact</h1>
-              <span class="demo-data-pill" style="margin-bottom: 0;">
-                <span class="dot"></span>
-                <span>● DEMO DATA</span>
-              </span>
+              <div id="livePill" class="live-pill">● Live</div>
             </div>
             <p class="page-subtitle">Measuring verified remediation velocity, community protection, and multi-agency ecological restoration across Delhi NCR.</p>
           </div>
@@ -107,35 +104,7 @@
             </div>
           </div>
 
-          <!-- KPI 5: Communities Engaged -->
-          <div class="impact-kpi-card">
-            <div class="impact-kpi-top">
-              <span class="impact-kpi-label">Communities Engaged</span>
-              <div class="impact-kpi-icon">
-                <i data-lucide="users"></i>
-              </div>
-            </div>
-            <div class="impact-kpi-val" id="kpiCommunitiesEngaged">0</div>
-            <div class="impact-kpi-sub">
-              <span>Unique municipal sectors</span>
-            </div>
           </div>
-
-          <!-- KPI 6: NGO Partners -->
-          <div class="impact-kpi-card">
-            <div class="impact-kpi-top">
-              <span class="impact-kpi-label">NGO Partners</span>
-              <div class="impact-kpi-icon">
-                <i data-lucide="building-2"></i>
-              </div>
-            </div>
-            <div class="impact-kpi-val" id="kpiNgoPartners" style="color: var(--c-primary);">0</div>
-            <div class="impact-kpi-sub">
-              <span>NCR coalition members</span>
-            </div>
-          </div>
-
-        </div>
 
         <!-- 2. COMPUTED METRICS: THREE LARGE STATS + MONOCHROME GREEN TREND CHARTS -->
         <div class="computed-metrics-grid">
@@ -255,19 +224,21 @@
           </div>
         </section>
 
-        <!-- 4. NGO COALITION IMPACT CONTRIBUTIONS -->
-        <section aria-label="NGO Coalition Impact Contributions">
+        <!-- 4. TEAMS & SPECIALISTS NETWORK -->
+        <section aria-label="Teams & Specialists Network">
           <div style="margin-bottom: var(--space-4);">
             <h3 style="font-size: var(--text-sm); font-weight: 700; color: var(--c-text-primary); margin: 0 0 2px 0;">
-              Inter-Agency NGO Coalition Network
+              Teams &amp; Specialists
             </h3>
             <span style="font-size: 11px; color: var(--c-text-secondary);">
-              Four accredited regional organizations executing rapid field truthing and statutory advocacy.
+              Accredited regional specialist teams executing rapid ground truthing and environmental remediation.
             </span>
           </div>
 
-          <div class="coalition-cards-grid" id="coalitionCardsGrid">
-            <!-- Dynamically populated from organizations.js / data.js -->
+          <div id="coalitionCardsGrid">
+            <div style="padding: var(--space-6); text-align: center; color: var(--c-text-secondary); font-size: var(--text-xs); background: var(--c-surface-subtle); border-radius: var(--radius-md); border: 1px dashed var(--c-border-light);">
+              No teams registered yet.
+            </div>
           </div>
         </section>
 
@@ -276,6 +247,7 @@
   </div>
 
   <!-- Core Scripts -->
+  <script src="js/config.js"></script>
   <script src="js/data.js"></script>
   <script src="js/app.js"></script>
   <script src="js/impact.js"></script>

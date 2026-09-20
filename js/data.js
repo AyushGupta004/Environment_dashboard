@@ -1,3 +1,5 @@
+const _dataScriptSrc = (typeof document !== 'undefined' && document.currentScript) ? document.currentScript.src : null;
+
 /**
  * EARTH FORWARD — NGO Environmental Intelligence & Action Platform
  * js/data.js — Core Data Access & Persistence Layer
@@ -1268,60 +1270,594 @@ const environmentalReports = [
   }
 ];
 
-// LocalStorage Persistence Layer Keys
-const STORAGE_KEY_REPORTS = 'earthforward_reports_v1';
-const STORAGE_KEY_OVERRIDES = 'earthforward_report_overrides_v1';
+// ============================================================================
+// SUPABASE CLIENT & RUNTIME DATA ACCESS LAYER
+// ============================================================================
 
-function getStoredReports() {
-  if (typeof localStorage !== 'undefined') {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY_REPORTS);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed;
-        }
+const SUPABASE_CDN_URL = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.48.1/dist/umd/supabase.min.js';
+
+let _supabaseClientPromise = null;
+let _supabaseClient = null;
+
+function loadScript(src) {
+  return new Promise((resolve, reject) => {
+    if (typeof document === 'undefined') return resolve();
+    const existing = document.querySelector(`script[src="${src}"]`);
+    if (existing) {
+      if (existing.dataset.loaded === 'true' || existing.readyState === 'loaded' || existing.readyState === 'complete') {
+        return resolve();
       }
-    } catch (err) {
-      console.warn('LocalStorage read error:', err);
+      existing.addEventListener('load', () => resolve());
+      existing.addEventListener('error', (e) => reject(e));
+      return;
     }
-  }
-  // On first load or corrupted cache, seed from mock array
-  seedStorage();
-  return JSON.parse(JSON.stringify(environmentalReports));
+    const script = document.createElement('script');
+    script.src = src;
+    script.async = true;
+    script.onload = () => {
+      script.dataset.loaded = 'true';
+      resolve();
+    };
+    script.onerror = (e) => reject(e);
+    (document.head || document.documentElement || document.body).appendChild(script);
+  });
 }
 
-function seedStorage() {
-  if (typeof localStorage !== 'undefined') {
+function loadConfigScript() {
+  return new Promise((resolve) => {
+    const existing = (typeof window !== 'undefined' && (window.EARTHFORWARD_CONFIG || window.EARTH_FORWARD_CONFIG));
+    if (existing) {
+      return resolve(existing);
+    }
+    if (typeof document === 'undefined') {
+      return resolve(null);
+    }
+    let configUrl = 'js/config.js';
     try {
-      localStorage.setItem(STORAGE_KEY_REPORTS, JSON.stringify(environmentalReports));
-    } catch (err) {
-      console.warn('LocalStorage seed write error:', err);
+      if (typeof _dataScriptSrc !== 'undefined' && _dataScriptSrc) {
+        configUrl = new URL('config.js', _dataScriptSrc).href;
+      }
+    } catch (e) {
+      configUrl = 'js/config.js';
     }
+
+    loadScript(configUrl)
+      .then(() => {
+        resolve((typeof window !== 'undefined' && (window.EARTHFORWARD_CONFIG || window.EARTH_FORWARD_CONFIG)) ? (window.EARTHFORWARD_CONFIG || window.EARTH_FORWARD_CONFIG) : null);
+      })
+      .catch(() => resolve(null));
+  });
+}
+
+async function getSupabase() {
+  if (_supabaseClient) return _supabaseClient;
+  if (!_supabaseClientPromise) {
+    _supabaseClientPromise = (async () => {
+      const cfg = await loadConfigScript();
+      if (!cfg || !cfg.SUPABASE_URL || (!cfg.SUPABASE_ANON_KEY && !cfg.SUPABASE_SERVICE_KEY)) {
+        throw new Error('Missing Supabase credentials in js/config.js');
+      }
+
+      if (typeof window !== 'undefined' && !window.supabase) {
+        await loadScript(SUPABASE_CDN_URL);
+      }
+
+      if (typeof window === 'undefined' || !window.supabase || !window.supabase.createClient) {
+        throw new Error('Supabase client failed to load from CDN');
+      }
+
+      const isServiceKey = !!(cfg.SUPABASE_SERVICE_KEY || cfg.SUPABASE_SERVICE_ROLE_KEY);
+      const activeKey = cfg.SUPABASE_SERVICE_KEY || cfg.SUPABASE_SERVICE_ROLE_KEY || cfg.SUPABASE_ANON_KEY;
+      _supabaseClient = window.supabase.createClient(cfg.SUPABASE_URL, activeKey, {
+        auth: {
+          persistSession: !isServiceKey,
+          autoRefreshToken: !isServiceKey,
+          detectSessionInUrl: !isServiceKey
+        }
+      });
+      return _supabaseClient;
+    })();
+  }
+  return _supabaseClientPromise;
+}
+
+// ----------------------------------------------------------------------------
+// AUTH HELPERS (Awaitable on EarthData)
+// ----------------------------------------------------------------------------
+
+function getLocalSession() {
+  try {
+    const raw = (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('earth_forward_local_session')) ||
+                (typeof localStorage !== 'undefined' && localStorage.getItem('earth_forward_local_session'));
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (parsed && parsed.authenticated) {
+      return parsed;
+    }
+    return null;
+  } catch (e) {
+    return null;
   }
 }
 
-function saveStoredReports(reports) {
-  if (typeof localStorage !== 'undefined') {
+function setLocalSession(session) {
+  try {
+    const payload = JSON.stringify(session);
+    if (typeof sessionStorage !== 'undefined') sessionStorage.setItem('earth_forward_local_session', payload);
+    if (typeof localStorage !== 'undefined') localStorage.setItem('earth_forward_local_session', payload);
+  } catch (e) {}
+}
+
+function clearLocalSession() {
+  try {
+    if (typeof sessionStorage !== 'undefined') sessionStorage.removeItem('earth_forward_local_session');
+    if (typeof localStorage !== 'undefined') localStorage.removeItem('earth_forward_local_session');
+  } catch (e) {}
+}
+
+async function signIn(email, password) {
+  const config = (typeof window !== 'undefined' && window.LOCAL_AUTH_CONFIG) || {};
+  const expectedEmail = config.email || 'admin@earthforward.local';
+  const expectedPassword = config.password || 'EarthForward@123';
+
+  if (email && email.toLowerCase() === expectedEmail.toLowerCase() && password === expectedPassword) {
+    const session = {
+      authenticated: true,
+      email: expectedEmail,
+      role: 'Platform Officer'
+    };
+    setLocalSession(session);
+    return { data: { session }, error: null };
+  }
+  return { data: null, error: new Error('Invalid email or password.') };
+}
+
+async function signOut() {
+  clearLocalSession();
+  return { error: null };
+}
+
+async function getSession() {
+  const session = getLocalSession();
+  return { session, data: { session }, error: null };
+}
+
+async function requireSession() {
+  const session = getLocalSession();
+  return session;
+}
+
+
+// ----------------------------------------------------------------------------
+// IMAGE NORMALIZATION & SNIFFING
+// ----------------------------------------------------------------------------
+
+function sniffMimeType(bytes) {
+  if (!bytes || bytes.length < 4) return null;
+  if (bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4E && bytes[3] === 0x47) return 'image/png';
+  if (bytes[0] === 0xFF && bytes[1] === 0xD8 && bytes[2] === 0xFF) return 'image/jpeg';
+  if (bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x46) return 'image/webp';
+  if (bytes[0] === 0x47 && bytes[1] === 0x49 && bytes[2] === 0x46) return 'image/gif';
+  return null;
+}
+
+function normalizeImage(val, mimeType = null) {
+  if (!val) return null;
+
+  if (typeof val !== 'string') {
+    if (val instanceof Uint8Array || Array.isArray(val)) {
+      const bytes = val instanceof Uint8Array ? val : new Uint8Array(val);
+      const mime = mimeType || sniffMimeType(bytes) || 'image/png';
+      const blob = new Blob([bytes], { type: mime });
+      return URL.createObjectURL(blob);
+    }
+    return null;
+  }
+
+  const str = val.trim();
+  if (str.startsWith('http://') || str.startsWith('https://') || str.startsWith('data:image/')) {
+    return str;
+  }
+
+  // PostgreSQL bytea hex representation: \x89504e... or 0x89504e...
+  if (str.startsWith('\\x') || str.startsWith('0x')) {
+    const hex = str.slice(2);
+    if (hex.length % 2 === 0) {
+      const bytes = new Uint8Array(hex.length / 2);
+      for (let i = 0; i < bytes.length; i++) {
+        bytes[i] = parseInt(hex.substr(i * 2, 2), 16);
+      }
+      const mime = mimeType || sniffMimeType(bytes) || 'image/png';
+      const blob = new Blob([bytes], { type: mime });
+      return URL.createObjectURL(blob);
+    }
+  }
+
+  // Raw base64 string without data: header
+  if (/^[A-Za-z0-9+/=]+$/.test(str) && str.length > 50) {
+    const mime = mimeType || 'image/png';
+    return `data:${mime};base64,${str}`;
+  }
+
+  return null;
+}
+
+// ----------------------------------------------------------------------------
+// DATA MAPPERS & UTILITIES
+// ----------------------------------------------------------------------------
+
+function isUuid(str) {
+  return typeof str === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
+}
+
+function uiStatusToDbStatus(uiStatus) {
+  const map = {
+    'Reported': 'reported',
+    'AI Analyzed': 'ai_analyzed',
+    'Under Review': 'under_review',
+    'Verified': 'verified',
+    'Action Initiated': 'action_initiated',
+    'Resolved': 'resolved',
+    'Rejected': 'rejected'
+  };
+  return map[uiStatus] || (typeof uiStatus === 'string' ? uiStatus.toLowerCase().replace(/[\s-]+/g, '_') : 'reported');
+}
+
+function mapStatus(raw) {
+  if (typeof raw !== 'string') return 'Reported';
+  const norm = raw.toLowerCase().replace(/[_-]+/g, ' ').trim();
+  const valid = {
+    'reported': 'Reported',
+    'ai analyzed': 'AI Analyzed',
+    'under review': 'Under Review',
+    'verified': 'Verified',
+    'action initiated': 'Action Initiated',
+    'resolved': 'Resolved',
+    'rejected': 'Rejected'
+  };
+  return valid[norm] || 'Reported';
+}
+
+function mapCategory(raw) {
+  if (!raw || typeof raw !== 'string') return 'Other';
+  const norm = raw.trim().toLowerCase();
+  if (norm === 'garbage') return 'Garbage Dumping';
+  if (norm === 'burning') return 'Waste Burning';
+  if (norm === 'water_pollution') return 'Water Pollution';
+  if (norm === 'deforestation') return 'Deforestation';
+  if (norm === 'other') return 'Other';
+  return raw
+    .replace(/[_-]+/g, ' ')
+    .trim()
+    .split(/\s+/)
+    .map(w => w ? w.charAt(0).toUpperCase() + w.slice(1).toLowerCase() : '')
+    .join(' ') || 'Other';
+}
+
+function mapSeverity(raw) {
+  if (typeof raw === 'string') {
+    const norm = raw.trim().toLowerCase();
+    if (norm === 'high') return 'High';
+    if (norm === 'medium') return 'Medium';
+    if (norm === 'low') return 'Low';
+  }
+  // NO DEFAULTS: missing/null severity is strictly "Unassessed"
+  return 'Unassessed';
+}
+
+function mapTitle(rawDesc, category) {
+  if (typeof rawDesc === 'string') {
+    const trimmed = rawDesc.trim();
+    if (trimmed.length > 0 && trimmed.toLowerCase() !== 'none') {
+      const match = trimmed.match(/^.*?[.!?](?:\s|$)/);
+      let sentence = match ? match[0].trim() : trimmed;
+      if (sentence.length > 80) {
+        sentence = sentence.substring(0, 80).trim();
+      }
+      return sentence;
+    }
+  }
+  return `${category} report`;
+}
+
+function mapCity(address, lat, lng) {
+  if (typeof address === 'string' && address.trim().length > 0) {
+    const addrLower = address.toLowerCase();
+    if (addrLower.includes('greater noida')) return 'Greater Noida';
+    if (addrLower.includes('delhi')) return 'Delhi';
+    if (addrLower.includes('noida')) return 'Noida';
+    if (addrLower.includes('ghaziabad')) return 'Ghaziabad';
+  }
+  const referenceCities = [
+    { name: 'Delhi', lat: 28.6139, lng: 77.2090 },
+    { name: 'Noida', lat: 28.5355, lng: 77.3910 },
+    { name: 'Greater Noida', lat: 28.4744, lng: 77.5040 },
+    { name: 'Ghaziabad', lat: 28.6692, lng: 77.4538 }
+  ];
+  let minDistance = Infinity;
+  let nearestCity = null;
+  for (const ref of referenceCities) {
+    const d = Math.hypot(lat - ref.lat, lng - ref.lng);
+    if (d < minDistance) {
+      minDistance = d;
+      nearestCity = ref.name;
+    }
+  }
+  if (minDistance <= 0.6 && nearestCity) {
+    return nearestCity;
+  }
+  return 'Other';
+}
+
+function generateDefaultTimeline(report) {
+  const baseTime = new Date(report.reportDate).getTime();
+  const timeline = [
+    {
+      status: 'Reported',
+      timestamp: new Date(baseTime).toISOString(),
+      note: 'Citizen observation ingested and queued for AI analysis.'
+    }
+  ];
+
+  const currentStatus = report.status;
+  const statusRanks = {
+    'Reported': 1,
+    'AI Analyzed': 2,
+    'Under Review': 3,
+    'Verified': 4,
+    'Action Initiated': 5,
+    'Resolved': 6,
+    'Rejected': 3
+  };
+
+  const rank = statusRanks[currentStatus] || 1;
+
+  if (rank >= 2 && currentStatus !== 'Reported') {
+    timeline.push({
+      status: 'AI Analyzed',
+      timestamp: new Date(baseTime + 1800000).toISOString(),
+      note: report.confidence !== null
+        ? `AI analysis classified with ${Math.round(report.confidence * 100)}% detection confidence.`
+        : 'AI analysis classified anomalous pattern.'
+    });
+  }
+
+  if (rank >= 3 && currentStatus !== 'Reported' && currentStatus !== 'AI Analyzed') {
+    timeline.push({
+      status: 'Under Review',
+      timestamp: new Date(baseTime + 7200000).toISOString(),
+      note: 'Field verification triage initiated.'
+    });
+  }
+
+  if (rank >= 4 && currentStatus !== 'Under Review' && currentStatus !== 'Rejected') {
+    timeline.push({
+      status: 'Verified',
+      timestamp: new Date(baseTime + 86400000).toISOString(),
+      note: 'Ground verification confirmed environmental observation.'
+    });
+  }
+
+  if (rank >= 5) {
+    timeline.push({
+      status: 'Action Initiated',
+      timestamp: new Date(baseTime + 172800000).toISOString(),
+      note: report.assignedTo 
+        ? `Remediation dispatched to ${report.assignedTo}.`
+        : 'Remediation action initiated.'
+    });
+  }
+
+  if (rank === 6) {
+    const resTime = report.updatedAt ? new Date(report.updatedAt).toISOString() : new Date(baseTime + 259200000).toISOString();
+    timeline.push({
+      status: 'Resolved',
+      timestamp: resTime,
+      note: 'Field cleanup completed and post-intervention inspection verified.'
+    });
+  }
+
+  if (currentStatus === 'Rejected') {
+    timeline.push({
+      status: 'Rejected',
+      timestamp: report.updatedAt ? new Date(report.updatedAt).toISOString() : new Date(baseTime + 14400000).toISOString(),
+      note: 'Observation flagged as inconclusive or out of jurisdiction scope.'
+    });
+  }
+
+  return timeline;
+}
+
+function mapSupabaseRow(row, imageRow = null, profileMap = null, baseUrl = '', rawNotes = [], orgMap = null) {
+  if (!row || typeof row !== 'object') return null;
+  if (row.latitude === null || row.latitude === undefined || row.latitude === '' ||
+      row.longitude === null || row.longitude === undefined || row.longitude === '') {
+    return null;
+  }
+  const lat = Number(row.latitude);
+  const lng = Number(row.longitude);
+  if (!Number.isFinite(lat) || !Number.isFinite(lng) || Math.abs(lat) > 90 || Math.abs(lng) > 180) {
+    return null;
+  }
+
+  const category = mapCategory(row.category);
+  const title = mapTitle(row.description, category);
+  const location = (typeof row.address === 'string' && row.address.trim().length > 0)
+    ? row.address.trim()
+    : `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+  const city = mapCity(row.address, lat, lng);
+  const severity = mapSeverity(row.severity);
+  const priority = severity;
+
+  let confidence = null;
+  if (row.ai_confidence !== null && row.ai_confidence !== undefined && row.ai_confidence !== '') {
+    const num = Number(row.ai_confidence);
+    if (Number.isFinite(num)) {
+      confidence = num > 1 ? num / 100 : num;
+    }
+  }
+
+  const status = mapStatus(row.status);
+  const verified = (status === 'Verified' || status === 'Action Initiated' || status === 'Resolved');
+
+  let reportDate = new Date().toISOString();
+  if (row.created_at) {
     try {
-      localStorage.setItem(STORAGE_KEY_REPORTS, JSON.stringify(reports));
-    } catch (err) {
-      console.warn('LocalStorage save error:', err);
+      const d = new Date(row.created_at);
+      if (!isNaN(d.getTime())) reportDate = d.toISOString();
+    } catch (e) {}
+  }
+
+  let submittedBy = 'Citizen Sentinel';
+  if (row.user_id) {
+    const str = String(row.user_id).trim();
+    if (profileMap && profileMap.has(str)) {
+      const p = profileMap.get(str);
+      if (p && p.full_name) submittedBy = p.full_name;
+      else submittedBy = 'Citizen Sentinel #' + str.substring(0, 4).toUpperCase();
+    } else {
+      submittedBy = 'Citizen Sentinel #' + str.substring(0, 4).toUpperCase();
     }
   }
+
+  let description = 'No description provided.';
+  if (typeof row.description === 'string' && row.description.trim().length > 0 && row.description.trim().toLowerCase() !== 'none') {
+    description = row.description.trim();
+  } else if (typeof row.ai_description === 'string' && row.ai_description.trim().length > 0) {
+    description = row.ai_description.trim();
+  }
+
+  const aiObservations = (typeof row.ai_description === 'string') ? row.ai_description : '';
+
+  // Image resolving:
+  let imageUrl = null;
+  if (imageRow && imageRow.storage_path) {
+    const path = String(imageRow.storage_path).trim();
+    if (path.startsWith('http://') || path.startsWith('https://')) {
+      imageUrl = path;
+    } else {
+      const cleanBase = baseUrl.replace(/\/+$/, '');
+      imageUrl = `${cleanBase}/storage/v1/object/public/environmental-reports/${path}`;
+    }
+  }
+
+  // Notes resolving:
+  const notes = [];
+  if (Array.isArray(rawNotes)) {
+    const matched = rawNotes.filter(n => String(n.report_id) === String(row.id));
+    matched.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+    for (const n of matched) {
+      let authorName = 'Team member';
+      if (n.author_id && profileMap && profileMap.has(String(n.author_id))) {
+        const prof = profileMap.get(String(n.author_id));
+        if (prof && prof.full_name) authorName = prof.full_name;
+      }
+      notes.push({
+        id: String(n.id || 'N-' + Date.now()),
+        author: authorName,
+        timestamp: n.created_at || new Date().toISOString(),
+        text: n.note || ''
+      });
+    }
+  }
+
+  let assignedTeamName = '';
+  let assignedTeamCode = '—';
+  const orgId = row.organization_id || row.assigned_organization_id;
+  if (orgId && orgMap && orgMap.has(String(orgId))) {
+    const org = orgMap.get(String(orgId));
+    if (org) {
+      assignedTeamName = org.name || '';
+      assignedTeamCode = org.team_code || org.teamCode || '—';
+    }
+  } else if (row.organisation_name) {
+    assignedTeamName = row.organisation_name;
+  }
+  const isAssigned = (orgId !== null && orgId !== undefined && orgId !== '') || Boolean(row.organisation_name);
+
+  const reportObj = {
+    id: String(row.id),
+    title,
+    category,
+    city,
+    location,
+    coordinates: [lat, lng],
+    severity,
+    priority,
+    confidence,
+    status,
+    verified,
+    reportDate,
+    createdAt: row.created_at || reportDate,
+    updatedAt: row.updated_at || reportDate,
+    submittedBy,
+    description,
+    organization: assignedTeamName,
+    assignedTo: assignedTeamName,
+    assignedWorkerId: row.assigned_worker_id || null,
+    organizationId: orgId ? String(orgId) : null,
+    assignedOrganizationId: orgId ? String(orgId) : null,
+    isAssigned,
+    assignedTeamName,
+    assignedTeamCode,
+    assignedPriority: row.assigned_priority || '',
+    dueDate: row.due_date || '',
+    assignedAt: row.assigned_at || null,
+    imageUrl,
+    notes,
+    aiCategory: row.ai_category || null,
+    aiConfidence: confidence,
+    aiDescription: row.ai_description || null,
+    aiObservations,
+    estimatedAffectedPopulation: 0
+  };
+
+  reportObj.statusHistory = generateDefaultTimeline(reportObj);
+  return reportObj;
 }
 
-function simulatedDelay(ms = 40) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
+// ----------------------------------------------------------------------------
+// CORE EARTHDATA API METHODS (Exclusively Supabase)
+// ----------------------------------------------------------------------------
 
-/**
- * API: getReports(filters)
- * Swappable for fetch('/api/reports?...') later with zero caller changes
- */
 async function getReports(filters = {}) {
-  await simulatedDelay();
-  let data = getStoredReports();
+  const client = await getSupabase();
+  const cfg = await loadConfigScript();
+  const baseUrl = (cfg && cfg.SUPABASE_URL) ? cfg.SUPABASE_URL.replace(/\/+$/, '') : '';
+
+  const [repRes, imgRes, profRes, orgRes] = await Promise.all([
+    client.from('reports').select('*').order('created_at', { ascending: false }),
+    client.from('report_images').select('*'),
+    client.from('profiles').select('*'),
+    client.from('organizations').select('*')
+  ]);
+
+  if (repRes.error) {
+    console.error('[EarthData] Error querying reports from Supabase:', repRes.error);
+    const err = new Error('Unable to load reports. Please try again.');
+    err.supabaseError = repRes.error;
+    throw err;
+  }
+
+  const rawReports = repRes.data || [];
+  const rawImages = imgRes.data || [];
+  const rawProfiles = profRes.data || [];
+  const rawOrgs = orgRes.data || [];
+
+  const profileMap = new Map(rawProfiles.map(p => [String(p.id), p]));
+  const orgMap = new Map(rawOrgs.map(o => [String(o.id), o]));
+  const imageMap = new Map();
+  for (const img of rawImages) {
+    if (img.report_id && !imageMap.has(String(img.report_id))) {
+      imageMap.set(String(img.report_id), img);
+    }
+  }
+
+  let data = [];
+  for (const row of rawReports) {
+    const report = mapSupabaseRow(row, imageMap.get(String(row.id)), profileMap, baseUrl, [], orgMap);
+    if (report) data.push(report);
+  }
 
   if (filters.search) {
     const q = filters.search.toLowerCase().trim();
@@ -1331,7 +1867,9 @@ async function getReports(filters = {}) {
       r.location.toLowerCase().includes(q) ||
       r.description.toLowerCase().includes(q) ||
       r.category.toLowerCase().includes(q) ||
-      (r.city && r.city.toLowerCase().includes(q))
+      (r.city && r.city.toLowerCase().includes(q)) ||
+      (r.assignedTeamName && r.assignedTeamName.toLowerCase().includes(q)) ||
+      (r.assignedTeamCode && r.assignedTeamCode.toLowerCase().includes(q))
     );
   }
 
@@ -1370,220 +1908,238 @@ async function getReports(filters = {}) {
   data.sort((a, b) => {
     if (sortBy === 'date_desc') return new Date(b.reportDate) - new Date(a.reportDate);
     if (sortBy === 'date_asc') return new Date(a.reportDate) - new Date(b.reportDate);
-    if (sortBy === 'confidence_desc') return b.confidence - a.confidence;
+    if (sortBy === 'confidence_desc') return (b.confidence || 0) - (a.confidence || 0);
     if (sortBy === 'severity_desc') {
-      const rank = { High: 3, Medium: 2, Low: 1 };
+      const rank = { High: 3, Medium: 2, Low: 1, Unassessed: 0 };
       return (rank[b.severity] || 0) - (rank[a.severity] || 0);
     }
     return 0;
   });
 
-  const result = data.map(r => {
-    if (!r.statusHistory || r.statusHistory.length === 0) {
-      r.statusHistory = generateDefaultTimeline(r);
-    }
-    return r;
-  });
+  const result = data;
   result.totalCount = result.length;
-  result.reports = result; // defensive for destructured callers { reports } = await getReports()
+  result.reports = result;
   return result;
 }
 
-/**
- * API: getReportById(id)
- */
 async function getReportById(id) {
-  await simulatedDelay();
-  const data = getStoredReports();
-  const found = data.find(r => r.id === id || String(r.id) === String(id));
-  if (!found) return null;
+  const client = await getSupabase();
+  const cfg = await loadConfigScript();
+  const baseUrl = (cfg && cfg.SUPABASE_URL) ? cfg.SUPABASE_URL.replace(/\/+$/, '') : '';
 
-  const report = JSON.parse(JSON.stringify(found));
+  const [repRes, imgRes, notesRes, profRes, orgRes] = await Promise.all([
+    client.from('reports').select('*').eq('id', id).maybeSingle(),
+    client.from('report_images').select('*').eq('report_id', id),
+    client.from('report_notes').select('*').eq('report_id', id).order('created_at', { ascending: false }),
+    client.from('profiles').select('*'),
+    client.from('organizations').select('*')
+  ]);
 
-  // Ensure statusHistory is initialized if missing
-  if (!report.statusHistory || report.statusHistory.length === 0) {
-    report.statusHistory = generateDefaultTimeline(report);
+  if (repRes.error) {
+    console.error('[EarthData] Error fetching report by id:', repRes.error);
+    throw new Error('Unable to load report. Please try again.');
   }
+  if (!repRes.data) return null;
 
-  return report;
+  const rawImages = imgRes.data || [];
+  const rawNotes = notesRes.data || [];
+  const rawProfiles = profRes.data || [];
+  const rawOrgs = orgRes.data || [];
+  const profileMap = new Map(rawProfiles.map(p => [String(p.id), p]));
+  const orgMap = new Map(rawOrgs.map(o => [String(o.id), o]));
+
+  const firstImg = rawImages.length > 0 ? rawImages[0] : null;
+  return mapSupabaseRow(repRes.data, firstImg, profileMap, baseUrl, rawNotes, orgMap);
 }
 
-function generateDefaultTimeline(report) {
-  const baseTime = new Date(report.reportDate).getTime();
-  const timeline = [
-    {
-      status: 'Reported',
-      timestamp: new Date(baseTime).toISOString(),
-      note: 'Citizen observation ingested and queued for AI analysis.'
-    },
-    {
-      status: 'AI Analyzed',
-      timestamp: new Date(baseTime + 1800000).toISOString(),
-      note: `AI-detected suspected issue classified with ${Math.round((report.confidence || 0.85) * 100)}% detection confidence.`
-    }
-  ];
-
-  const currentStatus = report.status;
-  const statusRanks = {
-    'Reported': 1,
-    'AI Analyzed': 2,
-    'Under Review': 3,
-    'Verified': 4,
-    'Action Initiated': 5,
-    'Resolved': 6,
-    'Rejected': 3
-  };
-
-  const rank = statusRanks[currentStatus] || 2;
-
-  if (rank >= 3 && currentStatus !== 'Reported' && currentStatus !== 'AI Analyzed') {
-    timeline.push({
-      status: 'Under Review',
-      timestamp: new Date(baseTime + 7200000).toISOString(),
-      note: 'NGO intelligence coordinator initiated field verification triage.'
-    });
-  }
-
-  if (rank >= 4 && currentStatus !== 'Under Review' && currentStatus !== 'Rejected') {
-    timeline.push({
-      status: 'Verified',
-      timestamp: new Date(baseTime + 86400000).toISOString(),
-      note: 'Ground verification confirmed suspected environmental violation.'
-    });
-  }
-
-  if (rank >= 5) {
-    timeline.push({
-      status: 'Action Initiated',
-      timestamp: new Date(baseTime + 172800000).toISOString(),
-      note: report.assignedTo 
-        ? `Remediation team mobilized under ${report.assignedTo}.`
-        : 'Remediation dispatched to regional coalition team.'
-    });
-  }
-
-  if (rank === 6) {
-    timeline.push({
-      status: 'Resolved',
-      timestamp: new Date(baseTime + 259200000).toISOString(),
-      note: 'Field cleanup completed and post-intervention inspection verified.'
-    });
-  }
-
-  if (currentStatus === 'Rejected') {
-    timeline.push({
-      status: 'Rejected',
-      timestamp: new Date(baseTime + 14400000).toISOString(),
-      note: 'Observation flagged as inconclusive or out of jurisdiction scope.'
-    });
-  }
-
-  return timeline;
-}
-
-/**
- * API: updateReportStatus(id, status)
- */
 async function updateReportStatus(id, status) {
-  await simulatedDelay();
-  const data = getStoredReports();
-  const index = data.findIndex(r => r.id === id);
-  if (index === -1) {
-    throw new Error(`Report with id ${id} not found.`);
+  const client = await getSupabase();
+  const dbStatus = uiStatusToDbStatus(status);
+  const updatedAt = new Date().toISOString();
+
+  const { data, error } = await client
+    .from('reports')
+    .update({
+      status: dbStatus,
+      updated_at: updatedAt
+    })
+    .eq('id', id)
+    .select();
+
+  if (error || !data || data.length === 0) {
+    const errorMsg = error ? (error.message || error.details || JSON.stringify(error)) : "Database permission denied. The current Supabase policy requires an authenticated database user or service key in js/config.js.";
+    console.warn('[EarthData] updateReportStatus blocked by Supabase RLS:', error || '0 rows updated');
+    throw new Error(errorMsg);
   }
 
-  data[index].status = status;
-  if (status === 'Verified') {
-    data[index].verified = true;
-  } else if (status === 'Rejected') {
-    data[index].verified = false;
-  }
-
-  // Append to statusHistory
-  if (!data[index].statusHistory) {
-    data[index].statusHistory = generateDefaultTimeline(data[index]);
-  }
-  data[index].statusHistory.push({
-    status: status,
-    timestamp: new Date().toISOString(),
-    note: `Status advanced to "${status}" by NGO intelligence officer.`
-  });
-
-  // Append audit note
-  if (!data[index].notes) data[index].notes = [];
-  data[index].notes.unshift({
-    id: 'N-' + Date.now(),
-    author: 'NGO Intelligence Desk',
-    timestamp: new Date().toISOString(),
-    text: `Status updated to "${status}". Verification timeline appended.`
-  });
-
-  saveStoredReports(data);
-  return JSON.parse(JSON.stringify(data[index]));
+  return await getReportById(id);
 }
 
-/**
- * API: addReportNote(id, noteText, authorName)
- */
-async function addReportNote(id, noteText, authorName = 'NGO Field Officer') {
-  await simulatedDelay();
-  const data = getStoredReports();
-  const index = data.findIndex(r => r.id === id);
-  if (index === -1) {
-    throw new Error(`Report with id ${id} not found.`);
-  }
-
-  if (!data[index].notes) data[index].notes = [];
-  const newNote = {
-    id: 'N-' + Date.now(),
-    author: authorName,
-    timestamp: new Date().toISOString(),
-    text: noteText
+async function addReportNote(id, noteText) {
+  const client = await getSupabase();
+  const insertBody = {
+    report_id: id,
+    note: noteText
   };
-  data[index].notes.unshift(newNote);
 
-  saveStoredReports(data);
-  return JSON.parse(JSON.stringify(data[index]));
-}
+  try {
+    const { data: authData } = await client.auth.getSession();
+    if (authData && authData.session && authData.session.user) {
+      insertBody.author_id = authData.session.user.id;
+    }
+  } catch (e) {}
 
-/**
- * API: assignReport(id, workerName, priority, dueDate, organizationName)
- */
-async function assignReport(id, workerName, priority, dueDate, organizationName) {
-  await simulatedDelay();
-  const data = getStoredReports();
-  const index = data.findIndex(r => r.id === id);
-  if (index === -1) {
-    throw new Error(`Report with id ${id} not found.`);
+  const { data, error } = await client
+    .from('report_notes')
+    .insert(insertBody)
+    .select();
+
+  if (error || !data || data.length === 0) {
+    const errorMsg = error ? (error.message || error.details || JSON.stringify(error)) : "Database permission denied. The current Supabase policy requires an authenticated database user or service key in js/config.js.";
+    console.warn('[EarthData] addReportNote blocked by Supabase RLS:', error || '0 rows inserted');
+    throw new Error(errorMsg);
   }
 
-  if (workerName) data[index].assignedTo = workerName;
-  if (priority) data[index].priority = priority;
-  if (dueDate) data[index].dueDate = dueDate;
-  if (organizationName) data[index].organization = organizationName;
-
-  if (data[index].status === 'Reported' || data[index].status === 'AI Analyzed') {
-    data[index].status = 'Under Review';
-  }
-
-  if (!data[index].notes) data[index].notes = [];
-  data[index].notes.unshift({
-    id: 'N-' + Date.now(),
-    author: 'Task Dispatcher',
-    timestamp: new Date().toISOString(),
-    text: `Task dispatched to ${workerName || 'Field Officer'}${priority ? ` [${priority} priority]` : ''}${dueDate ? ` (Target completion: ${dueDate})` : ''}.`
-  });
-
-  saveStoredReports(data);
-  return JSON.parse(JSON.stringify(data[index]));
+  return await getReportById(id);
 }
 
-/**
- * API: getAnalytics()
- */
+async function assignReport(id, workerId, priority, dueDate, orgId) {
+  const client = await getSupabase();
+  const patchBody = {
+    updated_at: new Date().toISOString()
+  };
+  if (workerId && isUuid(workerId)) {
+    patchBody.assigned_worker_id = workerId;
+  }
+  if (orgId && isUuid(orgId)) {
+    patchBody.organization_id = orgId;
+  }
+
+  const { data, error } = await client
+    .from('reports')
+    .update(patchBody)
+    .eq('id', id)
+    .select();
+
+  if (error || !data || data.length === 0) {
+    const errorMsg = error ? (error.message || error.details || JSON.stringify(error)) : "Database permission denied. The current Supabase policy requires an authenticated database user or service key in js/config.js.";
+    console.warn('[EarthData] assignReport blocked by Supabase RLS:', error || '0 rows updated');
+    throw new Error(errorMsg);
+  }
+
+  return await getReportById(id);
+}
+
+function isMissingColumnError(error) {
+  if (!error) return false;
+  if (error.code === '42703' || error.code === 'PGRST204') return true;
+  const msg = (error.message || error.details || JSON.stringify(error)).toLowerCase();
+  return (msg.includes('column') || msg.includes('relation')) &&
+         (msg.includes('does not exist') || msg.includes('could not find') || msg.includes('not found') || msg.includes('schema cache'));
+}
+
+function showContractToast(message) {
+  if (typeof document === 'undefined') return;
+  let container = document.getElementById('toastContainer');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'toastContainer';
+    container.className = 'toast-container';
+    document.body.appendChild(container);
+  }
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.innerHTML = `
+    <i data-lucide="alert-triangle" style="width:16px; height:16px; color:#b91c1c; flex-shrink:0;"></i>
+    <span>${message}</span>
+  `;
+  container.appendChild(toast);
+  if (window.lucide && typeof window.lucide.createIcons === 'function') {
+    window.lucide.createIcons({ root: toast });
+  }
+  setTimeout(() => {
+    toast.classList.add('fade-out');
+    setTimeout(() => toast.remove(), 250);
+  }, 4000);
+}
+
+async function assignReportToTeam(reportId, teamId, priority, dueDate) {
+  const client = await getSupabase();
+
+  if (!reportId) throw new Error('Report ID is required.');
+  if (!teamId) throw new Error('Please select a team.');
+
+  // Validate team exists
+  console.log('teamId type/value:', typeof teamId, teamId);
+  const { data: teamData, error: teamErr } = await client
+    .from('organizations')
+    .select('id, name')
+    .eq('id', teamId)
+    .maybeSingle();
+
+  if (teamErr) {
+    console.warn('[EarthData] assignReportToTeam team lookup error:', teamErr);
+    throw new Error(teamErr.message || 'Could not verify selected team.');
+  }
+  if (!teamData) {
+    throw new Error('Selected team does not exist.');
+  }
+
+  if (!['High', 'Medium', 'Low'].includes(priority)) {
+    throw new Error('Priority must be High, Medium, or Low.');
+  }
+
+  if (!dueDate) throw new Error('Target due date is required.');
+  const dueDateTime = new Date(dueDate + 'T23:59:59').getTime();
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+  if (isNaN(dueDateTime) || dueDateTime < todayStart.getTime()) {
+    throw new Error('Target due date cannot be in the past.');
+  }
+
+  const updateBody = {
+    organization_id: teamId,
+    assigned_organization_id: teamId,
+    organisation_name: teamData.name,
+    assigned_priority: priority,
+    due_date: dueDate,
+    assigned_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  };
+
+  let { data, error } = await client
+    .from('reports')
+    .update(updateBody)
+    .eq('id', reportId)
+    .select();
+
+  if (error && isMissingColumnError(error)) {
+    console.warn('[EarthData] reports table missing extra columns, falling back to core assignment fields:', error);
+    const fallbackUpdate = {
+      organization_id: teamId,
+      assigned_organization_id: teamId,
+      organisation_name: teamData.name,
+      updated_at: new Date().toISOString()
+    };
+    const res = await client
+      .from('reports')
+      .update(fallbackUpdate)
+      .eq('id', reportId)
+      .select();
+    data = res.data;
+    error = res.error;
+  }
+
+  if (error || !data || data.length === 0) {
+    console.warn('[EarthData] assignReportToTeam error:', error || '0 rows updated');
+    throw new Error(error ? (error.message || error.details || 'Failed to update report.') : 'Report could not be assigned.');
+  }
+
+  return await getReportById(reportId);
+}
+
 async function getAnalytics() {
-  await simulatedDelay();
-  const reports = getStoredReports();
+  const reports = await getReports();
   const total = reports.length;
 
   const statusCounts = {
@@ -1592,23 +2148,20 @@ async function getAnalytics() {
     'Under Review': 0,
     'Verified': 0,
     'Action Initiated': 0,
-    'Resolved': 0
+    'Resolved': 0,
+    'Rejected': 0
   };
 
-  const severityCounts = { High: 0, Medium: 0, Low: 0 };
+  const severityCounts = { High: 0, Medium: 0, Low: 0, Unassessed: 0 };
   const categoryCounts = {};
   const cityCounts = {};
   let totalConfidence = 0;
+  let confidenceCount = 0;
   let verifiedCount = 0;
   let resolvedCount = 0;
   let actionInitiatedCount = 0;
-
-  const monthlyTrends = {
-    'Jun 2026': { total: 0, verified: 0, resolved: 0 },
-    'Jul 2026': { total: 0, verified: 0, resolved: 0 },
-    'Aug 2026': { total: 0, verified: 0, resolved: 0 },
-    'Sep 2026': { total: 0, verified: 0, resolved: 0 }
-  };
+  let totalResolutionTimeMs = 0;
+  let resolvedWithTimesCount = 0;
 
   reports.forEach(r => {
     if (statusCounts[r.status] !== undefined) statusCounts[r.status]++;
@@ -1616,29 +2169,37 @@ async function getAnalytics() {
     if (r.status === 'Resolved') resolvedCount++;
     if (r.status === 'Action Initiated') actionInitiatedCount++;
 
-    if (severityCounts[r.severity] !== undefined) severityCounts[r.severity]++;
+    if (severityCounts[r.severity] !== undefined) {
+      severityCounts[r.severity]++;
+    } else {
+      severityCounts.Unassessed = (severityCounts.Unassessed || 0) + 1;
+    }
+
     categoryCounts[r.category] = (categoryCounts[r.category] || 0) + 1;
     cityCounts[r.city] = (cityCounts[r.city] || 0) + 1;
-    totalConfidence += (r.confidence || 0);
 
-    const d = new Date(r.reportDate);
-    const m = d.getMonth();
-    let monthKey = 'Sep 2026';
-    if (m === 5) monthKey = 'Jun 2026';
-    else if (m === 6) monthKey = 'Jul 2026';
-    else if (m === 7) monthKey = 'Aug 2026';
+    if (r.confidence !== null && r.confidence !== undefined) {
+      totalConfidence += r.confidence;
+      confidenceCount++;
+    }
 
-    if (monthlyTrends[monthKey]) {
-      monthlyTrends[monthKey].total++;
-      if (r.verified) monthlyTrends[monthKey].verified++;
-      if (r.status === 'Resolved') monthlyTrends[monthKey].resolved++;
+    if (r.status === 'Resolved' && r.createdAt && r.updatedAt) {
+      const start = new Date(r.createdAt).getTime();
+      const end = new Date(r.updatedAt).getTime();
+      if (!isNaN(start) && !isNaN(end) && end >= start) {
+        totalResolutionTimeMs += (end - start);
+        resolvedWithTimesCount++;
+      }
     }
   });
 
   const verificationRate = total > 0 ? Math.round((verifiedCount / total) * 100) : 0;
   const resolutionRate = total > 0 ? Math.round((resolvedCount / total) * 100) : 0;
   const actionRate = total > 0 ? Math.round(((resolvedCount + actionInitiatedCount) / total) * 100) : 0;
-  const avgConfidence = total > 0 ? (totalConfidence / total).toFixed(2) : '0.00';
+  const avgConfidence = confidenceCount > 0 ? (totalConfidence / confidenceCount).toFixed(2) : '—';
+  const avgResolutionDays = resolvedWithTimesCount > 0
+    ? (totalResolutionTimeMs / (resolvedWithTimesCount * 24 * 60 * 60 * 1000)).toFixed(1)
+    : 'Not available';
 
   return {
     totalReports: total,
@@ -1654,248 +2215,768 @@ async function getAnalytics() {
     severityCounts,
     categoryCounts,
     cityCounts,
-    monthlyTrends,
-    activeHotspotsCount: 8,
-    avgResolutionDays: 4.6
+    avgResolutionDays
   };
 }
 
-/**
- * API: getHotspots()
- */
-async function getHotspots() {
-  await simulatedDelay();
-  const reports = getStoredReports();
+function getDistanceMeters(lat1, lon1, lat2, lon2) {
+  const R = 6371000;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
 
-  const clusters = [
+const MIN_REPORTS_PER_HOTSPOT = 2;
+
+function shortCentroidHash(lat, lng) {
+  const rLat = Math.round(lat * 100);
+  const rLng = Math.round(lng * 100);
+  let hash = 0;
+  const str = `${rLat},${rLng}`;
+  for (let i = 0; i < str.length; i++) {
+    hash = ((hash << 5) - hash) + str.charCodeAt(i);
+    hash |= 0;
+  }
+  return Math.abs(hash).toString(36).toUpperCase().padStart(4, '0').slice(0, 6);
+}
+
+function buildHotspotObject(meta, nearbyReports) {
+  let riskLevel = 'Unassessed';
+  if (nearbyReports.some(r => r.severity === 'High')) {
+    riskLevel = 'High';
+  } else if (nearbyReports.some(r => r.severity === 'Medium')) {
+    riskLevel = 'Medium';
+  } else if (nearbyReports.some(r => r.severity === 'Low')) {
+    riskLevel = 'Low';
+  }
+
+  const catTally = {};
+  nearbyReports.forEach(r => {
+    catTally[r.category] = (catTally[r.category] || 0) + 1;
+  });
+  let primaryCategory = 'General';
+  let maxCatCount = 0;
+  for (const [cat, count] of Object.entries(catTally)) {
+    if (count > maxCatCount) {
+      maxCatCount = count;
+      primaryCategory = cat;
+    }
+  }
+
+  let bestAiDesc = '';
+  let maxConf = -1;
+  for (const r of nearbyReports) {
+    if (r.aiDescription && (r.confidence || 0) > maxConf) {
+      maxConf = r.confidence || 0;
+      bestAiDesc = r.aiDescription;
+    }
+  }
+
+  const statusTally = {};
+  nearbyReports.forEach(r => {
+    statusTally[r.status] = (statusTally[r.status] || 0) + 1;
+  });
+  const statusSummaryParts = Object.entries(statusTally).map(([st, cnt]) => `${cnt} ${st}`);
+  const interventionStatus = statusSummaryParts.length > 0 ? statusSummaryParts.join(', ') : 'No action recorded';
+
+  const dates = nearbyReports.map(r => new Date(r.reportDate).getTime()).filter(t => !isNaN(t));
+  const firstReportDate = dates.length > 0 ? new Date(Math.min(...dates)).toISOString() : null;
+  const latestReportDate = dates.length > 0 ? new Date(Math.max(...dates)).toISOString() : null;
+
+  const activeInterventionCount = nearbyReports.filter(r =>
+    r.status === 'Under Review' ||
+    r.status === 'Action Initiated' ||
+    r.isAssigned ||
+    (r.organizationId !== null && r.organizationId !== undefined && r.organizationId !== '')
+  ).length;
+
+  return {
+    ...meta,
+    riskLevel,
+    primaryCategory,
+    aiRiskAssessment: bestAiDesc || 'Geospatial convergence of citizen incident observations.',
+    interventionStatus,
+    reportCount: nearbyReports.length,
+    highPriorityCount: nearbyReports.filter(r => r.severity === 'High').length,
+    categoryBreakdown: catTally,
+    firstReportDate,
+    latestReportDate,
+    activeReports: nearbyReports.filter(r => r.status !== 'Resolved').length,
+    resolvedReports: nearbyReports.filter(r => r.status === 'Resolved').length,
+    activeInterventionCount,
+    reportsList: nearbyReports.map(r => ({
+      id: r.id,
+      title: r.title,
+      severity: r.severity,
+      status: r.status,
+      category: r.category,
+      location: r.location,
+      reportDate: r.reportDate,
+      confidence: r.confidence
+    }))
+  };
+}
+
+async function getHotspots() {
+  const allReports = await getReports();
+  // Exclude rejected reports
+  const reports = allReports.filter(r => r.status !== 'Rejected' && r.coordinates && r.coordinates.length >= 2);
+
+  const geographicZones = [
     {
       id: 'HOT-01',
       name: 'Sahibabad & Karhera Industrial Corridor',
       city: 'Ghaziabad',
       coordinates: [28.6758, 77.3828],
-      radiusMeters: 2800,
-      primaryCategory: 'Industrial Emission & Chemical Runoff',
-      riskLevel: 'High',
-      aiRiskAssessment: 'AI-detected suspected recurring industrial discharge. Effluent monitoring and drain intercepts required; high soil and Hindon canal impact.',
-      interventionStatus: 'Active Multi-Agency Monitoring'
+      radiusMeters: 2800
     },
     {
       id: 'HOT-02',
       name: 'Ghazipur Landfill & Anand Vihar Border Basin',
       city: 'Delhi',
       coordinates: [28.6360, 77.3220],
-      radiusMeters: 3200,
-      primaryCategory: 'Air Pollution & Leachate Overflow',
-      riskLevel: 'High',
-      aiRiskAssessment: 'AI-detected suspected issue: high particulate concentration compounded by municipal landfill gas leakage and diesel interstate traffic.',
-      interventionStatus: 'Urgent Remediation Proposed'
+      radiusMeters: 3200
     },
     {
       id: 'HOT-03',
       name: 'Sector 62-63 Noida Commercial & Light Industrial Belt',
       city: 'Noida',
       coordinates: [28.6265, 77.3710],
-      radiusMeters: 2200,
-      primaryCategory: 'Industrial Emission & Waste Burning',
-      riskLevel: 'High',
-      aiRiskAssessment: 'AI-detected suspected issue: localized nocturnal fuel emissions and road dust re-suspension along arterial logistics links.',
-      interventionStatus: 'Field Verification Underway'
+      radiusMeters: 2200
     },
     {
       id: 'HOT-04',
       name: 'Surajpur Wetland & Ecotech Buffer Environs',
       city: 'Greater Noida',
       coordinates: [28.5280, 77.4945],
-      radiusMeters: 2500,
-      primaryCategory: 'Water Pollution & Inert Debris Dumping',
-      riskLevel: 'High',
-      aiRiskAssessment: 'AI-detected suspected issue: encroachment on wildlife sanctuary perimeter by construction debris and industrial washwater.',
-      interventionStatus: 'Protection Team Assigned'
+      radiusMeters: 2500
     },
     {
       id: 'HOT-05',
       name: 'Yamuna Khadar & Okhla Inundation Plains',
       city: 'Delhi / Noida Border',
       coordinates: [28.5300, 77.3100],
-      radiusMeters: 3500,
-      primaryCategory: 'Sewage/Drainage & Debris Dumping',
-      riskLevel: 'High',
-      aiRiskAssessment: 'AI-detected suspected issue: untreated drain outfalls into floodplain sandbanks. Ecological buffer compromised during monsoon surge.',
-      interventionStatus: 'Joint River Action Initiated'
+      radiusMeters: 3500
     },
     {
       id: 'HOT-06',
       name: 'Loni Industrial & Scrap Salvage Fringe',
       city: 'Ghaziabad',
       coordinates: [28.7480, 77.2890],
-      radiusMeters: 2400,
-      primaryCategory: 'Waste Burning & Crop Burning',
-      riskLevel: 'High',
-      aiRiskAssessment: 'AI-detected suspected issue: informal wire incineration and localized agricultural residue burn scars detected by satellite.',
-      interventionStatus: 'Enforcement Coordination Active'
+      radiusMeters: 2400
     },
     {
       id: 'HOT-07',
       name: 'Wazirpur & Jahangirpuri Industrial Pocket',
       city: 'Delhi',
       coordinates: [28.7130, 77.1680],
-      radiusMeters: 2600,
-      primaryCategory: 'Industrial Emission & Garbage Dumping',
-      riskLevel: 'Medium',
-      aiRiskAssessment: 'AI-detected suspected issue: metal plating emissions and transit waste accumulation along northern ring corridor.',
-      interventionStatus: 'Scheduled Auditing'
+      radiusMeters: 2600
     },
     {
       id: 'HOT-08',
       name: 'Greater Noida Alpha-Pari Chowk Junction',
       city: 'Greater Noida',
       coordinates: [28.4730, 77.5115],
-      radiusMeters: 2000,
-      primaryCategory: 'Plastic Waste & Biomass Burning',
-      riskLevel: 'Medium',
-      aiRiskAssessment: 'AI-detected suspected issue: transit commuter litter and park maintenance burnings. Rapid community cleanup feasible.',
-      interventionStatus: 'Community Netting Deployed'
+      radiusMeters: 2000
     }
   ];
 
-  const hotspots = clusters.map(c => {
-    const cLat = c.coordinates[0];
-    const cLng = c.coordinates[1];
-    let related = reports.filter(r => {
-      const dLat = Math.abs(r.coordinates[0] - cLat);
-      const dLng = Math.abs(r.coordinates[1] - cLng);
-      return Math.sqrt(dLat * dLat + dLng * dLng) <= 0.045;
-    });
+  const assignedReportIds = new Set();
+  const zoneReportMap = new Map();
+  geographicZones.forEach(z => zoneReportMap.set(z.id, []));
 
-    if (related.length < 3) {
-      const sortedByDist = [...reports].sort((a, b) => {
-        const da = Math.hypot(a.coordinates[0] - cLat, a.coordinates[1] - cLng);
-        const db = Math.hypot(b.coordinates[0] - cLat, b.coordinates[1] - cLng);
-        return da - db;
-      });
-      related = sortedByDist.slice(0, 3);
+  // Assign each report to nearest existing named zone if within its radius
+  for (const r of reports) {
+    let nearestZone = null;
+    let minDistance = Infinity;
+
+    for (const zone of geographicZones) {
+      const dist = getDistanceMeters(zone.coordinates[0], zone.coordinates[1], r.coordinates[0], r.coordinates[1]);
+      if (dist <= (zone.radiusMeters || 2500) && dist < minDistance) {
+        minDistance = dist;
+        nearestZone = zone;
+      }
     }
 
-    const categoryBreakdown = {};
-    related.forEach(r => {
-      categoryBreakdown[r.category] = (categoryBreakdown[r.category] || 0) + 1;
-    });
-
-    const highPriorityCount = related.filter(r => r.severity === 'High').length;
-    const dates = related.map(r => new Date(r.reportDate).getTime()).filter(t => !isNaN(t));
-    const firstReportDate = dates.length > 0 ? new Date(Math.min(...dates)).toISOString() : null;
-    const latestReportDate = dates.length > 0 ? new Date(Math.max(...dates)).toISOString() : null;
-
-    return {
-      ...c,
-      reportCount: related.length,
-      highPriorityCount,
-      categoryBreakdown,
-      firstReportDate,
-      latestReportDate,
-      activeReports: related.filter(r => r.status !== 'Resolved').length,
-      resolvedReports: related.filter(r => r.status === 'Resolved').length,
-      reportsList: related.map(r => ({
-        id: r.id,
-        title: r.title,
-        severity: r.severity,
-        status: r.status,
-        category: r.category,
-        location: r.location,
-        reportDate: r.reportDate,
-        confidence: r.confidence
-      }))
-    };
-  });
-
-  // Rank locations by report density descending
-  hotspots.sort((a, b) => b.reportCount - a.reportCount || b.highPriorityCount - a.highPriorityCount);
-  return hotspots;
-}
-
-/**
- * API: getOrganizations()
- */
-async function getOrganizations() {
-  await simulatedDelay();
-  return JSON.parse(JSON.stringify(organizations));
-}
-
-/**
- * API: getFieldWorkers()
- */
-async function getFieldWorkers() {
-  await simulatedDelay();
-  return JSON.parse(JSON.stringify(fieldWorkers));
-}
-
-/**
- * API: resetDemoData()
- */
-function resetDemoData() {
-  if (typeof localStorage !== 'undefined') {
-    try {
-      localStorage.removeItem(STORAGE_KEY_REPORTS);
-      localStorage.removeItem(STORAGE_KEY_OVERRIDES);
-    } catch (e) {
-      console.warn('LocalStorage clear warning during resetDemoData:', e);
+    if (nearestZone) {
+      zoneReportMap.get(nearestZone.id).push(r);
+      assignedReportIds.add(r.id);
     }
   }
-  seedStorage();
+
+  const activeHotspots = [];
+
+  // Build named hotspots with at least 1 report
+  for (const zone of geographicZones) {
+    const nearby = zoneReportMap.get(zone.id) || [];
+    if (nearby.length > 0) {
+      activeHotspots.push(buildHotspotObject(zone, nearby));
+    }
+  }
+
+  // Cluster remaining unassigned reports with greedy radius clustering (~2.5 km)
+  const unassignedReports = reports.filter(r => !assignedReportIds.has(r.id));
+  const visited = new Set();
+
+  for (let i = 0; i < unassignedReports.length; i++) {
+    const seed = unassignedReports[i];
+    if (visited.has(seed.id)) continue;
+
+    const cluster = [seed];
+    visited.add(seed.id);
+
+    for (let j = i + 1; j < unassignedReports.length; j++) {
+      const candidate = unassignedReports[j];
+      if (visited.has(candidate.id)) continue;
+
+      const dist = getDistanceMeters(seed.coordinates[0], seed.coordinates[1], candidate.coordinates[0], candidate.coordinates[1]);
+      if (dist <= 2500) {
+        visited.add(candidate.id);
+        cluster.push(candidate);
+      }
+    }
+
+    if (cluster.length >= MIN_REPORTS_PER_HOTSPOT) {
+      const avgLat = cluster.reduce((sum, r) => sum + r.coordinates[0], 0) / cluster.length;
+      const avgLng = cluster.reduce((sum, r) => sum + r.coordinates[1], 0) / cluster.length;
+
+      let maxDist = 0;
+      cluster.forEach(r => {
+        const d = getDistanceMeters(avgLat, avgLng, r.coordinates[0], r.coordinates[1]);
+        if (d > maxDist) maxDist = d;
+      });
+      const radiusMeters = Math.max(1500, Math.round(maxDist + 300));
+
+      // City mode
+      const cityCounts = {};
+      cluster.forEach(r => {
+        if (r.city) cityCounts[r.city] = (cityCounts[r.city] || 0) + 1;
+      });
+      let clusterCity = 'NCR';
+      let maxCityCount = 0;
+      for (const [c, cnt] of Object.entries(cityCounts)) {
+        if (cnt > maxCityCount) {
+          maxCityCount = cnt;
+          clusterCity = c;
+        }
+      }
+
+      // Top category
+      const catCounts = {};
+      cluster.forEach(r => {
+        if (r.category) catCounts[r.category] = (catCounts[r.category] || 0) + 1;
+      });
+      let topCat = 'General';
+      let maxCatCnt = 0;
+      for (const [cat, cnt] of Object.entries(catCounts)) {
+        if (cnt > maxCatCnt) {
+          maxCatCnt = cnt;
+          topCat = cat;
+        }
+      }
+
+      // Most common location text
+      const locCounts = {};
+      cluster.forEach(r => {
+        if (r.location) locCounts[r.location] = (locCounts[r.location] || 0) + 1;
+      });
+      let topLoc = clusterCity;
+      let maxLocCnt = 0;
+      for (const [loc, cnt] of Object.entries(locCounts)) {
+        if (cnt > maxLocCnt) {
+          maxLocCnt = cnt;
+          topLoc = loc;
+        }
+      }
+
+      const clusterId = 'HOT-' + shortCentroidHash(avgLat, avgLng);
+      const clusterName = `${clusterCity} — ${topCat} cluster near ${topLoc}`;
+
+      activeHotspots.push(buildHotspotObject({
+        id: clusterId,
+        name: clusterName,
+        city: clusterCity,
+        coordinates: [Number(avgLat.toFixed(4)), Number(avgLng.toFixed(4))],
+        radiusMeters
+      }, cluster));
+    }
+  }
+
+  activeHotspots.sort((a, b) => b.reportCount - a.reportCount || b.highPriorityCount - a.highPriorityCount);
+  return activeHotspots;
+}
+
+// ----------------------------------------------------------------------------
+// LOCAL TEAM MEMBERS & METADATA STORAGE HELPERS
+// ----------------------------------------------------------------------------
+const STORAGE_TEAM_MEMBERS_KEY = 'earthforward_team_members_v1';
+const STORAGE_TEAM_META_KEY = 'earthforward_team_metadata_v1';
+
+function getLocalTeamMembersMap() {
+  if (typeof localStorage === 'undefined') return {};
+  try {
+    const raw = localStorage.getItem(STORAGE_TEAM_MEMBERS_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch (e) {
+    return {};
+  }
+}
+
+function saveLocalTeamMembers(orgId, memberNames) {
+  if (typeof localStorage === 'undefined' || !orgId) return;
+  try {
+    const map = getLocalTeamMembersMap();
+    map[String(orgId)] = Array.isArray(memberNames) ? memberNames : [];
+    localStorage.setItem(STORAGE_TEAM_MEMBERS_KEY, JSON.stringify(map));
+  } catch (e) {
+    console.warn('[EarthData] Failed to save local team members:', e);
+  }
+}
+
+function getLocalTeamMetaMap() {
+  if (typeof localStorage === 'undefined') return {};
+  try {
+    const raw = localStorage.getItem(STORAGE_TEAM_META_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch (e) {
+    return {};
+  }
+}
+
+function saveLocalTeamMeta(orgId, meta) {
+  if (typeof localStorage === 'undefined' || !orgId) return;
+  try {
+    const map = getLocalTeamMetaMap();
+    map[String(orgId)] = Object.assign({}, map[String(orgId)] || {}, meta);
+    localStorage.setItem(STORAGE_TEAM_META_KEY, JSON.stringify(map));
+  } catch (e) {
+    console.warn('[EarthData] Failed to save local team meta:', e);
+  }
+}
+
+async function getOrganizations() {
+  const client = await getSupabase();
+  const { data, error } = await client
+    .from('organizations')
+    .select('*')
+    .order('created_at', { ascending: true });
+
+  if (error) {
+    console.warn('[EarthData] Error fetching organizations from Supabase:', error);
+    return [];
+  }
+
+  // Fetch team members from team_members table or field_workers table
+  const membersByOrg = {};
+  try {
+    const { data: tmData, error: tmError } = await client
+      .from('team_members')
+      .select('*');
+
+    if (!tmError && Array.isArray(tmData) && tmData.length > 0) {
+      tmData.forEach(row => {
+        const oId = String(row.organization_id || row.organizationId || '');
+        if (oId) {
+          if (!membersByOrg[oId]) membersByOrg[oId] = [];
+          const name = row.member_name || row.memberName || row.name;
+          if (name && !membersByOrg[oId].includes(name)) {
+            membersByOrg[oId].push(name);
+          }
+        }
+      });
+    } else {
+      // Fallback: check field_workers
+      const { data: fwData, error: fwError } = await client
+        .from('field_workers')
+        .select('*');
+
+      if (!fwError && Array.isArray(fwData) && fwData.length > 0) {
+        fwData.forEach(row => {
+          const oId = String(row.organization_id || '');
+          if (oId) {
+            if (!membersByOrg[oId]) membersByOrg[oId] = [];
+            if (row.name && !membersByOrg[oId].includes(row.name)) {
+              membersByOrg[oId].push(row.name);
+            }
+          }
+        });
+      }
+    }
+  } catch (err) {
+    console.warn('[EarthData] Error querying members from database:', err);
+  }
+
+  const localMembersMap = getLocalTeamMembersMap();
+  const localMetaMap = getLocalTeamMetaMap();
+
+  return (data || []).map(row => {
+    const orgId = String(row.id);
+    const localMeta = localMetaMap[orgId] || {};
+    const orgMembers = (membersByOrg[orgId] && membersByOrg[orgId].length > 0)
+      ? membersByOrg[orgId]
+      : (localMembersMap[orgId] || []);
+
+    const teamCode = row.team_code || localMeta.team_code || ('TM-' + orgId.substring(0, 6).toUpperCase());
+    const email = row.email || localMeta.email || null;
+    const memberCount = (orgMembers.length > 0)
+      ? orgMembers.length
+      : ((row.member_count !== null && row.member_count !== undefined) ? Number(row.member_count) : 0);
+
+    return {
+      ...row,
+      id: orgId,
+      team_code: teamCode,
+      teamCode: teamCode,
+      name: row.name || '—',
+      email: email,
+      member_count: memberCount,
+      memberCount: memberCount,
+      members: orgMembers,
+      created_at: row.created_at || null
+    };
+  });
+}
+
+async function createOrganization({ name, email, memberCount, members = [] }) {
+  const client = await getSupabase();
+
+  if (!name || typeof name !== 'string' || name.trim().length < 2 || name.trim().length > 80) {
+    throw new Error('Team name must be between 2 and 80 characters.');
+  }
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!email || !emailRegex.test(String(email).trim())) {
+    throw new Error('Please enter a valid email address.');
+  }
+
+  // Normalize member names list
+  let memberNames = [];
+  if (Array.isArray(members)) {
+    memberNames = members.map(m => String(m || '').trim()).filter(Boolean);
+  }
+
+  let count = memberNames.length > 0 ? memberNames.length : parseInt(memberCount, 10);
+  if (isNaN(count) || count < 1 || count > 10000) {
+    throw new Error('Member count must be a whole number between 1 and 10,000.');
+  }
+
+  // Attempt insert into organizations table
+  const insertBody = {
+    name: name.trim(),
+    email: email.trim(),
+    member_count: count
+  };
+
+  let row = null;
+  const { data, error } = await client
+    .from('organizations')
+    .insert(insertBody)
+    .select()
+    .single();
+
+  if (error) {
+    if (error.code === '23505' || (error.message && error.message.includes('23505')) || (error.message && error.message.toLowerCase().includes('unique'))) {
+      throw new Error('A team with this name already exists.');
+    }
+    // If columns like email or member_count don't exist in organizations table, retry with name only
+    if (isMissingColumnError(error)) {
+      console.warn('[EarthData] organizations table missing extra columns, falling back to name only:', error);
+      const { data: fallbackData, error: fallbackError } = await client
+        .from('organizations')
+        .insert({ name: name.trim() })
+        .select()
+        .single();
+
+      if (fallbackError) {
+        if (fallbackError.code === '23505' || (fallbackError.message && fallbackError.message.includes('23505'))) {
+          throw new Error('A team with this name already exists.');
+        }
+        throw new Error(fallbackError.message || 'Failed to create team.');
+      }
+      row = fallbackData || {};
+    } else {
+      console.warn('[EarthData] createOrganization failed:', error);
+      throw new Error(error.message || 'Failed to create team.');
+    }
+  } else {
+    row = data || {};
+  }
+
+  const createdId = String(row.id);
+  const teamCode = row.team_code || ('TM-' + createdId.substring(0, 6).toUpperCase());
+
+  // Insert individual member rows if provided
+  if (memberNames.length > 0) {
+    let insertedInDb = false;
+
+    // 1. Try team_members table (id, organization_id, member_name)
+    try {
+      const tmRows = memberNames.map(mName => ({
+        organization_id: createdId,
+        member_name: mName
+      }));
+      const { error: tmErr } = await client
+        .from('team_members')
+        .insert(tmRows);
+
+      if (!tmErr) {
+        insertedInDb = true;
+      } else {
+        console.warn('[EarthData] team_members table insert failed, trying field_workers:', tmErr);
+      }
+    } catch (e) {
+      console.warn('[EarthData] Error trying team_members insert:', e);
+    }
+
+    // 2. If team_members failed or does not exist, try field_workers table
+    if (!insertedInDb) {
+      try {
+        const fwRows = memberNames.map(mName => ({
+          organization_id: createdId,
+          name: mName,
+          status: 'active'
+        }));
+        const { error: fwErr } = await client
+          .from('field_workers')
+          .insert(fwRows);
+
+        if (!fwErr) {
+          insertedInDb = true;
+        } else {
+          console.warn('[EarthData] field_workers insert also failed:', fwErr);
+        }
+      } catch (e) {
+        console.warn('[EarthData] Error trying field_workers insert:', e);
+      }
+    }
+
+    // Always persist to local storage cache as well for maximum resilience
+    saveLocalTeamMembers(createdId, memberNames);
+  }
+
+  saveLocalTeamMeta(createdId, {
+    email: email.trim(),
+    team_code: teamCode
+  });
+
+  return {
+    ...row,
+    id: createdId,
+    team_code: teamCode,
+    teamCode: teamCode,
+    name: row.name || name.trim(),
+    email: email.trim(),
+    member_count: memberNames.length > 0 ? memberNames.length : count,
+    memberCount: memberNames.length > 0 ? memberNames.length : count,
+    members: memberNames,
+    created_at: row.created_at || new Date().toISOString()
+  };
+}
+
+function subscribeToChanges({ tables = ['reports', 'organizations'], onChange, onStatus, debounceMs = 500 } = {}) {
+  let debounceTimer = null;
+  let pollInterval = null;
+  let isUnsubscribed = false;
+  let activeChannel = null;
+
+  function notifyChange() {
+    if (isUnsubscribed) return;
+    if (typeof onChange === 'function') {
+      try {
+        onChange();
+      } catch (e) {
+        console.error('[EarthData] Error in subscribeToChanges onChange handler:', e);
+      }
+    }
+  }
+
+  function triggerDebouncedChange() {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => {
+      notifyChange();
+    }, debounceMs);
+  }
+
+  function startPolling() {
+    if (pollInterval || isUnsubscribed) return;
+    if (typeof onStatus === 'function') onStatus('polling');
+    pollInterval = setInterval(() => {
+      notifyChange();
+    }, 30000);
+  }
+
+  function stopPolling() {
+    if (pollInterval) {
+      clearInterval(pollInterval);
+      pollInterval = null;
+    }
+  }
+
+  function handleVisibilityChange() {
+    if (typeof document !== 'undefined' && document.visibilityState === 'visible' && !isUnsubscribed) {
+      notifyChange();
+    }
+  }
+
+  if (typeof document !== 'undefined') {
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+  }
+
+  getSupabase().then(client => {
+    if (isUnsubscribed) return;
+
+    try {
+      const channelName = 'realtime-changes-' + Math.random().toString(36).slice(2, 9);
+      let channel = client.channel(channelName);
+
+      tables.forEach(table => {
+        channel = channel.on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: table },
+          () => {
+            triggerDebouncedChange();
+          }
+        );
+      });
+
+      channel.subscribe((status) => {
+        if (isUnsubscribed) return;
+        if (status === 'SUBSCRIBED') {
+          stopPolling();
+          if (typeof onStatus === 'function') onStatus('live');
+        } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+          console.warn('[EarthData] Realtime channel status:', status, 'Falling back to 30s polling.');
+          startPolling();
+        }
+      });
+
+      activeChannel = channel;
+    } catch (err) {
+      console.warn('[EarthData] Realtime subscription error:', err, 'Falling back to 30s polling.');
+      startPolling();
+    }
+  }).catch(err => {
+    console.warn('[EarthData] Realtime client initialization error:', err);
+    startPolling();
+  });
+
+  function unsubscribe() {
+    isUnsubscribed = true;
+    clearTimeout(debounceTimer);
+    stopPolling();
+    if (typeof document !== 'undefined') {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    }
+    if (activeChannel) {
+      try {
+        getSupabase().then(client => client.removeChannel(activeChannel)).catch(() => {});
+      } catch (e) {}
+      activeChannel = null;
+    }
+  }
+
+  if (typeof window !== 'undefined') {
+    window.addEventListener('pagehide', unsubscribe, { once: true });
+  }
+
+  return unsubscribe;
+}
+
+async function getFieldWorkers() {
+  const client = await getSupabase();
+  const { data, error } = await client.from('field_workers').select('*');
+  if (error) {
+    console.warn('[EarthData] Error fetching field_workers from Supabase:', error);
+    return [];
+  }
+  return data || [];
+}
+
+function resetDemoData() {
+  // Clearing local storage cache without affecting Supabase
+  if (typeof localStorage !== 'undefined') {
+    try {
+      localStorage.removeItem('earthforward_reports_v1');
+      localStorage.removeItem('earthforward_report_overrides_v1');
+    } catch (e) {}
+  }
   return true;
 }
 
-// Auto-seed on load
+// ----------------------------------------------------------------------------
+// GLOBAL EXPOSURES
+// ----------------------------------------------------------------------------
+
 if (typeof window !== 'undefined') {
-  if (typeof localStorage !== 'undefined' && !localStorage.getItem(STORAGE_KEY_REPORTS)) {
-    seedStorage();
-  }
-  // Expose both globally and as a clean namespace
-  window.environmentalReports = environmentalReports;
-  window.organizations = organizations;
-  window.fieldWorkers = fieldWorkers;
   window.getReports = getReports;
   window.getReportById = getReportById;
   window.updateReportStatus = updateReportStatus;
   window.addReportNote = addReportNote;
   window.assignReport = assignReport;
+  window.assignReportToTeam = assignReportToTeam;
   window.getAnalytics = getAnalytics;
   window.getHotspots = getHotspots;
   window.getOrganizations = getOrganizations;
+  window.createOrganization = createOrganization;
+  window.subscribeToChanges = subscribeToChanges;
   window.getFieldWorkers = getFieldWorkers;
   window.resetDemoData = resetDemoData;
+  window.normalizeImage = normalizeImage;
 
   window.EarthData = {
-    environmentalReports,
-    organizations,
-    fieldWorkers,
     getReports,
     getReportById,
     updateReportStatus,
     addReportNote,
     assignReport,
+    assignReportToTeam,
     getAnalytics,
     getHotspots,
     getOrganizations,
+    createOrganization,
+    subscribeToChanges,
     getFieldWorkers,
-    resetDemoData
+    resetDemoData,
+    normalizeImage,
+    signIn,
+    signOut,
+    getSession,
+    requireSession,
+    getLocalSession,
+    setLocalSession,
+    clearLocalSession
   };
 }
 
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
-    environmentalReports,
-    organizations,
-    fieldWorkers,
     getReports,
     getReportById,
     updateReportStatus,
     addReportNote,
     assignReport,
+    assignReportToTeam,
     getAnalytics,
     getHotspots,
     getOrganizations,
+    createOrganization,
+    subscribeToChanges,
     getFieldWorkers,
-    resetDemoData
+    resetDemoData,
+    normalizeImage,
+    signIn,
+    signOut,
+    getSession,
+    requireSession,
+    getLocalSession,
+    setLocalSession,
+    clearLocalSession
   };
 }
+
+
+

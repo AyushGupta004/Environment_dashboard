@@ -377,6 +377,7 @@
   gap: var(--space-6);
   align-items: start;
   margin-bottom: var(--space-8);
+  min-width: 0;
 }
 
 @media (max-width: 1080px) {
@@ -385,8 +386,13 @@
   }
 }
 
+.report-details-content {
+  min-width: 0;
+}
+
 /* Evidence Panel */
 .evidence-panel {
+  min-width: 0;
   background-color: var(--c-white);
   border: 1px solid var(--c-border-light);
   border-radius: var(--radius-lg);
@@ -558,6 +564,7 @@
   border-radius: var(--radius-lg);
   padding: var(--space-5);
   margin-bottom: var(--space-6);
+  min-width: 0;
 }
 
 .workflow-buttons-grid {
@@ -565,6 +572,7 @@
   flex-wrap: wrap;
   gap: var(--space-2);
   margin-top: var(--space-3);
+  min-width: 0;
 }
 
 .btn-stage {
@@ -580,6 +588,8 @@
   gap: 6px;
   transition: all var(--duration-fast) var(--ease-kinetic);
   user-select: none;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .btn-stage:hover {
@@ -588,11 +598,24 @@
   transform: translateY(-1px);
 }
 
-.btn-stage.current-stage {
-  background-color: var(--c-primary);
-  color: var(--c-white);
+.btn-stage.completed-stage {
+  background-color: #eaf5ec;
+  color: var(--c-primary);
+  border-color: var(--c-accent-sage);
+  font-weight: 600;
+}
+
+.btn-stage.completed-stage:hover {
+  background-color: #daf0de;
   border-color: var(--c-primary);
+}
+
+.btn-stage.current-stage {
+  background-color: var(--c-primary) !important;
+  color: var(--c-white) !important;
+  border-color: var(--c-primary) !important;
   font-weight: 700;
+  box-shadow: 0 0 0 2px rgba(49, 92, 58, 0.28);
 }
 
 .btn-stage.btn-reject {
@@ -605,6 +628,14 @@
   color: var(--c-text-primary);
 }
 
+.btn-stage.btn-reject.current-stage {
+  background-color: #b91c1c !important;
+  color: var(--c-white) !important;
+  border-color: #b91c1c !important;
+  font-weight: 700;
+  box-shadow: 0 0 0 2px rgba(185, 28, 28, 0.28);
+}
+
 /* Field Worker Assignment Widget */
 .assignment-card {
   background-color: var(--c-white);
@@ -612,6 +643,7 @@
   border-radius: var(--radius-lg);
   padding: var(--space-5);
   margin-bottom: var(--space-6);
+  min-width: 0;
 }
 
 .assigned-state-badge {
@@ -623,6 +655,29 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.assigned-state-badge > div:first-child {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.assigned-state-badge > div:first-child > div:last-child {
+  min-width: 0;
+}
+
+.assigned-state-badge #assignedWorkerName,
+.assigned-state-badge #assignedWorkerDetails {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.assigned-state-badge #assignedPriorityBadge {
+  flex-shrink: 0;
 }
 
 /* NGO Notes Section */
@@ -672,6 +727,11 @@
   line-height: 1.5;
 }
 
+.timeline-card,
+.notes-card {
+  min-width: 0;
+}
+
 /* Detail Card & Telemetry Sections */
 .detail-card {
   background-color: var(--c-white);
@@ -679,6 +739,7 @@
   border-radius: var(--radius-lg);
   padding: var(--space-5);
   margin-bottom: var(--space-6);
+  min-width: 0;
   transition: transform var(--duration-fast) var(--ease-kinetic), box-shadow var(--duration-fast) var(--ease-kinetic);
 }
 
@@ -695,6 +756,7 @@
   border-bottom: 1px solid var(--c-border-light);
   flex-wrap: wrap;
   gap: var(--space-2);
+  min-width: 0;
 }
 
 .detail-card-title {
@@ -704,17 +766,22 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
+  min-width: 0;
 }
 
 .detail-card-subtitle {
   font-size: var(--text-xs);
   color: var(--c-text-secondary);
+  min-width: 0;
 }
 
 .detail-description-text {
   font-size: var(--text-sm);
   line-height: 1.6;
   color: var(--c-text-primary);
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .ai-telemetry-grid {
@@ -805,6 +872,7 @@
   gap: var(--space-3);
   align-items: end;
   margin-top: var(--space-4);
+  min-width: 0;
 }
 
 @media (max-width: 900px) {
@@ -823,6 +891,7 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
+  min-width: 0;
 }
 
 .assignment-input-group label {
@@ -831,10 +900,15 @@
   color: var(--c-text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.03em;
+  white-space: nowrap;
 }
 
 .assignment-input-group select,
 .assignment-input-group input {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
   padding: 0.5rem 0.75rem;
   font-size: var(--text-xs);
   border: 1px solid var(--c-border-medium);
@@ -843,6 +917,11 @@
   color: var(--c-text-primary);
   outline: none;
   transition: border-color var(--duration-fast) var(--ease-kinetic);
+}
+
+.assignment-form-grid button {
+  flex-shrink: 0;
+  min-width: 0;
 }
 
 .assignment-input-group select:focus,

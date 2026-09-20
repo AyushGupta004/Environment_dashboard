@@ -25,7 +25,7 @@
         <!-- Ethical AI Protocol Notice Banner -->
         <div class="ai-notice-banner">
           <span class="ai-notice-tag">Preferences</span>
-          <span>System configuration parameters for Regional NGO Environmental Intelligence Operations.</span>
+          <span>System configuration parameters for Regional Environmental Intelligence Operations.</span>
         </div>
 
         <!-- Page Header -->
@@ -33,12 +33,8 @@
           <div>
             <div style="display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap;">
               <h1 class="page-title">Platform Settings &amp; Preferences</h1>
-              <span class="demo-data-pill" style="margin-bottom: 0;">
-                <span class="dot"></span>
-                <span>● DEMO DATA</span>
-              </span>
             </div>
-            <p class="page-subtitle">Manage regional telemetry rules, local storage simulation, and alert notification triggers.</p>
+            <p class="page-subtitle">Manage regional telemetry rules, local data preferences, and alert notification triggers.</p>
           </div>
           <div style="display: flex; gap: var(--space-2);">
             <a href="dashboard.html" class="btn btn-outline btn-sm">
@@ -116,7 +112,7 @@
                   <i data-lucide="bell" style="color: var(--c-primary); width: 18px; height: 18px;"></i>
                   <h2 id="notificationHeading" class="card-title" style="margin: 0; font-size: var(--text-md);">Incident Alert Feeds</h2>
                 </div>
-                <span class="badge badge-severity-medium" style="font-size: 11px;">Interactive Mock</span>
+                <span class="badge badge-severity-medium" style="font-size: 11px;">Interactive</span>
               </div>
             </div>
 
@@ -184,19 +180,19 @@
             </div>
           </section>
 
-          <!-- 3. ACTIVE NGO JURISDICTION -->
+          <!-- 3. ACTIVE JURISDICTION -->
           <section class="card" aria-labelledby="jurisdictionHeading">
             <div class="card-header" style="border-bottom: 1px solid var(--c-border-light); padding-bottom: var(--space-3); margin-bottom: var(--space-4);">
               <div style="display: flex; align-items: center; gap: var(--space-2);">
                 <i data-lucide="map-pin" style="color: var(--c-primary); width: 18px; height: 18px;"></i>
-                <h2 id="jurisdictionHeading" class="card-title" style="margin: 0; font-size: var(--text-md);">Regional NGO Jurisdiction</h2>
+                <h2 id="jurisdictionHeading" class="card-title" style="margin: 0; font-size: var(--text-md);">Regional Operational Jurisdiction</h2>
               </div>
             </div>
 
             <div class="card-body">
               <div class="form-group">
-                <label for="inputCoalitionName" class="form-label">Operating Coalition</label>
-                <input type="text" id="inputCoalitionName" class="form-control" value="Delhi-NCR Environmental Defense Coalition" readonly />
+                <label for="inputCoalitionName" class="form-label">Operating Network</label>
+                <input type="text" id="inputCoalitionName" class="form-control" value="Delhi-NCR Environmental Defense Network" readonly />
               </div>
 
               <div class="form-group">
@@ -217,7 +213,7 @@
               <div style="display: flex; align-items: center; justify-content: space-between;">
                 <div style="display: flex; align-items: center; gap: var(--space-2);">
                   <i data-lucide="database" style="color: var(--c-primary); width: 18px; height: 18px;"></i>
-                  <h2 id="dataHeading" class="card-title" style="margin: 0; font-size: var(--text-md);">Telemetry &amp; Demo Persistence</h2>
+                  <h2 id="dataHeading" class="card-title" style="margin: 0; font-size: var(--text-md);">Local Data Preferences</h2>
                 </div>
                 <span class="badge" style="background-color: var(--c-surface-subtle); color: var(--c-primary); font-size: 11px;">
                   LocalStorage Active
@@ -227,7 +223,7 @@
 
             <div class="card-body">
               <p style="font-size: var(--text-xs); color: var(--c-text-secondary); margin-bottom: var(--space-4); line-height: 1.6;">
-                All report status mutations, field worker assignments, and NGO investigator notes are safely persisted in your local browser storage. If you want to return the platform to its pristine demo state, you can reseed the mock data.
+                Report statuses, field worker assignments, and notes are synchronized with Supabase. Resetting clears only local overrides and cached data in this browser, and does not alter data stored in Supabase.
               </p>
 
               <div style="padding: var(--space-3) var(--space-4); background-color: var(--c-surface-subtle); border-radius: var(--radius-md); border: 1px solid var(--c-border-light); margin-bottom: var(--space-4);">
@@ -240,7 +236,7 @@
               <!-- Trigger Confirmation Modal -->
               <button type="button" id="btnOpenResetModal" class="btn btn-secondary" style="color: var(--c-primary); font-weight: 700;">
                 <i data-lucide="rotate-ccw"></i>
-                <span>Reset Demo Data to Original State</span>
+                <span>Reset Local Changes</span>
               </button>
             </div>
           </section>
@@ -257,7 +253,7 @@
       <div class="modal-header">
         <div style="display: flex; align-items: center; gap: var(--space-2);">
           <i data-lucide="alert-triangle" style="color: var(--c-primary); width: 20px; height: 20px;"></i>
-          <h3 id="modalResetTitle" class="modal-title" style="margin: 0; font-size: var(--text-md);">Confirm Demo Data Reset</h3>
+          <h3 id="modalResetTitle" class="modal-title" style="margin: 0; font-size: var(--text-md);">Confirm Reset of Local Changes</h3>
         </div>
         <button type="button" id="btnCloseResetModal" class="btn btn-ghost btn-sm" aria-label="Close dialog">
           <i data-lucide="x"></i>
@@ -266,15 +262,15 @@
       
       <div class="modal-body">
         <p style="font-size: var(--text-xs); color: var(--c-text-primary); line-height: 1.6; margin-bottom: var(--space-3);">
-          Are you sure you want to reset the platform demo data?
+          Are you sure you want to reset your local changes?
         </p>
         <p style="font-size: 11px; color: var(--c-text-secondary); line-height: 1.5; margin-bottom: var(--space-3);">
           This action will:
         </p>
         <ul style="font-size: 11px; color: var(--c-text-secondary); margin-left: var(--space-5); line-height: 1.6; margin-bottom: var(--space-4);">
-          <li>Restore the original 50 citizen reports.</li>
+          <li>Reset reports to baseline state.</li>
           <li>Clear any custom field worker assignments and due dates.</li>
-          <li>Remove all NGO investigation notes added during this session.</li>
+          <li>Remove all internal investigation notes added during this session.</li>
           <li>Reset status transition timelines back to baseline.</li>
         </ul>
         <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--c-primary);">
@@ -298,6 +294,7 @@
   <div id="settingsToast" class="toast" role="status" aria-live="polite">Preferences updated successfully.</div>
 
   <!-- Application Scripts -->
+  <script src="js/config.js"></script>
   <script src="js/data.js"></script>
   <script src="js/app.js"></script>
   <script>
@@ -362,7 +359,7 @@
           if (window.EarthData && typeof window.EarthData.resetDemoData === 'function') {
             window.EarthData.resetDemoData();
             closeModal();
-            showToast('Demo data successfully reseeded to original state.');
+            showToast('Local changes successfully reset.');
             setTimeout(() => {
               location.reload();
             }, 800);

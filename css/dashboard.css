@@ -132,6 +132,46 @@
   width: fit-content;
 }
 
+/* KPI Accent Colors (text/icon/border, no gradients, no card redesign) */
+.kpi-metric-card.kpi-accent-red {
+  border-left: 3px solid #d32f2f;
+}
+.kpi-metric-card.kpi-accent-red .kpi-metric-label {
+  color: #d32f2f;
+}
+
+.kpi-metric-card.kpi-accent-yellow {
+  border-left: 3px solid #f57c00;
+}
+.kpi-metric-card.kpi-accent-yellow .kpi-metric-label {
+  color: #f57c00;
+}
+
+.kpi-metric-card.kpi-accent-green {
+  border-left: 3px solid var(--c-primary);
+}
+.kpi-metric-card.kpi-accent-green .kpi-metric-label {
+  color: var(--c-primary);
+}
+
+/* Dynamic Trend Directions: rising = red, falling = green */
+.kpi-trend.trend-rising {
+  color: #d32f2f;
+  background-color: #ffebee;
+  border-color: #ffcdd2;
+}
+
+.kpi-trend.trend-falling {
+  color: var(--c-primary);
+  background-color: var(--c-surface-subtle);
+  border-color: var(--c-border-light);
+}
+
+.intensity-dot.intensity-unassessed {
+  background-color: transparent;
+  border: 1.5px solid #8FBC8F;
+}
+
 /* Shared Chart Filters Bar */
 .dashboard-filter-bar {
   background-color: var(--c-white);

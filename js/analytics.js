@@ -82,11 +82,14 @@
   };
 
   /**
-   * Number count-up animation helper
+   * Number count-up animation helper (animates from current value)
    */
-  function animateCountUp(element, target, duration = 800, isPercentage = false, suffix = '') {
+  function animateCountUp(element, target, duration = 600, isPercentage = false, suffix = '') {
     if (!element) return;
-    const start = 0;
+    const currentText = element.textContent.replace(/[^0-9.]/g, '');
+    const start = parseFloat(currentText) || 0;
+    if (start === target) return;
+
     const startTime = performance.now();
     const isFloat = String(target).includes('.');
 
@@ -578,7 +581,7 @@
 
         if (dateVal === '30' || dateVal === '60' || dateVal === '90') {
           const days = parseInt(dateVal, 10);
-          const cutoff = new Date('2026-09-18T16:00:00Z').getTime() - (days * 24 * 60 * 60 * 1000);
+          const cutoff = Date.now() - (days * 24 * 60 * 60 * 1000);
           if (d.getTime() < cutoff) return false;
         }
       }
@@ -633,6 +636,33 @@
         if (catSelect) catSelect.value = 'All';
         if (citySelect) citySelect.value = 'All';
         applyGlobalFilters();
+      });
+    }
+
+    // Realtime live subscription
+    if (window.EarthData && typeof window.EarthData.subscribeToChanges === 'function') {
+      window.EarthData.subscribeToChanges({
+        tables: ['reports'],
+        onStatus: (status) => {
+          const pill = document.getElementById('livePill');
+          if (pill) {
+            if (status === 'SUBSCRIBED') {
+              pill.classList.remove('polling');
+              pill.textContent = '● Live';
+            } else if (status === 'POLLING') {
+              pill.classList.add('polling');
+              pill.textContent = '● Live (30s)';
+            }
+          }
+        },
+        onChange: async () => {
+          try {
+            allReports = await window.EarthData.getReports();
+            applyGlobalFilters();
+          } catch (err) {
+            console.warn('Analytics live refresh error:', err);
+          }
+        }
       });
     }
   }

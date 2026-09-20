@@ -31,10 +31,6 @@
               <i data-lucide="hash" style="width: 12px; height: 12px;"></i>
               <span id="displayReportId">Loading...</span>
             </span>
-            <span class="demo-data-pill" style="margin-bottom: 0;">
-              <span class="dot"></span>
-              <span>● DEMO DATA</span>
-            </span>
           </div>
 
           <div style="display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap;">
@@ -69,7 +65,7 @@
           <p class="empty-state-desc">The requested report ID could not be located in local persistence. It may have been cleared or the reference URL is invalid.</p>
           <div style="display: flex; justify-content: center; gap: var(--space-3); margin-top: var(--space-4);">
             <a href="reports.html" class="btn btn-primary btn-sm">Return to Reports Matrix</a>
-            <a href="report-details.html?id=REP-2026-001" class="btn btn-outline btn-sm">View Demo Report (REP-2026-001)</a>
+            <a href="reports.html" class="btn btn-outline btn-sm">View All Reports</a>
           </div>
         </div>
 
@@ -92,19 +88,13 @@
                 </span>
               </div>
 
-              <!-- High-Contrast Visual Representation Box -->
-              <div class="evidence-visual-box" id="evidenceVisualContainer">
-                <div id="evidenceVisualSvg" class="evidence-visual-art">
-                  <!-- Injected by JS -->
+              <!-- Real Report Field Evidence Visual Box -->
+              <div class="evidence-visual-box" id="evidenceVisualContainer" style="min-height: 200px; height: auto; max-height: 320px; display: flex; align-items: center; justify-content: center; background-color: var(--c-surface-subtle); overflow: hidden; border-radius: var(--radius-md); border: 1px solid var(--c-border-medium);">
+                <img id="evidenceReportImg" src="" alt="Environmental incident field evidence" style="max-height: 320px; width: 100%; object-fit: contain; display: none;" />
+                <div id="evidenceImgFallback" style="padding: var(--space-8) var(--space-4); text-align: center; color: var(--c-text-secondary); font-size: var(--text-xs); display: flex; flex-direction: column; align-items: center; gap: 8px;">
+                  <i data-lucide="image-off" style="width: 28px; height: 28px; opacity: 0.5;"></i>
+                  <span>No image available for this report.</span>
                 </div>
-                <div class="evidence-overlay-meta">
-                  <span id="evidenceOverlayCoords">28.6254° N, 77.3789° E</span>
-                  <span id="evidenceOverlaySensor">OPTICAL SENSING</span>
-                </div>
-              </div>
-
-              <div style="font-size: 11px; color: var(--c-text-secondary); text-align: center; font-style: italic; background-color: var(--c-surface-mint); padding: 6px 10px; border-radius: var(--radius-sm); border: 1px dashed var(--c-border-medium);">
-                AI-detected suspected issue &bull; Spectral sensor anomaly awaiting physical verification
               </div>
 
               <!-- Evidence Metadata Table -->
@@ -164,14 +154,14 @@
                     </td>
                   </tr>
                   <tr>
-                    <td>Lead NGO</td>
+                    <td>Assigned Team</td>
                     <td id="metaOrganization" style="font-size: 11px; max-width: 170px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">—</td>
                   </tr>
                 </tbody>
               </table>
 
               <!-- Action button to center on map / locate -->
-              <a href="hotspots.html" class="btn btn-outline btn-sm" style="width: 100%; justify-content: center; margin-top: var(--space-2);">
+              <a id="btnHotspotContext" href="hotspots.html" class="btn btn-outline btn-sm" style="width: 100%; justify-content: center; margin-top: var(--space-2);">
                 <i data-lucide="map-pin"></i>
                 <span>View Regional Hotspot Context &rarr;</span>
               </a>
@@ -221,47 +211,23 @@
                 </div>
               </div>
 
-              <!-- 2. AI Sensor Observations & Telemetry Card -->
+              <!-- 2. AI Observation & Analysis Card -->
               <div class="detail-card">
                 <div class="detail-card-header">
                   <h2 class="detail-card-title">
                     <i data-lucide="cpu" style="width: 16px; height: 16px; color: var(--c-primary);"></i>
-                    <span>AI Sensor Observations &amp; Telemetry Analysis</span>
+                    <span>AI Observation &amp; Analysis</span>
                   </h2>
-                  <span class="badge" style="font-size: 11px;">
-                    <i data-lucide="check-circle" style="width: 12px; height: 12px; color: var(--c-primary);"></i>
-                    Model Run Validated
-                  </span>
                 </div>
 
-                <p class="detail-description-text" id="reportAiObservations" style="background-color: var(--c-surface-subtle); border-left: 3px solid var(--c-primary); padding: var(--space-3) var(--space-4); border-radius: var(--radius-md); font-size: var(--text-xs);">
-                  Loading AI sensor telemetry analysis...
-                </p>
-
-                <div class="ai-telemetry-grid">
-                  <div class="telemetry-item">
-                    <div class="telemetry-label">
-                      <i data-lucide="users" style="width: 12px; height: 12px;"></i>
-                      Estimated Affected Population
-                    </div>
-                    <div class="telemetry-value" id="telemetryPopulation">—</div>
+                <div style="display: flex; flex-direction: column; gap: var(--space-3);">
+                  <div style="display: flex; gap: var(--space-4); flex-wrap: wrap; font-size: var(--text-xs); color: var(--c-text-secondary);">
+                    <span><strong>AI Category:</strong> <span id="aiMetaCategory">—</span></span>
+                    <span><strong>AI Confidence:</strong> <span id="aiMetaConfidence">—</span></span>
                   </div>
-
-                  <div class="telemetry-item">
-                    <div class="telemetry-label">
-                      <i data-lucide="compass" style="width: 12px; height: 12px;"></i>
-                      Dispersion Buffer
-                    </div>
-                    <div class="telemetry-value" id="telemetryRadius">1.8 km Radius</div>
-                  </div>
-
-                  <div class="telemetry-item">
-                    <div class="telemetry-label">
-                      <i data-lucide="eye" style="width: 12px; height: 12px;"></i>
-                      Ground-Truthing Status
-                    </div>
-                    <div class="telemetry-value" id="telemetryGroundTruth">Suspected Anomaly</div>
-                  </div>
+                  <p class="detail-description-text" id="reportAiObservations" style="background-color: var(--c-surface-subtle); border-left: 3px solid var(--c-primary); padding: var(--space-3) var(--space-4); border-radius: var(--radius-md); font-size: var(--text-xs); margin: 0;">
+                    AI analysis not available for this report yet.
+                  </p>
                 </div>
               </div>
 
@@ -311,16 +277,16 @@
                 </div>
               </div>
 
-              <!-- 4. Field Worker Assignment Card -->
+              <!-- 4. Team Assignment Card -->
               <div class="assignment-card">
                 <div class="detail-card-header">
                   <div>
                     <h2 class="detail-card-title">
-                      <i data-lucide="user-plus" style="width: 16px; height: 16px; color: var(--c-primary);"></i>
-                      <span>Field Worker &amp; Specialist Assignment</span>
+                      <i data-lucide="users" style="width: 16px; height: 16px; color: var(--c-primary);"></i>
+                      <span>Team Assignment</span>
                     </h2>
                     <span class="detail-card-subtitle">
-                      Deploy accredited ground investigators to verify spectral anomaly and sample soil/effluents.
+                      Assign an accredited team to inspect this incident.
                     </span>
                   </div>
                 </div>
@@ -329,48 +295,48 @@
                 <div class="assigned-state-badge" id="assignedStateDisplay">
                   <div style="display: flex; align-items: center; gap: var(--space-3);">
                     <div class="category-thumb-wrapper" style="width: 32px; height: 32px;">
-                      <i data-lucide="user" style="width: 16px; height: 16px; color: var(--c-primary);"></i>
+                      <i data-lucide="users" style="width: 16px; height: 16px; color: var(--c-primary);"></i>
                     </div>
                     <div>
                       <div id="assignedWorkerName" style="font-weight: 700; font-size: var(--text-xs); color: var(--c-text-primary);">
                         Unassigned
                       </div>
                       <div id="assignedWorkerDetails" style="font-size: 11px; color: var(--c-text-secondary);">
-                        Field team dispatch pending verification triage
+                        Field team dispatch pending registration of teams
                       </div>
                     </div>
                   </div>
                   <span id="assignedPriorityBadge" class="badge" style="font-size: 10px;">
-                    Medium Priority
+                    Action Pending
                   </span>
                 </div>
 
                 <!-- Assignment Form Grid -->
                 <form id="assignmentForm" class="assignment-form-grid" onsubmit="return false;">
                   <div class="assignment-input-group">
-                    <label for="assignWorkerSelect">Select Field Specialist</label>
-                    <select id="assignWorkerSelect" required>
-                      <option value="">Choose Specialist...</option>
+                    <label for="assignWorkerSelect">Select Team</label>
+                    <select id="assignWorkerSelect" disabled>
+                      <option value="">No teams registered yet.</option>
                     </select>
                   </div>
 
                   <div class="assignment-input-group">
                     <label for="assignPrioritySelect">Priority</label>
-                    <select id="assignPrioritySelect">
-                      <option value="High">High</option>
-                      <option value="Medium" selected>Medium</option>
-                      <option value="Low">Low</option>
+                    <select id="assignPrioritySelect" disabled>
+                      <option value="High">High (Within 48h)</option>
+                      <option value="Medium" selected>Medium (Within 5 days)</option>
+                      <option value="Low">Low (Scheduled Patrol)</option>
                     </select>
                   </div>
 
                   <div class="assignment-input-group">
                     <label for="assignDueDateInput">Target Due Date</label>
-                    <input type="date" id="assignDueDateInput" required />
+                    <input type="date" id="assignDueDateInput" disabled />
                   </div>
 
-                  <button type="submit" class="btn btn-primary btn-sm" id="btnSubmitAssignment" style="height: 38px;">
+                  <button type="submit" class="btn btn-primary btn-sm" id="btnSubmitAssignment" style="height: 38px;" disabled>
                     <i data-lucide="check"></i>
-                    <span>Assign Issue</span>
+                    <span>Assign Team</span>
                   </button>
                 </form>
               </div>
@@ -398,16 +364,16 @@
                 </div>
               </div>
 
-              <!-- 6. NGO Internal Notes & Ground Observations Card -->
+              <!-- 6. Team Internal Notes & Field Observations Card -->
               <div class="notes-card">
                 <div class="detail-card-header">
                   <div>
                     <h2 class="detail-card-title">
                       <i data-lucide="message-square" style="width: 16px; height: 16px; color: var(--c-primary);"></i>
-                      <span>NGO Internal Notes &amp; Field Observations</span>
+                      <span>Team Internal Notes &amp; Field Observations</span>
                     </h2>
                     <span class="detail-card-subtitle">
-                      Ground observations, lab sample values, and inter-agency coordination log.
+                      Ground observations, lab sample values, and verification log.
                     </span>
                   </div>
                   <span class="report-id-pill" style="font-size: 10px;" id="notesCountPill">
@@ -420,12 +386,12 @@
                   <textarea 
                     id="noteTextInput" 
                     class="note-textarea" 
-                    placeholder="Enter internal verification note, sensor calibration detail, or ground agent observation..." 
+                    placeholder="Enter internal verification note, observation, or remediation detail..." 
                     required
                   ></textarea>
                   <div class="note-submit-bar">
                     <span style="font-size: 11px; color: var(--c-text-secondary);">
-                      Notes are stored with author stamp and persisted to local storage.
+                      Internal observations are stored with the report.
                     </span>
                     <button type="submit" class="btn btn-primary btn-sm" id="btnAddNote">
                       <i data-lucide="plus"></i>
@@ -452,6 +418,7 @@
   <div id="toastContainer" class="toast-container" aria-live="polite"></div>
 
   <!-- Core Scripts -->
+  <script src="js/config.js"></script>
   <script src="js/data.js"></script>
   <script src="js/app.js"></script>
   <script src="js/report-details.js"></script>
