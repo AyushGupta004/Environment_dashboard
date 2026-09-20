@@ -1441,6 +1441,30 @@ function sniffMimeType(bytes) {
   return null;
 }
 
+function warnIfLocalhostImageUrl(url) {
+  if (!url || typeof url !== 'string') return;
+  try {
+    const parsed = new URL(url, 'http://dummy.base');
+    const host = (parsed.hostname || '').toLowerCase();
+    const port = parsed.port;
+    if (
+      host === 'localhost' ||
+      host === '127.0.0.1' ||
+      host === '0.0.0.0' ||
+      host === '::1' ||
+      host.startsWith('192.168.') ||
+      host.startsWith('10.') ||
+      ['5533', '5500', '5173', '3000', '4173', '8000', '8080'].includes(port)
+    ) {
+      console.warn(`[EarthData] Resolved image URL references local/dev host: ${url}`);
+    }
+  } catch (e) {
+    if (/localhost|127\.0\.0\.1|192\.168|:(5533|5500|5173|3000|4173|8000|8080)/i.test(url)) {
+      console.warn(`[EarthData] Resolved image URL references local/dev host: ${url}`);
+    }
+  }
+}
+
 function normalizeImage(val, mimeType = null) {
   if (!val) return null;
 
@@ -1456,6 +1480,9 @@ function normalizeImage(val, mimeType = null) {
 
   const str = val.trim();
   if (str.startsWith('http://') || str.startsWith('https://') || str.startsWith('data:image/')) {
+    if (str.startsWith('http://') || str.startsWith('https://')) {
+      warnIfLocalhostImageUrl(str);
+    }
     return str;
   }
 
@@ -1739,6 +1766,7 @@ function mapSupabaseRow(row, imageRow = null, profileMap = null, baseUrl = '', r
       const cleanBase = baseUrl.replace(/\/+$/, '');
       imageUrl = `${cleanBase}/storage/v1/object/public/environmental-reports/${path}`;
     }
+    warnIfLocalhostImageUrl(imageUrl);
   }
 
   // Notes resolving:
