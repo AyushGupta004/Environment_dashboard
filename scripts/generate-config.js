@@ -67,10 +67,9 @@ function getEnvVal(key) {
 
 const supabaseUrl = getEnvVal('SUPABASE_URL');
 const supabaseAnonKey = getEnvVal('SUPABASE_ANON_KEY');
-const supabaseServiceKey = getEnvVal('SUPABASE_SERVICE_KEY');
 const cartoApiKey = getEnvVal('CARTO_API_KEY');
 
-const hasAnyEnvValues = Boolean(supabaseUrl || supabaseAnonKey || supabaseServiceKey || cartoApiKey);
+const hasAnyEnvValues = Boolean(supabaseUrl || supabaseAnonKey || cartoApiKey);
 
 // Local behaviour: if js/config.js already exists and no env/.env values are found,
 // leave it untouched and exit 0, so existing local workflow keeps working.
@@ -79,13 +78,13 @@ if (!hasAnyEnvValues && fs.existsSync(outPath) && !isVercel) {
   process.exit(0);
 }
 
-// Vercel behaviour: if process.env.VERCEL is set and SUPABASE_URL or a Supabase key is missing,
+// Vercel behaviour: if process.env.VERCEL is set and SUPABASE_URL or SUPABASE_ANON_KEY is missing,
 // fail the build with a clear message naming the missing variables.
 if (isVercel) {
   const missing = [];
   if (!supabaseUrl) missing.push('SUPABASE_URL');
-  if (!supabaseAnonKey && !supabaseServiceKey) {
-    missing.push('SUPABASE_ANON_KEY (or SUPABASE_SERVICE_KEY)');
+  if (!supabaseAnonKey) {
+    missing.push('SUPABASE_ANON_KEY');
   }
   if (missing.length > 0) {
     console.error(
@@ -95,17 +94,12 @@ if (isVercel) {
   }
 }
 
-// Build configuration file content
+// Build configuration file content (CLIENT-SAFE ONLY: Never expose service role or secret keys)
 const configLines = [
   `  SUPABASE_URL: ${JSON.stringify(supabaseUrl || '')},`,
-  `  SUPABASE_ANON_KEY: ${JSON.stringify(supabaseAnonKey || '')},`
+  `  SUPABASE_ANON_KEY: ${JSON.stringify(supabaseAnonKey || '')},`,
+  `  CARTO_API_KEY: ${JSON.stringify(cartoApiKey || '')}`
 ];
-
-if (supabaseServiceKey) {
-  configLines.push(`  SUPABASE_SERVICE_KEY: ${JSON.stringify(supabaseServiceKey)},`);
-}
-
-configLines.push(`  CARTO_API_KEY: ${JSON.stringify(cartoApiKey || '')}`);
 
 const fileContent = `/**
  * Prakarti Report — Runtime Configuration

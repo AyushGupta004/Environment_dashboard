@@ -1334,7 +1334,7 @@ async function getSupabase() {
   if (!_supabaseClientPromise) {
     _supabaseClientPromise = (async () => {
       const cfg = await loadConfigScript();
-      if (!cfg || !cfg.SUPABASE_URL || (!cfg.SUPABASE_ANON_KEY && !cfg.SUPABASE_SERVICE_KEY)) {
+      if (!cfg || !cfg.SUPABASE_URL || !cfg.SUPABASE_ANON_KEY) {
         throw new Error('Missing Supabase credentials in js/config.js');
       }
 
@@ -1346,13 +1346,12 @@ async function getSupabase() {
         throw new Error('Supabase client failed to load from CDN');
       }
 
-      const isServiceKey = !!(cfg.SUPABASE_SERVICE_KEY || cfg.SUPABASE_SERVICE_ROLE_KEY);
-      const activeKey = cfg.SUPABASE_SERVICE_KEY || cfg.SUPABASE_SERVICE_ROLE_KEY || cfg.SUPABASE_ANON_KEY;
-      _supabaseClient = window.supabase.createClient(cfg.SUPABASE_URL, activeKey, {
+      // Security requirement: The browser must strictly use ONLY the Supabase anon/publishable key.
+      _supabaseClient = window.supabase.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY, {
         auth: {
-          persistSession: !isServiceKey,
-          autoRefreshToken: !isServiceKey,
-          detectSessionInUrl: !isServiceKey
+          persistSession: true,
+          autoRefreshToken: true,
+          detectSessionInUrl: true
         }
       });
       return _supabaseClient;
@@ -1362,70 +1361,201 @@ async function getSupabase() {
 }
 
 // ----------------------------------------------------------------------------
-// AUTH HELPERS (Awaitable on EarthData)
+// SUPABASE AUTH & ORGANIZATION DATA LAYER
 // ----------------------------------------------------------------------------
 
-function getLocalSession() {
+let _currentOrganization = null;
+
+async function getOrganizationForUser(userId, userMetadata = {}) {
+  if (!userId) return null;
+
   try {
-    const raw = (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('earth_forward_local_session')) ||
-                (typeof localStorage !== 'undefined' && localStorage.getItem('earth_forward_local_session'));
-    if (!raw) return null;
-    const parsed = JSON.parse(raw);
-    if (parsed && parsed.authenticated) {
-      return parsed;
+    const client = await getSupabase();
+    // Query public.organizations where user_id = user.id
+    const { data, error } = await client
+      .from('organizations')
+      .select('*')
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    if (!error && data) {
+      _currentOrganization = data;
+      return data;
     }
-    return null;
   } catch (e) {
-    return null;
+    console.warn('[EarthData] Error fetching organization for user_id:', e);
   }
-}
 
-function setLocalSession(session) {
-  try {
-    const payload = JSON.stringify(session);
-    if (typeof sessionStorage !== 'undefined') sessionStorage.setItem('earth_forward_local_session', payload);
-    if (typeof localStorage !== 'undefined') localStorage.setItem('earth_forward_local_session', payload);
-  } catch (e) {}
-}
+  // Graceful fallback to registration user metadata (set during organization registration)
+  if (userMetadata) {
+    const orgName = userMetadata.organization_name || userMetadata.org_name || userMetadata.full_name || userMetadata.name;
+    if (orgName) {
+      _currentOrganization = {
+        id: 'ORG-' + userId.substring(0, 8).toUpperCase(),
+        name: orgName,
+        email: userMetadata.email || '',
+        lead: userMetadata.full_name || '',
+        memberCount: userMetadata.member_count || userMetadata.memberCount || 1,
+        account_type: userMetadata.account_type || 'organization',
+        is_metadata_fallback: true
+      };
+      return _currentOrganization;
+    }
+  }
 
-function clearLocalSession() {
-  try {
-    if (typeof sessionStorage !== 'undefined') sessionStorage.removeItem('earth_forward_local_session');
-    if (typeof localStorage !== 'undefined') localStorage.removeItem('earth_forward_local_session');
-  } catch (e) {}
+  _currentOrganization = null;
+  return null;
 }
 
 async function signIn(email, password) {
-  const config = (typeof window !== 'undefined' && window.LOCAL_AUTH_CONFIG) || {};
-  const expectedEmail = config.email || 'Sankalp@gmail.com';
-  const expectedPassword = config.password || 'Sankalp123';
-
-  if (email && email.toLowerCase() === expectedEmail.toLowerCase() && password === expectedPassword) {
-    const session = {
-      authenticated: true,
-      email: expectedEmail,
-      role: 'Platform Officer'
-    };
-    setLocalSession(session);
-    return { data: { session }, error: null };
+  if (!email || !password || typeof email !== 'string' || typeof password !== 'string') {
+    return { data: null, error: new Error('Invalid email or password.') };
   }
-  return { data: null, error: new Error('Invalid email or password.') };
+
+  try {
+    const client = await getSupabase();
+    const cleanEmail = email.trim().toLowerCase();
+
+    // Authenticate exclusively via Supabase Auth
+    const { data, error } = await client.auth.signInWithPassword({
+      email: cleanEmail,
+      password: password
+    });
+
+    if (error || !data || !data.user) {
+      return {
+        data: null,
+        error: new Error('Invalid email or password.')
+      };
+    }
+
+    // Retrieve authenticated user
+    const { data: userData } = await client.auth.getUser();
+    const activeUser = userData?.user || data.user;
+
+    // Retrieve organization linked through user_id = user.id
+    const organization = await getOrganizationForUser(activeUser.id, activeUser.user_metadata);
+
+    return {
+      data: {
+        session: data.session,
+        user: activeUser,
+        organization: organization
+      },
+      error: null
+    };
+  } catch (err) {
+    console.error('[EarthData] signIn exception:', err);
+    return {
+      data: null,
+      error: new Error('Invalid email or password.')
+    };
+  }
 }
 
 async function signOut() {
-  clearLocalSession();
-  return { error: null };
+  try {
+    const client = await getSupabase();
+    _currentOrganization = null;
+    const { error } = await client.auth.signOut();
+    return { error: error || null };
+  } catch (err) {
+    console.error('[EarthData] signOut exception:', err);
+    return { error: err };
+  }
 }
 
 async function getSession() {
-  const session = getLocalSession();
-  return { session, data: { session }, error: null };
+  try {
+    const client = await getSupabase();
+    const { data: { session }, error } = await client.auth.getSession();
+
+    if (error || !session || !session.user) {
+      _currentOrganization = null;
+      return {
+        session: null,
+        user: null,
+        organization: null,
+        data: { session: null, user: null, organization: null },
+        error: null
+      };
+    }
+
+    let organization = _currentOrganization;
+    if (!organization) {
+      organization = await getOrganizationForUser(session.user.id, session.user.user_metadata);
+    }
+
+    return {
+      session,
+      user: session.user,
+      organization,
+      data: {
+        session,
+        user: session.user,
+        organization
+      },
+      error: null
+    };
+  } catch (err) {
+    console.warn('[EarthData] getSession error:', err);
+    return {
+      session: null,
+      user: null,
+      organization: null,
+      data: { session: null, user: null, organization: null },
+      error: err
+    };
+  }
 }
 
 async function requireSession() {
-  const session = getLocalSession();
-  return session;
+  const result = await getSession();
+  return result.session;
 }
+
+function onAuthStateChange(callback) {
+  let subscription = null;
+
+  getSupabase().then((client) => {
+    const { data } = client.auth.onAuthStateChange(async (event, session) => {
+      let organization = null;
+      if (session && session.user) {
+        organization = await getOrganizationForUser(session.user.id, session.user.user_metadata);
+      } else {
+        _currentOrganization = null;
+      }
+      if (typeof callback === 'function') {
+        callback(event, session, organization);
+      }
+    });
+    subscription = data?.subscription;
+  }).catch((err) => {
+    console.warn('[EarthData] onAuthStateChange registration failed:', err);
+  });
+
+  return {
+    unsubscribe() {
+      if (subscription && typeof subscription.unsubscribe === 'function') {
+        subscription.unsubscribe();
+      }
+    }
+  };
+}
+
+function getCurrentOrganization() {
+  return _currentOrganization;
+}
+
+// Deprecated stubs preserved only for backwards safety (no-op, no bypass)
+function getLocalSession() {
+  return null;
+}
+
+function setLocalSession() {}
+
+function clearLocalSession() {}
+
 
 
 // ----------------------------------------------------------------------------
@@ -2974,6 +3104,9 @@ if (typeof window !== 'undefined') {
     signOut,
     getSession,
     requireSession,
+    onAuthStateChange,
+    getCurrentOrganization,
+    getOrganizationForUser,
     getLocalSession,
     setLocalSession,
     clearLocalSession
@@ -3000,6 +3133,9 @@ if (typeof module !== 'undefined' && module.exports) {
     signOut,
     getSession,
     requireSession,
+    onAuthStateChange,
+    getCurrentOrganization,
+    getOrganizationForUser,
     getLocalSession,
     setLocalSession,
     clearLocalSession

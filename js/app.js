@@ -231,17 +231,14 @@
       sidebarOverlay.addEventListener('click', closeDrawer);
     }
 
-    // Sign Out Handler
+    // Sign Out Handler (Exclusively Supabase Auth)
     const sidebarSignOutBtn = document.getElementById('sidebarSignOutBtn');
     if (sidebarSignOutBtn) {
-      sidebarSignOutBtn.addEventListener('click', (e) => {
+      sidebarSignOutBtn.addEventListener('click', async (e) => {
         e.preventDefault();
         try {
-          if (window.EarthData && typeof window.EarthData.clearLocalSession === 'function') {
-            window.EarthData.clearLocalSession();
-          } else {
-            if (typeof sessionStorage !== 'undefined') sessionStorage.removeItem('earth_forward_local_session');
-            if (typeof localStorage !== 'undefined') localStorage.removeItem('earth_forward_local_session');
+          if (window.EarthData && typeof window.EarthData.signOut === 'function') {
+            await window.EarthData.signOut();
           }
         } catch (err) {
           console.warn('[EarthApp] Sign out error:', err);
@@ -250,23 +247,50 @@
       });
     }
 
-    // Populate user profile info if local session exists
+    // Populate user profile & organization details from Supabase session
     try {
-      const localSession = (window.EarthData && typeof window.EarthData.getLocalSession === 'function')
-        ? window.EarthData.getLocalSession()
-        : JSON.parse((typeof sessionStorage !== 'undefined' && sessionStorage.getItem('earth_forward_local_session')) ||
-                     (typeof localStorage !== 'undefined' && localStorage.getItem('earth_forward_local_session')) || 'null');
-      if (localSession && localSession.email) {
-        const nameEl = document.getElementById('topbarUserName');
-        if (nameEl) {
-          nameEl.textContent = localSession.email.split('@')[0];
-        }
-        const roleEl = document.getElementById('topbarUserRole');
-        if (roleEl && localSession.role) {
-          roleEl.textContent = localSession.role;
-        }
+      if (window.EarthData && typeof window.EarthData.getSession === 'function') {
+        window.EarthData.getSession().then(({ user, organization }) => {
+          if (!user) return;
+          const orgName = organization?.name || user?.user_metadata?.organization_name || user?.user_metadata?.full_name || (user?.email ? user.email.split('@')[0] : 'Platform Officer');
+          const officerRole = user?.user_metadata?.account_type === 'organization' ? 'Registered Organization' : 'Platform Officer';
+
+          const nameEl = document.getElementById('topbarUserName');
+          if (nameEl) {
+            nameEl.textContent = orgName;
+          }
+          const roleEl = document.getElementById('topbarUserRole');
+          if (roleEl) {
+            roleEl.textContent = officerRole;
+          }
+
+          const avatarEl = document.querySelector('.profile-avatar');
+          if (avatarEl && orgName) {
+            const initials = orgName.split(' ').filter(Boolean).map(w => w[0]).join('').slice(0, 2).toUpperCase();
+            avatarEl.textContent = initials || 'PO';
+          }
+
+          const sidebarFooterStrong = document.querySelector('.sidebar-footer strong');
+          if (sidebarFooterStrong) {
+            sidebarFooterStrong.textContent = orgName;
+          }
+
+          const sidebarFooterRole = document.querySelector('.sidebar-footer div');
+          if (sidebarFooterRole) {
+            sidebarFooterRole.textContent = officerRole;
+          }
+        }).catch(e => console.warn('Failed to load user session for header:', e));
       }
     } catch (e) {}
+
+    // Listen for auth events and redirect if signed out
+    if (window.EarthData && typeof window.EarthData.onAuthStateChange === 'function') {
+      window.EarthData.onAuthStateChange((event, session) => {
+        if (event === 'SIGNED_OUT' || !session) {
+          window.location.href = 'index.html';
+        }
+      });
+    }
 
     // Notifications Dropdown
     const notifBellBtn = document.getElementById('notifBellBtn');
@@ -394,13 +418,14 @@
       return;
     }
 
-    // Auth Guard: Every page except index.html requires an authenticated local session
+    // Auth Guard: Every page except index.html requires an authenticated Supabase session
     try {
-      const session = (window.EarthData && typeof window.EarthData.getLocalSession === 'function')
-        ? window.EarthData.getLocalSession()
-        : JSON.parse((typeof sessionStorage !== 'undefined' && sessionStorage.getItem('earth_forward_local_session')) ||
-                     (typeof localStorage !== 'undefined' && localStorage.getItem('earth_forward_local_session')) || 'null');
-      if (!session || !session.authenticated) {
+      let authSession = null;
+      if (window.EarthData && typeof window.EarthData.getSession === 'function') {
+        const res = await window.EarthData.getSession();
+        authSession = res?.session;
+      }
+      if (!authSession) {
         window.location.href = 'index.html';
         return;
       }

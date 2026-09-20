@@ -1,8 +1,8 @@
 window.EARTHFORWARD_CONFIG = {
   SUPABASE_URL: "https://your-project.supabase.co",
   SUPABASE_ANON_KEY: "your-anon-key",
-  // SECURITY NOTICE: Do NOT include SUPABASE_SERVICE_KEY here.
-  // Service role keys bypass Row Level Security and must only be used in secure backend environments.
+  // SECURITY NOTICE: Do NOT include Supabase secret or service-role keys here.
+  // Service role keys bypass Row Level Security and must NEVER be exposed in client code.
   CARTO_API_KEY: "your-carto-api-key"
 };
 

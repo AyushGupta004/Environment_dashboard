@@ -70,8 +70,8 @@
     </div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.48.1/dist/umd/supabase.min.js"></script>
   <script src="js/config.js"></script>
-  <script src="js/local-auth.js"></script>
   <script src="js/site-config.js"></script>
   <script src="js/data.js"></script>
   <script>
@@ -84,19 +84,26 @@
 
     if (window.lucide) lucide.createIcons();
 
-    // Check if local session already exists
-    document.addEventListener('DOMContentLoaded', () => {
+    // Check if authenticated Supabase session already exists on page load
+    document.addEventListener('DOMContentLoaded', async () => {
       try {
-        const raw = (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('earth_forward_local_session')) ||
-                    (typeof localStorage !== 'undefined' && localStorage.getItem('earth_forward_local_session'));
-        if (raw) {
-          const session = JSON.parse(raw);
-          if (session && session.authenticated) {
+        if (window.EarthData && typeof window.EarthData.getSession === 'function') {
+          const auth = await window.EarthData.getSession();
+          if (auth && auth.session) {
             window.location.href = 'dashboard.html';
             return;
           }
         }
-      } catch (e) {}
+        if (window.EarthData && typeof window.EarthData.onAuthStateChange === 'function') {
+          window.EarthData.onAuthStateChange((event, session) => {
+            if (session && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
+              window.location.href = 'dashboard.html';
+            }
+          });
+        }
+      } catch (e) {
+        console.warn('Session check failed:', e);
+      }
     });
 
     async function handleLogin(e) {
@@ -116,54 +123,37 @@
         errBox.textContent = '';
       }
 
-      if (window.EarthData && typeof window.EarthData.signIn === 'function') {
-        const result = await window.EarthData.signIn(email, password);
-        if (!result.error && result.data && result.data.session) {
-          if (submitBtn) {
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<span>Signing in...</span>';
-          }
-          window.location.href = 'dashboard.html';
-          return;
-        }
-      } else {
-        // Fallback if EarthData is unavailable
-        const config = window.LOCAL_AUTH_CONFIG || {};
-        const expectedEmail = config.email || 'Sankalp@gmail.com';
-        const expectedPassword = config.password || 'Sankalp123';
-
-        if (email.toLowerCase() === expectedEmail.toLowerCase() && password === expectedPassword) {
-          if (submitBtn) {
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<span>Signing in...</span>';
-          }
-
-          const localSession = {
-            authenticated: true,
-            email: expectedEmail,
-            role: 'Platform Officer'
-          };
-
-          try {
-            if (typeof sessionStorage !== 'undefined') {
-              sessionStorage.setItem('earth_forward_local_session', JSON.stringify(localSession));
-            }
-            if (typeof localStorage !== 'undefined') {
-              localStorage.setItem('earth_forward_local_session', JSON.stringify(localSession));
-            }
-          } catch (e) {
-            console.warn('Session storage error:', e);
-          }
-
-          window.location.href = 'dashboard.html';
-          return;
-        }
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span>Signing in...</span>';
       }
 
-      // Incorrect credentials
-      if (errBox) {
-        errBox.textContent = 'Invalid email or password.';
-        errBox.style.display = 'block';
+      try {
+        if (!window.EarthData || typeof window.EarthData.signIn !== 'function') {
+          throw new Error('Authentication service unavailable. Please try again later.');
+        }
+
+        const result = await window.EarthData.signIn(email, password);
+        if (result && !result.error && result.data && result.data.session) {
+          window.location.href = 'dashboard.html';
+          return;
+        }
+
+        if (errBox) {
+          errBox.textContent = (result && result.error && result.error.message) || 'Invalid email or password.';
+          errBox.style.display = 'block';
+        }
+      } catch (err) {
+        if (errBox) {
+          errBox.textContent = err.message || 'Invalid email or password.';
+          errBox.style.display = 'block';
+        }
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '<span>Sign In to Intelligence Suite</span><i data-lucide="arrow-right" style="width:16px; height:16px;"></i>';
+          if (window.lucide) lucide.createIcons();
+        }
       }
     }
   </script>

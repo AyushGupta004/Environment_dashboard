@@ -3,5 +3,3 @@
 !.env.example
 config.js
 js/config.js
-local-auth.js
-js/local-auth.js
