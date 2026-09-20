@@ -1,5 +1,5 @@
 /**
- * EARTH FORWARD — NGO Environmental Intelligence & Action Platform
+ * Prakarti Report — NGO Environmental Intelligence & Action Platform
  * js/map.js — Spatial Intelligence Map & Geospatial Hotspots Controller
  * 
  * Strict Architecture Rule:

@@ -1,5 +1,5 @@
 /**
- * EARTH FORWARD — NGO Environmental Intelligence & Action Platform
+ * Prakarti Report — NGO Environmental Intelligence & Action Platform
  * js/analytics.js — Comprehensive Environmental Analytics & Dynamic Charting Controller
  * 
  * Strict Architecture Rule:

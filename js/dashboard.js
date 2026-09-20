@@ -1,5 +1,5 @@
 /**
- * EARTH FORWARD — NGO Environmental Intelligence & Action Platform
+ * Prakarti Report — NGO Environmental Intelligence & Action Platform
  * js/dashboard.js — Executive Command Center Controller
  * 
  * Strict Architecture Rule:

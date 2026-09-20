@@ -1,5 +1,5 @@
 /**
- * EARTH FORWARD — Site Configuration (Committed, Public Configuration)
+ * Prakarti Report — Site Configuration (Committed, Public Configuration)
  * Holds public deployment URLs and endpoints. Contains NO secret keys.
  */
 (function () {

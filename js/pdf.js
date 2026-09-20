@@ -1,12 +1,12 @@
 /**
- * EARTH FORWARD — NGO Environmental Intelligence & Action Platform
+ * Prakarti Report — NGO Environmental Intelligence & Action Platform
  * js/pdf.js — Professional PDF Generation Engine via jsPDF
  * 
  * Strict Styling & Branding:
  * - White background
  * - Dark-green headings ([49, 92, 58] / #315C3A)
  * - Light-green section dividers ([197, 227, 202] / #C5E3CA)
- * - Earth Forward branding header
+ * - Prakarti Report branding header
  * - Generation date and reference ID
  * - Selected report IDs appendix
  * - Mandatory verification disclaimer
@@ -69,7 +69,7 @@
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(14);
       doc.setTextColor(...COLOR_PRIMARY);
-      doc.text('EARTH FORWARD', margin, yPos);
+      doc.text('PRAKARTI REPORT', margin, yPos);
 
       // Meta Ref on Right
       doc.setFont('helvetica', 'bold');
@@ -129,7 +129,7 @@
     };
 
     renderMemoField('TO:', 'Municipal Environmental Commission & District Task Force');
-    renderMemoField('FROM:', 'Earth Forward Intelligence & Ground-Truthing Desk');
+    renderMemoField('FROM:', 'Prakarti Report Intelligence & Ground-Truthing Desk');
     renderMemoField('SUBJECT:', proposal.subject || 'Intervention Proposal for Environmental Remediation', true);
     renderMemoField('TARGET AREA:', proposal.targetArea || 'NCR Corridor');
     renderMemoField('REPORTING PERIOD:', proposal.reportingPeriod || 'June 2026 – September 2026');
@@ -319,7 +319,7 @@
     }
 
     // Download PDF
-    const filename = `Earth_Forward_Intervention_Proposal_${proposal.referenceId || '2026'}.pdf`;
+    const filename = `Prakarti_Report_Intervention_Proposal_${proposal.referenceId || '2026'}.pdf`;
     doc.save(filename);
   }
 

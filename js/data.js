@@ -1,7 +1,7 @@
 const _dataScriptSrc = (typeof document !== 'undefined' && document.currentScript) ? document.currentScript.src : null;
 
 /**
- * EARTH FORWARD — NGO Environmental Intelligence & Action Platform
+ * Prakarti Report — NGO Environmental Intelligence & Action Platform
  * js/data.js — Core Data Access & Persistence Layer
  *
  * ARCHITECTURE RULE:

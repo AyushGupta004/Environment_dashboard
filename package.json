@@ -1,4 +1,5 @@
 {
+  "name": "prakarti-report",
   "private": true,
   "scripts": {
     "build": "node scripts/generate-config.js",

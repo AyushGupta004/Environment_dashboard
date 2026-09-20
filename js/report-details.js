@@ -1,5 +1,5 @@
 /**
- * EARTH FORWARD — NGO Environmental Intelligence & Action Platform
+ * Prakarti Report — NGO Environmental Intelligence & Action Platform
  * js/report-details.js — In-Depth Incident Dossier, Verification Audit & Dispatch Controller
  * 
  * Strict Architecture Rule:

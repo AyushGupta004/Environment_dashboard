@@ -1,5 +1,5 @@
 /**
- * EARTH FORWARD — NGO Environmental Intelligence & Action Platform
+ * Prakarti Report — NGO Environmental Intelligence & Action Platform
  * js/app.js — Shared Application Shell & Navigation Controller
  *
  * Responsibilities:
@@ -68,7 +68,7 @@
         <a href="dashboard.html" class="brand-wrapper">
           <div class="brand-badge">EF</div>
           <div class="brand-meta">
-            <span class="brand-title">EARTH FORWARD</span>
+            <span class="brand-title">PRAKARTI REPORT</span>
             <span class="brand-sub">Platform Intelligence</span>
           </div>
         </a>
@@ -127,7 +127,7 @@
         </button>
         <div>
           <div style="display:flex; align-items:center; gap:8px;">
-            <span class="topbar-platform-title">Earth Forward</span>
+            <span class="topbar-platform-title">Prakarti Report</span>
           </div>
           <span class="topbar-platform-sub">Environmental Intelligence &amp; Action</span>
         </div>

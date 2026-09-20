@@ -1,5 +1,5 @@
 /**
- * EARTH FORWARD — NGO Environmental Intelligence & Action Platform
+ * Prakarti Report — NGO Environmental Intelligence & Action Platform
  * js/proposal.js — Remediation Action Proposal Builder & Document Synthesis Controller
  * 
  * Strict Architecture Rule:

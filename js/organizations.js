@@ -1,5 +1,5 @@
 /**
- * EARTH FORWARD — NGO Environmental Intelligence & Action Platform
+ * Prakarti Report — NGO Environmental Intelligence & Action Platform
  * js/organizations.js — Accredited Regional Teams & Field Directory Controller
  * 
  * Strict Architecture Rule:

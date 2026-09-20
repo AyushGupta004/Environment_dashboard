@@ -1,5 +1,5 @@
 /**
- * EARTH FORWARD — NGO Environmental Intelligence & Action Platform
+ * Prakarti Report — NGO Environmental Intelligence & Action Platform
  * js/hotspots.js — Environmental Hotspot Clusters & Density Analysis Controller
  * 
  * Strict Architecture Rule:

@@ -108,7 +108,7 @@ if (supabaseServiceKey) {
 configLines.push(`  CARTO_API_KEY: ${JSON.stringify(cartoApiKey || '')}`);
 
 const fileContent = `/**
- * EARTH FORWARD — Runtime Configuration
+ * Prakarti Report — Runtime Configuration
  *
  * WARNING: This file is generated dynamically by scripts/generate-config.js.
  * Do NOT edit manually or commit this file.

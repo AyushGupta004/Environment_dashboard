@@ -1,5 +1,5 @@
 /**
- * EARTH FORWARD — NGO Environmental Intelligence & Action Platform
+ * Prakarti Report — NGO Environmental Intelligence & Action Platform
  * js/impact.js — Environmental Impact, Verification Velocity & Outcomes Controller
  * 
  * Strict Architecture Rule:
