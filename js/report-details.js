@@ -1,8 +1,27 @@
+/**
+ * Prakarti Report — NGO Environmental Intelligence & Action Platform
+ * js/report-details.js — In-Depth Incident Dossier, Verification Audit & Dispatch Controller
+ * 
+ * Strict Architecture Rule:
+ * All data persistence goes through EarthData (js/data.js):
+ * - EarthData.getReportById(id)
+ * - EarthData.updateReportStatus(id, status)
+ * - EarthData.addReportNote(id, noteText, author)
+ * - EarthData.assignReport(id, workerName, priority, dueDate, org)
+ * - EarthData.getFieldWorkers()
+ * 
+ * Strictly adheres to Ethical AI Language:
+ * - "AI-detected suspected issue"
+ * - Never "proves" or "confirms" without ground validation.
+ */
+
 (function () {
   'use strict';
 
+  // Storage key for proposal generation selection
   const STORAGE_BULK_KEY = 'earthforward_selected_reports';
 
+  // State
   let currentReportId = null;
   let currentReport = null;
   let registeredTeams = [];
@@ -17,6 +36,9 @@
       .replace(/'/g, '&#039;');
   }
 
+  /**
+   * Helper: Category Large Evidence SVG Graphics (Monochrome Green Scale Only)
+   */
   function getCategoryEvidenceGraphic(category) {
     const cat = (category || '').toLowerCase();
 
@@ -123,7 +145,7 @@
         </svg>
       `;
     }
-
+    // Plastic waste / packaging default
     return `
       <svg viewBox="0 0 100 100" fill="none" stroke="#315C3A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
         <path d="M36 22h28l8 12v46a4 4 0 0 1-4 4H32a4 4 0 0 1-4-4V34l8-12z" fill="#F0F7F1"/>
@@ -135,6 +157,9 @@
     `;
   }
 
+  /**
+   * Helper: Format Date nicely
+   */
   function formatDate(dateStr, includeTime = true) {
     if (!dateStr) return '—';
     try {
@@ -155,6 +180,9 @@
     }
   }
 
+  /**
+   * Helper: Normalize Status Badge Class
+   */
   function getStatusBadgeClass(status) {
     const s = (status || '').toLowerCase().replace(/\s+/g, '');
     if (s === 'reported') return 'badge-status-reported';
@@ -167,6 +195,9 @@
     return 'badge-status-reported';
   }
 
+  /**
+   * Toast notification feedback
+   */
   function showToast(message, type = 'success') {
     const container = document.getElementById('toastContainer');
     if (!container) return;
@@ -189,6 +220,9 @@
     }, 3200);
   }
 
+  /**
+   * Initialize and Load Report Details
+   */
   async function initReportDetails() {
     const urlParams = new URLSearchParams(window.location.search);
     currentReportId = urlParams.get('id');
@@ -198,7 +232,7 @@
     const content = document.getElementById('detailsContent');
 
     try {
-
+      // 1. Fetch report from EarthData
       if (!currentReportId) {
         const allReports = await window.EarthData.getReports();
         if (allReports && allReports.length > 0) {
@@ -210,6 +244,7 @@
         currentReport = await window.EarthData.getReportById(currentReportId);
       }
 
+      // 2. Fetch teams for assignment dropdown
       try {
         registeredTeams = await window.EarthData.getOrganizations();
       } catch (e) {
@@ -217,6 +252,7 @@
         registeredTeams = [];
       }
 
+      // Update hotspot context link
       const btnHotspotContext = document.getElementById('btnHotspotContext');
       if (btnHotspotContext && currentReportId) {
         btnHotspotContext.href = `hotspots.html?report=${encodeURIComponent(currentReportId)}`;
@@ -230,6 +266,7 @@
         return;
       }
 
+      // Render full UI
       renderEvidencePanel();
       renderReportInformation();
       renderWorkflowControls();
@@ -237,12 +274,15 @@
       renderTimeline();
       renderNotes();
 
+      // Show content
       loadingState.style.display = 'none';
       errorState.style.display = 'none';
       content.style.display = 'block';
 
+      // Attach interaction event listeners
       setupEventListeners();
 
+      // Refresh lucide icons
       if (window.lucide) {
         window.lucide.createIcons();
       }
@@ -255,12 +295,17 @@
     }
   }
 
+  /**
+   * Render Left Column: Evidence Dossier
+   */
   function renderEvidencePanel() {
     const r = currentReport;
 
+    // Header ID pill
     const idDisplay = document.getElementById('displayReportId');
     if (idDisplay) idDisplay.textContent = r.id;
 
+    // Real Report Image or Fallback
     const imgEl = document.getElementById('evidenceReportImg');
     const fallbackEl = document.getElementById('evidenceImgFallback');
     if (imgEl && fallbackEl) {
@@ -278,6 +323,7 @@
       }
     }
 
+    // Verified badge flag
     const verifiedFlag = document.getElementById('evidenceVerifiedFlag');
     if (verifiedFlag) {
       if (r.status === 'Verified') {
@@ -295,6 +341,7 @@
       }
     }
 
+    // Meta attributes
     const setTxt = (id, val) => {
       const el = document.getElementById(id);
       if (el) el.textContent = val || '—';
@@ -312,6 +359,7 @@
 
     setTxt('metaDate', formatDate(r.reportDate, true));
 
+    // Confidence score with visual fill bar (null -> —)
     const confBar = document.getElementById('metaConfidenceBar');
     const confTxt = document.getElementById('metaConfidenceText');
     if (r.confidence !== null && r.confidence !== undefined) {
@@ -323,6 +371,7 @@
       if (confTxt) confTxt.textContent = '—';
     }
 
+    // Severity dot & text (null -> Unassessed)
     const sevDot = document.getElementById('metaSeverityDot');
     const sevTxt = document.getElementById('metaSeverityText');
     const sev = r.severity || 'Unassessed';
@@ -335,8 +384,10 @@
     }
     if (sevTxt) sevTxt.textContent = sev;
 
+    // Current Audit Status Badge
     updateStatusBadgeUI(r.status, false);
 
+    // Organization / Team
     if (r.isAssigned) {
       const codeStr = r.assignedTeamCode ? ` (${r.assignedTeamCode})` : '';
       setTxt('metaOrganization', `${r.assignedTeamName || r.assignedTo || r.organization}${codeStr}`);
@@ -345,6 +396,9 @@
     }
   }
 
+  /**
+   * Update Status Badge with Animation
+   */
   function updateStatusBadgeUI(newStatus, animate = true) {
     const badgeEl = document.getElementById('evidenceStatusBadge');
     const txtEl = document.getElementById('evidenceStatusText');
@@ -355,12 +409,15 @@
 
     if (animate) {
       badgeEl.classList.remove('badge-animate');
-
+      // Trigger reflow for CSS animation restart
       void badgeEl.offsetWidth;
       badgeEl.classList.add('badge-animate');
     }
   }
 
+  /**
+   * Render Right Column: Report Information Details
+   */
   function renderReportInformation() {
     const r = currentReport;
 
@@ -374,8 +431,10 @@
     setTxt('reportHeaderDate', formatDate(r.reportDate, false));
     setTxt('reportHeaderLocation', r.location ? `${r.location}, ${r.city || ''}` : (r.city || '—'));
 
+    // Narrative description
     setTxt('reportDescription', r.description || 'No citizen description recorded.');
 
+    // AI Observation & Analysis card
     const aiCatEl = document.getElementById('aiMetaCategory');
     if (aiCatEl) aiCatEl.textContent = r.aiCategory || r.category || '—';
 
@@ -403,6 +462,9 @@
     'Resolved'
   ];
 
+  /**
+   * Render Workflow Stage Control Buttons
+   */
   function renderWorkflowControls() {
     const container = document.getElementById('workflowButtonsContainer');
     if (!container) return;
@@ -437,6 +499,9 @@
     });
   }
 
+  /**
+   * Render Team Assignment Panel
+   */
   function renderAssignmentPanel() {
     const r = currentReport;
 
@@ -452,7 +517,7 @@
     if (select) {
       if (registeredTeams && registeredTeams.length > 0) {
         select.disabled = false;
-        select.innerHTML = '<option value="">Choose Team...</option>' +
+        select.innerHTML = '<option value="">Choose Team...</option>' + 
           registeredTeams.map(t => {
             const code = t.teamCode || t.team_code || '—';
             const count = t.memberCount !== null && t.memberCount !== undefined ? t.memberCount : (t.member_count || 0);
@@ -529,6 +594,10 @@
     }
   }
 
+  /**
+   * Render Vertical Issue Status Timeline
+   * Green dots + thin connecting line built from report.statusHistory
+   */
   function renderTimeline() {
     const timelineContainer = document.getElementById('verticalIssueTimeline');
     const countBadge = document.getElementById('timelineEventCount');
@@ -548,6 +617,7 @@
       return;
     }
 
+    // Render chronological steps (latest first for intuitive timeline reading)
     const reversedHistory = [...history].reverse();
 
     timelineContainer.innerHTML = reversedHistory.map((item, index) => {
@@ -570,6 +640,9 @@
     }).join('');
   }
 
+  /**
+   * Render NGO Internal Notes List
+   */
   function renderNotes() {
     const listEl = document.getElementById('ngoNotesList');
     const countPill = document.getElementById('notesCountPill');
@@ -603,8 +676,11 @@
     `).join('');
   }
 
+  /**
+   * Event Listeners Setup
+   */
   function setupEventListeners() {
-
+    // 1. Workflow Stage Advancement Buttons
     const workflowButtons = document.querySelectorAll('.btn-stage');
     workflowButtons.forEach(btn => {
       btn.addEventListener('click', async () => {
@@ -615,14 +691,17 @@
           btn.style.opacity = '0.6';
           btn.style.pointerEvents = 'none';
 
+          // Call API in data.js
           const updated = await window.EarthData.updateReportStatus(currentReport.id, newStage);
           currentReport = updated;
 
+          // Reflect UI changes instantly
           updateStatusBadgeUI(newStage, true);
           renderWorkflowControls();
           renderTimeline();
           renderNotes();
 
+          // Update verified flag in evidence panel
           const verifiedFlag = document.getElementById('evidenceVerifiedFlag');
           if (verifiedFlag) {
             if (newStage === 'Verified') {
@@ -651,6 +730,7 @@
       });
     });
 
+    // 2. Team Assignment Form
     const assignmentForm = document.getElementById('assignmentForm');
     if (assignmentForm) {
       assignmentForm.addEventListener('submit', async (e) => {
@@ -687,6 +767,7 @@
           currentReport.assignedPriority = priority;
           currentReport.dueDate = dueDate;
 
+          // Re-render UI
           renderEvidencePanel();
           updateAssignmentBadgeDisplay();
           renderWorkflowControls();
@@ -707,6 +788,7 @@
       });
     }
 
+    // 3. Add NGO Note Form
     const noteForm = document.getElementById('noteForm');
     if (noteForm) {
       noteForm.addEventListener('submit', async (e) => {
@@ -723,12 +805,14 @@
             addBtn.innerHTML = 'Saving...';
           }
 
+          // Persist note via EarthData.addReportNote
           const updated = await window.EarthData.addReportNote(
             currentReport.id,
             text
           );
           currentReport = updated;
 
+          // Clear textarea & refresh list
           textarea.value = '';
           renderNotes();
 
@@ -746,6 +830,7 @@
       });
     }
 
+    // 4. "Draft Action Proposal" button integration
     const proposalBtn = document.getElementById('btnIncludeProposal');
     if (proposalBtn) {
       proposalBtn.addEventListener('click', (e) => {
@@ -766,6 +851,7 @@
     }
   }
 
+  // Self-execute initialization on DOM ready
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initReportDetails);
   } else {
@@ -773,4 +859,3 @@
   }
 
 })();
-
