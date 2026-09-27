@@ -1,5 +1,19 @@
 const _dataScriptSrc = (typeof document !== 'undefined' && document.currentScript) ? document.currentScript.src : null;
 
+/**
+ * Prakarti Report — NGO Environmental Intelligence & Action Platform
+ * js/data.js — Core Data Access & Persistence Layer
+ *
+ * ARCHITECTURE RULE:
+ * All data access goes through async functions in js/data.js:
+ * getReports, getReportById, updateReportStatus, addReportNote,
+ * assignReport, getAnalytics, getHotspots, getOrganizations, getFieldWorkers, resetDemoData.
+ *
+ * Functions return mock data merged with localStorage overlay so swapping
+ * in fetch() calls later requires no UI changes.
+ */
+
+// 1. Mock organizations array (4 NGOs)
 const organizations = [
   {
     id: 'ORG-01',
@@ -75,6 +89,7 @@ const organizations = [
   }
 ];
 
+// 2. Mock fieldWorkers array (5 specialists)
 const fieldWorkers = [
   { id: 'FW-01', name: 'Dr. Radhika Sen', role: 'Senior Environmental Scientist', orgId: 'ORG-01', activeAssignments: 3, zone: 'Yamuna Khadar & Okhla' },
   { id: 'FW-02', name: 'Amitav Sharma', role: 'Field Verification Lead', orgId: 'ORG-02', activeAssignments: 5, zone: 'Sahibabad & Ghaziabad North' },
@@ -83,6 +98,7 @@ const fieldWorkers = [
   { id: 'FW-05', name: 'Meera Nair', role: 'Air Quality & Emissions Analyst', orgId: 'ORG-04', activeAssignments: 2, zone: 'Anand Vihar & Ghazipur' }
 ];
 
+// 3. 50 Realistic Citizen Reports Ingested for NGO Intelligence
 const environmentalReports = [
   {
     id: 'REP-2026-001',
@@ -1254,6 +1270,10 @@ const environmentalReports = [
   }
 ];
 
+// ============================================================================
+// SUPABASE CLIENT & RUNTIME DATA ACCESS LAYER
+// ============================================================================
+
 const SUPABASE_CDN_URL = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.48.1/dist/umd/supabase.min.js';
 
 let _supabaseClientPromise = null;
@@ -1326,6 +1346,7 @@ async function getSupabase() {
         throw new Error('Supabase client failed to load from CDN');
       }
 
+      // Security requirement: The browser must strictly use ONLY the Supabase anon/publishable key.
       _supabaseClient = window.supabase.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY, {
         auth: {
           persistSession: true,
@@ -1339,6 +1360,10 @@ async function getSupabase() {
   return _supabaseClientPromise;
 }
 
+// ----------------------------------------------------------------------------
+// SUPABASE AUTH & ORGANIZATION DATA LAYER
+// ----------------------------------------------------------------------------
+
 let _currentOrganization = null;
 
 async function getOrganizationForUser(userId, userMetadata = {}) {
@@ -1346,7 +1371,7 @@ async function getOrganizationForUser(userId, userMetadata = {}) {
 
   try {
     const client = await getSupabase();
-
+    // Query public.organizations where user_id = user.id
     const { data, error } = await client
       .from('organizations')
       .select('*')
@@ -1361,6 +1386,7 @@ async function getOrganizationForUser(userId, userMetadata = {}) {
     console.warn('[EarthData] Error fetching organization for user_id:', e);
   }
 
+  // Graceful fallback to registration user metadata (set during organization registration)
   if (userMetadata) {
     const orgName = userMetadata.organization_name || userMetadata.org_name || userMetadata.full_name || userMetadata.name;
     if (orgName) {
@@ -1390,6 +1416,7 @@ async function signIn(email, password) {
     const client = await getSupabase();
     const cleanEmail = email.trim().toLowerCase();
 
+    // Authenticate exclusively via Supabase Auth
     const { data, error } = await client.auth.signInWithPassword({
       email: cleanEmail,
       password: password
@@ -1398,13 +1425,15 @@ async function signIn(email, password) {
     if (error || !data || !data.user) {
       return {
         data: null,
-        error: new Error('Invalid email or password.')
+        error: error || new Error('Authentication failed.')
       };
     }
 
+    // Retrieve authenticated user
     const { data: userData } = await client.auth.getUser();
     const activeUser = userData?.user || data.user;
 
+    // Retrieve organization linked through user_id = user.id
     const organization = await getOrganizationForUser(activeUser.id, activeUser.user_metadata);
 
     return {
@@ -1419,7 +1448,7 @@ async function signIn(email, password) {
     console.error('[EarthData] signIn exception:', err);
     return {
       data: null,
-      error: new Error('Invalid email or password.')
+      error: err
     };
   }
 }
@@ -1518,6 +1547,7 @@ function getCurrentOrganization() {
   return _currentOrganization;
 }
 
+// Deprecated stubs preserved only for backwards safety (no-op, no bypass)
 function getLocalSession() {
   return null;
 }
@@ -1525,6 +1555,12 @@ function getLocalSession() {
 function setLocalSession() {}
 
 function clearLocalSession() {}
+
+
+
+// ----------------------------------------------------------------------------
+// IMAGE NORMALIZATION & SNIFFING
+// ----------------------------------------------------------------------------
 
 function sniffMimeType(bytes) {
   if (!bytes || bytes.length < 4) return null;
@@ -1580,6 +1616,7 @@ function normalizeImage(val, mimeType = null) {
     return str;
   }
 
+  // PostgreSQL bytea hex representation: \x89504e... or 0x89504e...
   if (str.startsWith('\\x') || str.startsWith('0x')) {
     const hex = str.slice(2);
     if (hex.length % 2 === 0) {
@@ -1593,6 +1630,7 @@ function normalizeImage(val, mimeType = null) {
     }
   }
 
+  // Raw base64 string without data: header
   if (/^[A-Za-z0-9+/=]+$/.test(str) && str.length > 50) {
     const mime = mimeType || 'image/png';
     return `data:${mime};base64,${str}`;
@@ -1600,6 +1638,10 @@ function normalizeImage(val, mimeType = null) {
 
   return null;
 }
+
+// ----------------------------------------------------------------------------
+// DATA MAPPERS & UTILITIES
+// ----------------------------------------------------------------------------
 
 function isUuid(str) {
   return typeof str === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
@@ -1656,7 +1698,7 @@ function mapSeverity(raw) {
     if (norm === 'medium') return 'Medium';
     if (norm === 'low') return 'Low';
   }
-
+  // NO DEFAULTS: missing/null severity is strictly "Unassessed"
   return 'Unassessed';
 }
 
@@ -1757,7 +1799,7 @@ function generateDefaultTimeline(report) {
     timeline.push({
       status: 'Action Initiated',
       timestamp: new Date(baseTime + 172800000).toISOString(),
-      note: report.assignedTo
+      note: report.assignedTo 
         ? `Remediation dispatched to ${report.assignedTo}.`
         : 'Remediation action initiated.'
     });
@@ -1844,6 +1886,7 @@ function mapSupabaseRow(row, imageRow = null, profileMap = null, baseUrl = '', r
 
   const aiObservations = (typeof row.ai_description === 'string') ? row.ai_description : '';
 
+  // Image resolving:
   let imageUrl = null;
   if (imageRow && imageRow.storage_path) {
     const path = String(imageRow.storage_path).trim();
@@ -1856,6 +1899,7 @@ function mapSupabaseRow(row, imageRow = null, profileMap = null, baseUrl = '', r
     warnIfLocalhostImageUrl(imageUrl);
   }
 
+  // Notes resolving:
   const notes = [];
   if (Array.isArray(rawNotes)) {
     const matched = rawNotes.filter(n => String(n.report_id) === String(row.id));
@@ -1929,6 +1973,10 @@ function mapSupabaseRow(row, imageRow = null, profileMap = null, baseUrl = '', r
   reportObj.statusHistory = generateDefaultTimeline(reportObj);
   return reportObj;
 }
+
+// ----------------------------------------------------------------------------
+// CORE EARTHDATA API METHODS (Exclusively Supabase)
+// ----------------------------------------------------------------------------
 
 async function getReports(filters = {}) {
   const client = await getSupabase();
@@ -2179,6 +2227,7 @@ async function assignReportToTeam(reportId, teamId, priority, dueDate) {
   if (!reportId) throw new Error('Report ID is required.');
   if (!teamId) throw new Error('Please select a team.');
 
+  // Validate team exists
   console.log('teamId type/value:', typeof teamId, teamId);
   const { data: teamData, error: teamErr } = await client
     .from('organizations')
@@ -2432,7 +2481,7 @@ function buildHotspotObject(meta, nearbyReports) {
 
 async function getHotspots() {
   const allReports = await getReports();
-
+  // Exclude rejected reports
   const reports = allReports.filter(r => r.status !== 'Rejected' && r.coordinates && r.coordinates.length >= 2);
 
   const geographicZones = [
@@ -2498,6 +2547,7 @@ async function getHotspots() {
   const zoneReportMap = new Map();
   geographicZones.forEach(z => zoneReportMap.set(z.id, []));
 
+  // Assign each report to nearest existing named zone if within its radius
   for (const r of reports) {
     let nearestZone = null;
     let minDistance = Infinity;
@@ -2518,6 +2568,7 @@ async function getHotspots() {
 
   const activeHotspots = [];
 
+  // Build named hotspots with at least 1 report
   for (const zone of geographicZones) {
     const nearby = zoneReportMap.get(zone.id) || [];
     if (nearby.length > 0) {
@@ -2525,6 +2576,7 @@ async function getHotspots() {
     }
   }
 
+  // Cluster remaining unassigned reports with greedy radius clustering (~2.5 km)
   const unassignedReports = reports.filter(r => !assignedReportIds.has(r.id));
   const visited = new Set();
 
@@ -2557,6 +2609,7 @@ async function getHotspots() {
       });
       const radiusMeters = Math.max(1500, Math.round(maxDist + 300));
 
+      // City mode
       const cityCounts = {};
       cluster.forEach(r => {
         if (r.city) cityCounts[r.city] = (cityCounts[r.city] || 0) + 1;
@@ -2570,6 +2623,7 @@ async function getHotspots() {
         }
       }
 
+      // Top category
       const catCounts = {};
       cluster.forEach(r => {
         if (r.category) catCounts[r.category] = (catCounts[r.category] || 0) + 1;
@@ -2583,6 +2637,7 @@ async function getHotspots() {
         }
       }
 
+      // Most common location text
       const locCounts = {};
       cluster.forEach(r => {
         if (r.location) locCounts[r.location] = (locCounts[r.location] || 0) + 1;
@@ -2613,6 +2668,9 @@ async function getHotspots() {
   return activeHotspots;
 }
 
+// ----------------------------------------------------------------------------
+// LOCAL TEAM MEMBERS & METADATA STORAGE HELPERS
+// ----------------------------------------------------------------------------
 const STORAGE_TEAM_MEMBERS_KEY = 'earthforward_team_members_v1';
 const STORAGE_TEAM_META_KEY = 'earthforward_team_metadata_v1';
 
@@ -2670,6 +2728,7 @@ async function getOrganizations() {
     return [];
   }
 
+  // Fetch team members from team_members table or field_workers table
   const membersByOrg = {};
   try {
     const { data: tmData, error: tmError } = await client
@@ -2688,7 +2747,7 @@ async function getOrganizations() {
         }
       });
     } else {
-
+      // Fallback: check field_workers
       const { data: fwData, error: fwError } = await client
         .from('field_workers')
         .select('*');
@@ -2752,6 +2811,7 @@ async function createOrganization({ name, email, memberCount, members = [] }) {
     throw new Error('Please enter a valid email address.');
   }
 
+  // Normalize member names list
   let memberNames = [];
   if (Array.isArray(members)) {
     memberNames = members.map(m => String(m || '').trim()).filter(Boolean);
@@ -2762,6 +2822,7 @@ async function createOrganization({ name, email, memberCount, members = [] }) {
     throw new Error('Member count must be a whole number between 1 and 10,000.');
   }
 
+  // Attempt insert into organizations table
   const insertBody = {
     name: name.trim(),
     email: email.trim(),
@@ -2779,7 +2840,7 @@ async function createOrganization({ name, email, memberCount, members = [] }) {
     if (error.code === '23505' || (error.message && error.message.includes('23505')) || (error.message && error.message.toLowerCase().includes('unique'))) {
       throw new Error('A team with this name already exists.');
     }
-
+    // If columns like email or member_count don't exist in organizations table, retry with name only
     if (isMissingColumnError(error)) {
       console.warn('[EarthData] organizations table missing extra columns, falling back to name only:', error);
       const { data: fallbackData, error: fallbackError } = await client
@@ -2806,9 +2867,11 @@ async function createOrganization({ name, email, memberCount, members = [] }) {
   const createdId = String(row.id);
   const teamCode = row.team_code || ('TM-' + createdId.substring(0, 6).toUpperCase());
 
+  // Insert individual member rows if provided
   if (memberNames.length > 0) {
     let insertedInDb = false;
 
+    // 1. Try team_members table (id, organization_id, member_name)
     try {
       const tmRows = memberNames.map(mName => ({
         organization_id: createdId,
@@ -2827,6 +2890,7 @@ async function createOrganization({ name, email, memberCount, members = [] }) {
       console.warn('[EarthData] Error trying team_members insert:', e);
     }
 
+    // 2. If team_members failed or does not exist, try field_workers table
     if (!insertedInDb) {
       try {
         const fwRows = memberNames.map(mName => ({
@@ -2848,6 +2912,7 @@ async function createOrganization({ name, email, memberCount, members = [] }) {
       }
     }
 
+    // Always persist to local storage cache as well for maximum resilience
     saveLocalTeamMembers(createdId, memberNames);
   }
 
@@ -2990,7 +3055,7 @@ async function getFieldWorkers() {
 }
 
 function resetDemoData() {
-
+  // Clearing local storage cache without affecting Supabase
   if (typeof localStorage !== 'undefined') {
     try {
       localStorage.removeItem('earthforward_reports_v1');
@@ -2999,6 +3064,10 @@ function resetDemoData() {
   }
   return true;
 }
+
+// ----------------------------------------------------------------------------
+// GLOBAL EXPOSURES
+// ----------------------------------------------------------------------------
 
 if (typeof window !== 'undefined') {
   window.getReports = getReports;
@@ -3072,4 +3141,5 @@ if (typeof module !== 'undefined' && module.exports) {
     clearLocalSession
   };
 }
+
 
